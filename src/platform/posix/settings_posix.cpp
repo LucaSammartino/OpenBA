@@ -3,7 +3,8 @@
 // ============================================================================
 // The POSIX half of src/platform/common/platform_settings.h.
 //
-// DocumentsDir: the per-user data directory, `<home>/.local/share` (the XDG data
+// DocumentsDir: macOS `<home>/Documents` (saves in ~/Documents/Banished/Save, see the
+// body); other POSIX `<home>/.local/share` (the XDG data
 // home's default), with <home> from the password database (getpwuid_r on the real
 // uid), NEVER from an environment variable (CLAUDE.md, D4_RULES C11). GetSaveDirectory
 // then appends "\Banished\Save\" as on Windows.
@@ -18,6 +19,9 @@
 
 #include "platform_settings.h"
 
+#if defined(__APPLE__) && !defined(BANISHED_UNIT_TEST)
+#include "app/options.h"   // Opt().userProfile: the test redirect of DocumentsDir
+#endif
 #include <fcntl.h>
 #include <pwd.h>
 #include <sys/stat.h>
@@ -82,11 +86,33 @@ bool WriteAll(int fd, const char* data, size_t n) {
 namespace Platform {
 
 bool DocumentsDir(std::string& out) {
+#if defined(__APPLE__)
+    // macOS: the user's ~/Documents, so GetSaveDirectory's "%s\Banished\" + "Save" lands in
+    // ~/Documents/Banished/Save: the folder the original game and the Unbanished port use,
+    // and the folder settings.cfg sits beside (IO::SettingsStore::DefaultPath).
+    // <home> is the password database's, never an environment variable. The one redirect
+    // is Opt().userProfile (USERPROFILE, read once at boot, the same switch the Windows
+    // build and tools/resave_gate use): a test run points it at a throwaway folder so it
+    // never touches the real Documents. The unit binary has no Options and takes the
+    // password database's home.
+    std::string home;
+#if !defined(BANISHED_UNIT_TEST)
+    if (Opt().userProfile != nullptr && Opt().userProfile[0] != 0) {
+        home = Opt().userProfile;
+        while (home.size() > 1 && home.back() == '/') home.pop_back();
+    } else
+#endif
+    if (!HomeDir(home))
+        return false;
+    out = home + "/Documents";
+    return true;
+#else
     std::string home;
     if (!HomeDir(home))
         return false;
     out = home + "/.local/share";
     return true;
+#endif
 }
 
 bool DocumentsDir(System::String& out) {

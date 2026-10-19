@@ -64,7 +64,9 @@ std::string U8(const PathChar* w) {
 struct ScratchDir {
     std::string path;
     explicit ScratchDir(const char* parent) {
-        std::string tmpl = std::string(parent) + "/banished_posix_unit_XXXXXX";
+        char absolute[4096];
+        if (realpath(parent, absolute) == nullptr) return;
+        std::string tmpl = std::string(absolute) + "/banished_posix_unit_XXXXXX";
         std::vector<char> buf(tmpl.begin(), tmpl.end());
         buf.push_back('\0');
         if (mkdtemp(buf.data()) != nullptr) path = buf.data();
@@ -120,7 +122,7 @@ std::string EngineSpelling(std::string p) {
 // ---- F.1 -------------------------------------------------------------------------
 
 UNIT_TEST(posix_file_move_refuses_an_existing_destination) {
-    ScratchDir d(P_tmpdir);
+    ScratchDir d(".");
     CHECK(!d.path.empty());
     Touch(d.File("src.bin"), "source");
     Touch(d.File("dst.bin"), "already here");
@@ -134,7 +136,11 @@ UNIT_TEST(posix_file_move_crosses_file_systems) {
     // A save is written in the temp dir and then moved into the save folder, which on
     // Linux is routinely another file system (tmpfs /tmp, /dev/shm, a WSL /mnt/c).
     // rename() fails there with EXDEV where MoveFileW copies: FileMove must copy.
+#if defined(__APPLE__)
+    const char* kOther = "."; // No second writable filesystem in the macOS spike sandbox.
+#else
     const char* kOther = "/dev/shm";
+#endif
     ScratchDir a(kOther), b(".");
     CHECK(!a.path.empty() && !b.path.empty());
     const bool crossDevice = DeviceOf(a.path.c_str()) != DeviceOf(b.path.c_str());
@@ -150,7 +156,7 @@ UNIT_TEST(posix_file_move_crosses_file_systems) {
 // ---- F.2 -------------------------------------------------------------------------
 
 UNIT_TEST(posix_find_first_is_ntfs_ordered_and_case_insensitive) {
-    ScratchDir d(P_tmpdir);
+    ScratchDir d(".");
     CHECK(!d.path.empty());
     // '_' (0x5F) sorts AFTER 'Z' (0x5A) once upper-cased, but before 'b' (0x62) in a
     // case-sensitive byte order: the upcase collation is what NTFS returns.
@@ -199,11 +205,15 @@ namespace {
 size_t g_stackSeen = 0;
 uint32_t g_threadIdSeen = 0;
 unsigned int StackProbe(void*) {
+#if defined(__APPLE__)
+    g_stackSeen = pthread_get_stacksize_np(pthread_self());
+#else
     pthread_attr_t attr;
     if (pthread_getattr_np(pthread_self(), &attr) == 0) {
         pthread_attr_getstacksize(&attr, &g_stackSeen);
         pthread_attr_destroy(&attr);
     }
+#endif
     g_threadIdSeen = Platform::CurrentThreadId();
     return 0;
 }
@@ -244,7 +254,11 @@ UNIT_TEST(posix_documents_dir_is_the_xdg_data_home) {
     std::string dir;
     CHECK(Platform::DocumentsDir(dir));
     CHECK(!dir.empty() && dir[0] == '/');
+#if defined(__APPLE__)
+    const std::string tail = "/Documents";   // macOS: ~/Documents/Banished/Save, as the original game
+#else
     const std::string tail = "/.local/share";
+#endif
     CHECK(dir.size() > tail.size() &&
           dir.compare(dir.size() - tail.size(), tail.size(), tail) == 0);
     System::String s;
@@ -274,7 +288,7 @@ UNIT_TEST(posix_absolute_paths_read_through_filename_stay_absolute) {
     CHECK(ident._data == nullptr);
 
     // The primitives turn the engine spelling back into the absolute host path.
-    ScratchDir d(P_tmpdir);
+    ScratchDir d(".");
     Touch(d.File("probe.txt"), "p");
     const std::u16string engine = U16(EngineSpelling(d.File("probe.txt")));
     CHECK(engine[0] == u'\\');

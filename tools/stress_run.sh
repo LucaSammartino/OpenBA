@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Native macOS stays in the workspace; never deploy into BANISHED_DIR.
+if [ "$(uname -s)" = Darwin ]; then
+    exec python3 "$(dirname "$0")/metal/stress_run.py" "$@"
+fi
 # tools/stress_run.sh -- run the BANISHED_STRESS town to completion and collect the numbers.
 #
 # WHAT IT DOES

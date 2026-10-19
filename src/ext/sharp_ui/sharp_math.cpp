@@ -88,6 +88,11 @@ int PickVariantHeight(int baseHeight, float pxPerUnit) {
     return best;
 }
 
+bool NativePickFitsRatio(int baseHeight, float pxPerUnit) {
+    if (baseHeight <= 0 || !(pxPerUnit > 0.0f)) return false;
+    return std::fabs(static_cast<float>(baseHeight) * pxPerUnit - static_cast<float>(baseHeight)) < 0.5f;
+}
+
 bool VariantFontPath(const char* baseName, int height, char* out, size_t cap) {
     const int n = std::snprintf(out, cap, "Font/Sharp%s_%d.rsc", baseName, height);
     return n > 0 && static_cast<size_t>(n) < cap;

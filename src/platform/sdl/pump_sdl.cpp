@@ -51,6 +51,7 @@
 #include "platform_window.h"
 #include "window_messages.h"
 #include "window_sdl_internal.h"
+#include "mac_keymap.h"
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
@@ -143,6 +144,24 @@ WindowEvent FromSdl(const SDL_Event& ev) {
     return e;
 }
 
+#if defined(__APPLE__)
+// macOS window chord: Control+Command+F toggles native full screen (a Space), the system's
+// own shortcut. Session only: the persistent setting is Options > fullscreen, which
+// Video::Device::AdjustDisplay turns into a borderless window pinned to the monitor. The
+// resize the toggle causes reaches the engine as the usual SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED
+// -> WM_SIZE -> Video::Device::SizeWindow. Returns true when the event was the chord (the
+// game sees no key for it).
+bool HandleWindowChord(const SDL_KeyboardEvent& k) {
+    if (!Input::MacKeys::IsFullscreenChord(k.mod, static_cast<int>(k.scancode), k.repeat))
+        return false;
+    if (SDL_Window* w = Sdl::GameWindow()) {
+        const bool on = (SDL_GetWindowFlags(w) & SDL_WINDOW_FULLSCREEN) != 0;
+        SDL_SetWindowFullscreen(w, !on);
+    }
+    return true;
+}
+#endif
+
 }  // namespace
 
 namespace Sdl {
@@ -206,6 +225,9 @@ bool Pump(Window::MessageHandler handler) {
 #if BANISHED_TWEAK_OVERLAY
         // The toggle key, and while the overlay is open its mouse / keyboard events (the game sees none).
         if (Diag::TweakOverlay::OnSdlEvent(ev)) continue;
+#endif
+#if defined(__APPLE__)
+        if (ev.type == SDL_EVENT_KEY_DOWN && HandleWindowChord(ev.key)) continue;
 #endif
         WindowMessage msgs[kMaxMessagesPerEvent];
         const int n = TranslateWindowEvent(FromSdl(ev), window, msgs);

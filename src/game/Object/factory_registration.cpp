@@ -47,8 +47,13 @@ void WalkExeTypeInfoSection(F&& f) {
 // and the linker defines these two symbols at its first entry and one past its last. Same
 // walk, same skip of a null entry; the markers are the linker's, not two variables of ours
 // (weak: a link with no record at all -- a unit test -- gets two nulls, an empty walk).
+#if defined(__APPLE__)
+extern "C" ::Object::BaseTypeInfo* __start_exe_type_records[] __asm("section$start$__DATA$exe_type_records");
+extern "C" ::Object::BaseTypeInfo* __stop_exe_type_records[] __asm("section$end$__DATA$exe_type_records");
+#else
 extern "C" __attribute__((weak)) ::Object::BaseTypeInfo* __start_exe_type_records[];
 extern "C" __attribute__((weak)) ::Object::BaseTypeInfo* __stop_exe_type_records[];
+#endif
 
 namespace {
 

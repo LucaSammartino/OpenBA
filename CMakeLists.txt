@@ -63,13 +63,25 @@ endif()
 #   -fno-lifetime-dse    : retail dtors null the fields they free and callers rely on it
 #   -fexceptions         : spelled out (ENDGAME B.1 decision 7); no object may be built without it
 set(BANISHED_CXX_FLAGS
-  -fexceptions -fno-strict-aliasing -fno-lifetime-dse
+  -fexceptions -fno-strict-aliasing
   -Wall -Wextra -Wno-cast-function-type -Wno-invalid-offsetof)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(BANISHED_COMPILER_FLAGS -fno-lifetime-dse)
+  list(APPEND BANISHED_CXX_FLAGS ${BANISHED_COMPILER_FLAGS})
+endif()
+if(APPLE)
+  list(APPEND BANISHED_CXX_FLAGS -ffp-contract=off)
+endif()
 # Off Windows, two flags pin what MinGW gives for free (plans/ABI.md C.7): `char` is signed
 # (abi.h asserts it; ARM64 Linux defaults to unsigned) and bit-fields lay out MSVC-style
 # (the tree has none today; abi_audit keeps it that way).
 if(NOT WIN32)
-  set(BANISHED_PORTABLE_FLAGS -fsigned-char -mms-bitfields)
+  set(BANISHED_PORTABLE_FLAGS -fsigned-char)
+  if(NOT APPLE)
+    list(APPEND BANISHED_PORTABLE_FLAGS -mms-bitfields)
+  else()
+    list(APPEND BANISHED_PORTABLE_FLAGS -ffp-contract=off)
+  endif()
   list(APPEND BANISHED_CXX_FLAGS ${BANISHED_PORTABLE_FLAGS})
 endif()
 # (SHELL: keeps each `-include <file>` pair whole: CMake de-duplicates repeated option tokens,
@@ -137,7 +149,23 @@ else()
                                                     ${CMAKE_SOURCE_DIR}/src/platform/common/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/sdl/*.cpp)
 endif()
-file(GLOB_RECURSE RENDER_SRCS   CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/dx11/*.cpp)
+if(APPLE)
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_STANDARD 17)
+  file(GLOB_RECURSE RENDER_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/metal/*.mm)
+  list(APPEND RENDER_SRCS
+    src/render/dx11/foliage_aa/dxbc.cpp src/render/dx11/foliage_aa/cutout_rewrite.cpp
+    src/render/dx11/billboard_shadow/receiver_rewrite.cpp src/render/dx11/billboard_shadow/edge_dither.cpp)
+  add_executable(metal-shader-check EXCLUDE_FROM_ALL tools/metal/shader_check.mm src/render/metal/shaders.mm src/app/options.cpp)
+  target_include_directories(metal-shader-check PRIVATE src src/render/metal src/engine src/platform/common "${CMAKE_SOURCE_DIR}/third_party/dxmt_src/src/airconv")
+  target_compile_options(metal-shader-check PRIVATE -fobjc-arc)
+  target_link_libraries(metal-shader-check PRIVATE "-framework Metal" "-framework Foundation")
+  set_source_files_properties(${RENDER_SRCS} PROPERTIES COMPILE_OPTIONS "-fobjc-arc"
+    INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/third_party/dxmt_src/src/airconv"
+    COMPILE_DEFINITIONS "OPENBA_AIRCONV_PATH=\"${CMAKE_SOURCE_DIR}/third_party/airconv_build/build/libairconv.dylib\"")
+else()
+  file(GLOB_RECURSE RENDER_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/dx11/*.cpp)
+endif()
 file(GLOB         APP_SRCS      CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/app/*.cpp)
 file(GLOB         DIAG_SRCS     CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/diag/*.cpp)
 # src/diag/win: the Windows-only diagnostics (crash / hang handlers, watchdog, sampler,
@@ -179,7 +207,7 @@ foreach(_sdl_opt SDL_SHARED SDL_TEST_LIBRARY SDL_TESTS SDL_EXAMPLES SDL_GPU SDL_
   set(${_sdl_opt} OFF CACHE BOOL "Banished: SDL3 vendored build option" FORCE)
 endforeach()
 set(SDL_STATIC ON CACHE BOOL "Banished: SDL3 vendored build option" FORCE)
-if(NOT WIN32)
+if(NOT WIN32 AND NOT APPLE)
   # The Linux game links SDL3 shared (dxvk-native dlopens libSDL3.so.0; see OpenBA below).
   set(SDL_SHARED ON CACHE BOOL "Banished: SDL3 vendored build option" FORCE)
 endif()
@@ -276,7 +304,7 @@ else()
 # never read by our code (D4_RULES C11). Skipped, with a message, until the fetch has run.
 # ---------------------------------------------------------------------------------------
 set(BANISHED_DXVK_NATIVE ${CMAKE_SOURCE_DIR}/third_party/dxvk-native/3.1.1/usr)
-if(EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
+if(APPLE OR EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
   file(GLOB DIAG_POSIX_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/diag/posix/*.cpp)
   add_executable(OpenBA
     ${GAME_SRCS} ${ENGINE_SRCS} ${PLATFORM_SRCS} ${RENDER_SRCS} ${APP_SRCS} ${DIAG_SRCS}
@@ -285,19 +313,30 @@ if(EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
   set_target_properties(OpenBA PROPERTIES OUTPUT_NAME OpenBA RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
                                               BUILD_RPATH "$ORIGIN")
   target_include_directories(OpenBA PRIVATE ${BANISHED_INCLUDES})
-  set_source_files_properties(${RENDER_SRCS} PROPERTIES
-                              COMPILE_OPTIONS "-isystem;${BANISHED_DXVK_NATIVE}/include/dxvk")
+  if(NOT APPLE)
+    set_source_files_properties(${RENDER_SRCS} PROPERTIES
+                                COMPILE_OPTIONS "-isystem;${BANISHED_DXVK_NATIVE}/include/dxvk")
+  endif()
   target_compile_options(OpenBA PRIVATE ${BANISHED_CXX_FLAGS} ${FLAVOUR_FLAGS})
   # -rdynamic: the exe's own functions in the dynamic symbol table, so the crash and hang
   # dumps (backtrace + dladdr, src/diag/posix) name them.
-  target_link_options(OpenBA PRIVATE ${FLAVOUR_FLAGS} -rdynamic)
+  if(APPLE)
+    target_link_options(OpenBA PRIVATE ${FLAVOUR_FLAGS} -Wl,-export_dynamic)
+  else()
+    target_link_options(OpenBA PRIVATE ${FLAVOUR_FLAGS} -rdynamic)
+  endif()
   find_package(Threads REQUIRED)
   # SDL3 SHARED here, not static: dxvk-native's SDL3 WSI dlopens libSDL3.so.0 and resolves
   # every SDL call through that handle, so it must reach the SAME SDL instance that owns
   # our SDL_Window (a static copy in the exe would be a second SDL with no window). It is
   # built from the same pinned submodule; glibc's dlopen returns the copy the exe already
   # loaded (matched by SONAME).
-  target_link_libraries(OpenBA PRIVATE SDL3::SDL3-shared wmadec freetype_min Threads::Threads ${CMAKE_DL_LIBS})
+  if(APPLE)
+    target_link_libraries(OpenBA PRIVATE SDL3::SDL3-static wmadec freetype_min Threads::Threads ${CMAKE_DL_LIBS} "-framework Metal" "-framework QuartzCore")
+    set_target_properties(OpenBA PROPERTIES BUILD_RPATH "@loader_path")
+  else()
+    target_link_libraries(OpenBA PRIVATE SDL3::SDL3-shared wmadec freetype_min Threads::Threads ${CMAKE_DL_LIBS})
+  endif()
 else()
   message(STATUS "OpenBA (Linux) not configured: run tools/fetch_dxvk_native.sh for the dxvk-native headers")
 endif()
@@ -321,12 +360,14 @@ endif()
 file(GLOB UNIT_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/tests/unit/*.cpp)
 add_executable(unit EXCLUDE_FROM_ALL ${UNIT_SRCS} ${UNIT_TREE_SRCS})
 set_target_properties(unit PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-add_dependencies(OpenBA ext-rsc-text)
+if(TARGET OpenBA)
+  add_dependencies(OpenBA ext-rsc-text)
+endif()
 add_dependencies(unit ext-rsc-text)
 target_include_directories(unit PRIVATE ${BANISHED_INCLUDES} ${CMAKE_SOURCE_DIR}/tests/unit)
 target_compile_options(unit PRIVATE
-  -fexceptions -fno-strict-aliasing -fno-lifetime-dse -Wall -Wextra -Wno-invalid-offsetof
-  -g -O0 -D_DEBUG -DBANISHED_UNIT_TEST ${BANISHED_PORTABLE_FLAGS} ${BANISHED_ONE_WRITE_STDIO})
+  -fexceptions -fno-strict-aliasing -Wall -Wextra -Wno-invalid-offsetof
+  -g -O0 -D_DEBUG -DBANISHED_UNIT_TEST ${BANISHED_COMPILER_FLAGS} ${BANISHED_PORTABLE_FLAGS} ${BANISHED_ONE_WRITE_STDIO})
 if(WIN32)
   target_link_options(unit PRIVATE -static -static-libgcc -static-libstdc++)
   target_link_libraries(unit PRIVATE gdi32)   # font_raster_win.cpp (ext_font_raster_test.cpp)

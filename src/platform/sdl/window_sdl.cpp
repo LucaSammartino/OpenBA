@@ -1,3 +1,4 @@
+#include "app/options.h"
 // ============================================================================
 // src/platform/sdl/window_sdl.cpp -- Platform::Window: the game window over SDL3
 // ============================================================================
@@ -44,6 +45,11 @@
 #include <SDL3/SDL_video.h>
 
 #include <cstdio>
+#include <cstdlib>
+#include <SDL3/SDL_hints.h>
+#if defined(__APPLE__)
+extern "C" void OpenBAConfigureBackgroundWindow(SDL_Window*);
+#endif
 #include <string>
 
 namespace Platform {
@@ -62,8 +68,25 @@ bool VideoAvailable() {
 }
 
 void* Create(const char* title, int32_t width, int32_t height) {
+#if defined(__APPLE__)
+    if (Opt().background) {
+        SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, "0");
+        OpenBAConfigureBackgroundWindow(nullptr);
+        width = 640; height = 360;
+    }
+#endif
+    if (Opt().windowWidth > 0) width = Opt().windowWidth;
+    if (Opt().windowHeight > 0) height = Opt().windowHeight;
     SDL_Window* w = SDL_CreateWindow(title, width, height,
-                                     SDL_WINDOW_HIDDEN | SDL_WINDOW_VULKAN);
+                                     SDL_WINDOW_HIDDEN |
+#if defined(__APPLE__)
+                                     SDL_WINDOW_METAL | (Opt().nativeRetina ? SDL_WINDOW_HIGH_PIXEL_DENSITY : 0)
+#else
+                                     SDL_WINDOW_VULKAN
+#endif
+                                     );
     if (w == nullptr) {
         std::fprintf(stderr, "[SDL] SDL_CreateWindow failed: %s\n", SDL_GetError());
         return nullptr;
@@ -149,7 +172,12 @@ bool IsVisible(void* /*window*/) {
 
 void ShowDefault(void* /*window*/) {
     // ShowWindow on a handle that is not a window fails and does nothing; so does this.
-    if (SDL_Window* w = Sdl::GameWindow()) SDL_ShowWindow(w);
+    if (SDL_Window* w = Sdl::GameWindow()) {
+        SDL_ShowWindow(w);
+#if defined(__APPLE__)
+        OpenBAConfigureBackgroundWindow(w);
+#endif
+    }
 }
 
 int64_t DefaultWindowProc(void* /*window*/, uint32_t /*message*/, uint64_t /*wParam*/,

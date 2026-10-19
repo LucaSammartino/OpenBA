@@ -1,3 +1,4 @@
+#if !defined(__APPLE__)
 // src/diag/posix/boot_state_watchdog_posix.cpp
 // The POSIX twin of src/diag/win/boot_state_watchdog.cpp (Phase D.4 LINUX-1; D4_RULES
 // C10). Read the Windows file's banner for WHY the boot state exists; this file
@@ -338,3 +339,5 @@ extern "C" void BootState_MarkFrame() {
 extern "C" void BootState_MarkQuitting() {
     BootState::g_quitting.store(1);
 }
+
+#endif

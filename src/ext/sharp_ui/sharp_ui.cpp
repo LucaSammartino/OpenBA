@@ -138,6 +138,13 @@ void SelectFont(int k, float pxPerUnit) {
     // corners snapped, which at 99 % stretched a 13-texel glyph into 13 or 14
     // pixels (SHARP-SPACING.md).
     UI::Font* variant = base;
+    if (pick == height && !NativePickFitsRatio(height, pxPerUnit)) {
+        // Ratio outside the compiled range (Retina 2x): swapping the font for
+        // itself would draw base-size glyphs one texel per device pixel, half
+        // size and letter-spaced. Keep retail's scaled quads.
+        std::snprintf(text, 32, "%s->retail(range)", kFontNames[k]);
+        return;
+    }
     if (pick != height) {
         // A variant exists when it is deployed loose OR a resource provider
         // builds it in the exe (KITFREE: Ext::Resources::InitFonts).

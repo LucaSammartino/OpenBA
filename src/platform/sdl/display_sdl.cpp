@@ -1,3 +1,4 @@
+#include "app/options.h"
 // ============================================================================
 // src/platform/sdl/display_sdl.cpp -- Platform::Window geometry and displays over SDL3
 // ============================================================================
@@ -44,12 +45,31 @@ constexpr uint32_t kShowMaximized = 3;   // SW_SHOWMAXIMIZED
 
 void Zero(Rect* r) { std::memset(r, 0, sizeof(*r)); }
 
-Rect FromSdl(const SDL_Rect& s) {
+// COORDINATE UNITS. SDL positions and sizes windows and displays in POINTS; the engine
+// works in PIXELS (the back buffer is GetWindowSizeInPixels). On macOS with a Retina
+// window (SDL_WINDOW_HIGH_PIXEL_DENSITY, OPENBA_NATIVE_RETINA) the two differ by the
+// window's pixel density. Every coordinate that crosses this seam is therefore converted:
+// SDL values * density going out to the engine, engine values / density going into SDL.
+// Density is 1.0 on every non-Apple host and on a window without the high-density flag, so
+// everything below is the identity there (display_geometry.h: PointsToPixels...).
+float Density(SDL_Window* w) {
+#if defined(__APPLE__)
+    if (w != nullptr) {
+        const float d = SDL_GetWindowPixelDensity(w);
+        if (d > 0.0f) return d;
+    }
+#else
+    (void)w;
+#endif
+    return 1.0f;
+}
+
+Rect FromSdl(const SDL_Rect& s, float density) {
     Rect r;
-    r.left   = s.x;
-    r.top    = s.y;
-    r.right  = s.x + s.w;
-    r.bottom = s.y + s.h;
+    r.left   = PointsToPixels(static_cast<float>(s.x), density);
+    r.top    = PointsToPixels(static_cast<float>(s.y), density);
+    r.right  = PointsToPixels(static_cast<float>(s.x + s.w), density);
+    r.bottom = PointsToPixels(static_cast<float>(s.y + s.h), density);
     return r;
 }
 
@@ -70,6 +90,16 @@ FrameBorders CurrentFrame(SDL_Window* w) {
     }
     if (g_haveFrame[framed]) return g_frame[framed];
     return FrameBorders{0, 0, 0, 0};
+}
+
+// The frame in engine pixels (SDL measures it in points).
+FrameBorders CurrentFramePixels(SDL_Window* w) {
+    const FrameBorders f = CurrentFrame(w);
+    const float d = Density(w);
+    return FrameBorders{PointsToPixels(static_cast<float>(f.top), d),
+                        PointsToPixels(static_cast<float>(f.left), d),
+                        PointsToPixels(static_cast<float>(f.bottom), d),
+                        PointsToPixels(static_cast<float>(f.right), d)};
 }
 
 }  // namespace
@@ -96,11 +126,12 @@ void GetWindowRect(void* /*window*/, Rect* out) {
     int x = 0, y = 0, cw = 0, ch = 0;
     SDL_GetWindowPosition(w, &x, &y);
     SDL_GetWindowSizeInPixels(w, &cw, &ch);
-    out->left   = x;
-    out->top    = y;
-    out->right  = x + cw;
-    out->bottom = y + ch;
-    ClientRectToOuter(out, CurrentFrame(w));
+    const float d = Density(w);
+    out->left   = PointsToPixels(static_cast<float>(x), d);
+    out->top    = PointsToPixels(static_cast<float>(y), d);
+    out->right  = out->left + cw;
+    out->bottom = out->top + ch;
+    ClientRectToOuter(out, CurrentFramePixels(w));
 }
 
 // ClientToScreen: SDL's window position IS the client area's screen origin.
@@ -109,8 +140,11 @@ void ClientToScreen(void* /*window*/, Point* inOut) {
     if (w == nullptr) return;
     int x = 0, y = 0;
     SDL_GetWindowPosition(w, &x, &y);
-    inOut->x += x;
-    inOut->y += y;
+    // The client point arrives in pixels, the window origin is in points: the result is in
+    // pixels (the engine's screen unit; see the banner above).
+    const float d = Density(w);
+    inOut->x += PointsToPixels(static_cast<float>(x), d);
+    inOut->y += PointsToPixels(static_cast<float>(y), d);
 }
 
 uint32_t GetShowCmd(void* /*window*/) {
@@ -158,9 +192,36 @@ void SetWindowPos(void* /*window*/, ZOrder insertAfter, int32_t x, int32_t y,
                   int32_t width, int32_t height, uint32_t /*flags*/) {
     SDL_Window* w = Sdl::GameWindow();
     if (w == nullptr) return;
+#if defined(__APPLE__)
+    if (Opt().background || Opt().windowWidth > 0 || Opt().windowHeight > 0) {
+        SDL_SetWindowPosition(w,8,32);SDL_SetWindowSize(w,Opt().windowWidth > 0 ? Opt().windowWidth : 640,Opt().windowHeight > 0 ? Opt().windowHeight : 360);SDL_SyncWindow(w);return;
+    }
+#endif
     if (insertAfter == ZOrder::NoTopmost) SDL_SetWindowAlwaysOnTop(w, false);
+    // The engine's outer rect is in pixels; SDL takes points, and the frame it reports is
+    // already in points.
+    const float d = Density(w);
     int32_t cx = 0, cy = 0, cw = 0, ch = 0;
-    OuterToClient(x, y, width, height, CurrentFrame(w), &cx, &cy, &cw, &ch);
+    OuterToClient(PixelsToPointsRound(x, d), PixelsToPointsRound(y, d),
+                  PixelsToPointsRound(width, d), PixelsToPointsRound(height, d),
+                  CurrentFrame(w), &cx, &cy, &cw, &ch);
+    // A framed window must fit the usable screen (menu bar, Dock): the Options resolution
+    // list is filtered to it, but a saved or hand-edited size may not be. Clamp the size,
+    // then slide the window so title bar and bottom edge are on screen (never stuck).
+    if (!(SDL_GetWindowFlags(w) & SDL_WINDOW_BORDERLESS)) {
+        SDL_Rect u{0, 0, 0, 0};
+        if (SDL_GetDisplayUsableBounds(SDL_GetDisplayForWindow(w), &u) && u.w > 0 && u.h > 0) {
+            const FrameBorders f = CurrentFrame(w);
+            const int32_t maxW = u.w - f.left - f.right;
+            const int32_t maxH = u.h - f.top - f.bottom;
+            if (maxW > 0 && cw > maxW) cw = maxW;
+            if (maxH > 0 && ch > maxH) ch = maxH;
+            if (cy - f.top < u.y) cy = u.y + f.top;
+            if (cy + ch + f.bottom > u.y + u.h) cy = u.y + u.h - ch - f.bottom;
+            if (cx - f.left < u.x) cx = u.x + f.left;
+            if (cx + cw + f.right > u.x + u.w) cx = u.x + u.w - cw - f.right;
+        }
+    }
     SDL_SetWindowPosition(w, cx, cy);
     SDL_SetWindowSize(w, cw, ch);
     SDL_SyncWindow(w);
@@ -172,7 +233,7 @@ void AdjustWindowRect(void* /*window*/, Rect* inOut) {
     SDL_Window* w = Sdl::GameWindow();
     if (w == nullptr) return;
     SDL_SyncWindow(w);
-    ClientRectToOuter(inOut, CurrentFrame(w));
+    ClientRectToOuter(inOut, CurrentFramePixels(w));
 }
 
 // Retail: GetMonitorInfoW(Device::monitor).rcMonitor, the HMONITOR the renderer took from
@@ -183,6 +244,7 @@ void GetMonitorRect(void* monitor, Rect* out) {
     int count = 0;
     SDL_DisplayID* ids = SDL_GetDisplays(&count);
     if (ids == nullptr) return;
+    const float density = Density(Sdl::GameWindow());
     for (int i = 0; i < count; ++i) {
 #if defined(SDL_PLATFORM_WINDOWS)
         void* hmon = SDL_GetPointerProperty(SDL_GetDisplayProperties(ids[i]),
@@ -196,7 +258,7 @@ void GetMonitorRect(void* monitor, Rect* out) {
         if (w == nullptr || SDL_GetDisplayForWindow(w) != ids[i]) continue;
 #endif
         SDL_Rect b;
-        if (SDL_GetDisplayBounds(ids[i], &b)) *out = FromSdl(b);
+        if (SDL_GetDisplayBounds(ids[i], &b)) *out = FromSdl(b, density);
         break;
     }
     SDL_free(ids);
@@ -210,10 +272,11 @@ bool RectOnAnyDisplay(const Rect* rect) {
     SDL_DisplayID* ids = SDL_GetDisplays(&count);
     if (ids == nullptr) return false;
     bool on = false;
+    const float density = Density(Sdl::GameWindow());
     for (int i = 0; i < count && !on; ++i) {
         SDL_Rect b;
         if (!SDL_GetDisplayBounds(ids[i], &b)) continue;
-        const Rect d = FromSdl(b);
+        const Rect d = FromSdl(b, density);
         on = RectTouchesAnyDisplay(*rect, &d, 1);
     }
     SDL_free(ids);
@@ -224,7 +287,8 @@ bool RectOnAnyDisplay(const Rect* rect) {
 void GetPrimaryDisplayRect(Rect* out) {
     Zero(out);
     SDL_Rect b;
-    if (SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &b)) *out = FromSdl(b);
+    if (SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &b))
+        *out = FromSdl(b, Density(Sdl::GameWindow()));
 }
 
 // Retail: EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS) unchecked, so a failure
@@ -235,8 +299,10 @@ void GetCurrentDisplaySize(int32_t* width, int32_t* height) {
     *height = 0;
     const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
     if (mode == nullptr) return;
-    *width  = mode->w;
-    *height = mode->h;
+    // SDL_DisplayMode w / h are points; the engine's back buffer is pixels.
+    const float d = Density(Sdl::GameWindow());
+    *width  = PointsToPixels(static_cast<float>(mode->w), d);
+    *height = PointsToPixels(static_cast<float>(mode->h), d);
 }
 
 // Was EnumDisplaySettingsW's dmDisplayFrequency (> 1, else unknown). SDL reports the rate
@@ -246,6 +312,90 @@ int32_t GetCurrentDisplayRefreshHz() {
     const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
     if (mode == nullptr || mode->refresh_rate <= 1.0f) return 0;
     return static_cast<int32_t>(mode->refresh_rate + 0.5f);
+}
+
+
+// ============================================================================
+// The windowed OPENING geometry (the Metal backend's CreateDevice; docs/macos/INPUT_WINDOW.md
+// "Opening size"). The engine's windowed back buffer starts as Configuration::windowWidth /
+// Height, which is -1 until a window geometry has been saved: used as a size that collapsed
+// the 10 x 10 point creation window to 1 x 1 (pixel_size_changed 20x20, then resized 1x1).
+// Here the size comes from display_geometry.h's InitialWindowPoints (saved PIXELS / density,
+// else the configured video size as POINTS, never below 640 x 360 points, never above the
+// usable screen) and the window is placed at the saved origin when that is still on a
+// display, else centred on the primary display's usable area. Everything is in points.
+// ============================================================================
+extern "C" void OpenBAApplyInitialWindowGeometry(SDL_Window* w, int savedX, int savedY,
+                                                 int savedPxW, int savedPxH,
+                                                 int videoW, int videoH) {
+    if (w == nullptr) return;
+    const float d = Density(w);
+    SDL_Rect usable{0, 0, 0, 0};
+    const bool haveUsable = SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), &usable);
+    int top = 0, left = 0, bottom = 0, right = 0;
+    SDL_GetWindowBordersSize(w, &top, &left, &bottom, &right);
+    if (top <= 0) top = 28;   // a hidden window may not know its frame yet: the macOS title bar
+    int32_t cw = 0, ch = 0;
+    InitialWindowPoints(
+        savedPxW, savedPxH, videoW, videoH, d,
+        haveUsable ? usable.w - left - right : 0,
+        haveUsable ? usable.h - top - bottom : 0, &cw, &ch);
+    fprintf(stderr, "[Window] initial geometry: saved %dx%d video %dx%d density %.1f usable %dx%d -> %dx%d pt\n", savedPxW, savedPxH, videoW, videoH, d, usable.w, usable.h, cw, ch);
+    SDL_SetWindowSize(w, cw, ch);
+
+    int px = 0, py = 0;
+    bool placed = false;
+    if (savedPxW > 0 && savedPxH > 0 && !(savedX == -1 && savedY == -1)) {
+        px = PixelsToPointsRound(savedX, d);
+        py = PixelsToPointsRound(savedY, d);
+        int count = 0;
+        SDL_DisplayID* ids = SDL_GetDisplays(&count);
+        if (ids != nullptr) {
+            for (int i = 0; i < count && !placed; ++i) {
+                SDL_Rect b;
+                if (!SDL_GetDisplayUsableBounds(ids[i], &b)) continue;
+                // The title bar (top points above the client origin) must also be on screen.
+                const Platform::Rect win{px, py - top, px + cw, py + ch};
+                const Platform::Rect disp{b.x, b.y, b.x + b.w, b.y + b.h};
+                placed = RectTouchesAnyDisplay(win, &disp, 1) && py - top >= b.y;
+            }
+            SDL_free(ids);
+        }
+    }
+    if (!placed) {
+        if (haveUsable) {
+            px = usable.x + (usable.w - cw) / 2;
+            py = usable.y + top + (usable.h - top - ch) / 2;
+        } else {
+            px = 100;
+            py = 100;
+        }
+    }
+    SDL_SetWindowPosition(w, px, py);
+    SDL_SyncWindow(w);
+}
+
+
+// The primary display as the Options resolution list needs it, in engine PIXELS: the usable
+// area less a 32-point title bar (maxW/maxH) and the display's own size (nativeW/nativeH).
+// All zero when SDL cannot say (BuildResolutionList then does not filter).
+extern "C" void OpenBAQueryScreenForModes(int* maxW, int* maxH, int* nativeW, int* nativeH) {
+    *maxW = *maxH = *nativeW = *nativeH = 0;
+    const SDL_DisplayID id = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(id);
+    float d = 1.0f;
+#if defined(__APPLE__)
+    if (mode != nullptr && mode->pixel_density > 0.0f) d = mode->pixel_density;
+#endif
+    SDL_Rect u{0, 0, 0, 0};
+    if (SDL_GetDisplayUsableBounds(id, &u) && u.w > 0 && u.h > 0) {
+        *maxW = PointsToPixels(static_cast<float>(u.w), d);
+        *maxH = PointsToPixels(static_cast<float>(u.h - 32), d);
+    }
+    if (mode != nullptr) {
+        *nativeW = PointsToPixels(static_cast<float>(mode->w), d);
+        *nativeH = PointsToPixels(static_cast<float>(mode->h), d);
+    }
 }
 
 }  // namespace Window

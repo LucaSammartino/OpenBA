@@ -1,3 +1,7 @@
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <cstring>
+#endif
 // ============================================================================
 // src/platform/posix/file_posix.cpp -- Platform:: files and directories over POSIX
 // ============================================================================
@@ -20,7 +24,10 @@
 //       units (NTFS's upcase-table collation for every name the game produces),
 //       "." and ".." first, and matches the pattern case-INsensitively.
 //   F.6 case-sensitive file systems: a loose path not produced by FindFiles is
-//       opened as spelled; recorded, not answered here (handins/POSIX.md).
+//       opened as spelled first; on ENOENT the READ-side primitives (FileOpenRead,
+//       FileOpenReadShared, PathAttributes) retry with each component matched
+//       case-insensitively (ResolveCaseInsensitive). APFS/HFS+ default volumes are
+//       case-insensitive and never reach the retry.
 //   F.7 share modes have no POSIX equivalent; harmless given temp + move.
 // ============================================================================
 
@@ -39,6 +46,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <strings.h>
 #include <vector>
 
 #include "platform_time.h"   // FileTimeFromUnix
@@ -63,13 +71,64 @@ int Fd(FileHandle h) {
 }
 
 uint64_t MTimeFileTime(const struct stat& st) {
+#if defined(__APPLE__)
+    return FileTimeFromUnix(static_cast<int64_t>(st.st_mtimespec.tv_sec),
+                            static_cast<uint32_t>(st.st_mtimespec.tv_nsec));
+#else
     return FileTimeFromUnix(static_cast<int64_t>(st.st_mtim.tv_sec),
                             static_cast<uint32_t>(st.st_mtim.tv_nsec));
+#endif
 }
 
 uint32_t AttributesOf(const struct stat& st) {
     if (S_ISDIR(st.st_mode)) return kFileAttributeDirectory;
     return (st.st_mode & S_IWUSR) ? kFileAttributeNormal : kFileAttributeReadOnly;
+}
+
+
+// F.6 answered for READS: the retail data and the mods are spelled as Windows names them
+// (Data\Name.ext for data/name.EXT). APFS and HFS+ are case-insensitive
+// by default, so the spelled path opens as it is; on a case-SENSITIVE volume (an APFS
+// volume formatted case-sensitive, ext4) the first open fails with ENOENT, and this
+// resolves the path one component at a time against the real directory entries
+// (ASCII case-fold, an exact name wins). "" when no entry matches. Only the read-side
+// primitives use it: a create or a write must make the name the caller spelled.
+std::string ResolveCaseInsensitive(const std::string& path) {
+    std::string out = !path.empty() && path[0] == '/' ? "/" : "";
+    size_t i = out.size();
+    while (i <= path.size()) {
+        size_t j = path.find('/', i);
+        if (j == std::string::npos) j = path.size();
+        const std::string comp = path.substr(i, j - i);
+        i = j + 1;
+        if (comp.empty() || comp == ".") continue;
+        const std::string dirPath = out.empty() ? "." : out;
+        const std::string exact = (out.empty() || out == "/" ? out : out + "/") + comp;
+        struct stat st;
+        if (comp == ".." || ::stat(exact.c_str(), &st) == 0) {
+            out = exact;
+            continue;
+        }
+        DIR* d = ::opendir(dirPath.c_str());
+        if (d == nullptr) return std::string();
+        std::string found;
+        while (struct dirent* e = ::readdir(d)) {
+            if (::strcasecmp(e->d_name, comp.c_str()) == 0) { found = e->d_name; break; }
+        }
+        ::closedir(d);
+        if (found.empty()) return std::string();
+        out = (out.empty() || out == "/" ? out : out + "/") + found;
+    }
+    return out;
+}
+
+// open(O_RDONLY) with the F.6 fallback.
+int OpenReadResolved(const std::string& native) {
+    int fd = ::open(native.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd >= 0 || errno != ENOENT) return fd;
+    const std::string fixed = ResolveCaseInsensitive(native);
+    if (fixed.empty() || fixed == native) return -1;
+    return ::open(fixed.c_str(), O_RDONLY | O_CLOEXEC);
 }
 
 // read / write until `bytes` or end of file: ReadFile on a disk file returns a
@@ -276,14 +335,18 @@ int32_t FindClose(FindHandle h) {
 // ---- files -------------------------------------------------------------------
 
 FileHandle FileOpenRead(const PathChar* path) {
-    return FromFd(::open(ToNative(path).c_str(), O_RDONLY | O_CLOEXEC));
+    return FromFd(OpenReadResolved(ToNative(path)));
 }
 
 // GetTempPathW + GetTempFileNameW + CreateFileW(CREATE_ALWAYS, share 0): mkstemp
 // in /tmp (P_tmpdir) with the prefix's first three characters, as
 // GetTempFileNameW uses. The name written to `outPath` is the OS spelling.
 FileHandle FileCreateTemp(const PathChar* prefix, PathChar* outPath) {
+#if defined(BANISHED_UNIT_TEST)
+    std::string tmpl = "."; // Keep unit scratch files in the working tree.
+#else
     std::string tmpl = P_tmpdir;
+#endif
     if (tmpl.empty() || tmpl.back() != '/') tmpl.push_back('/');
     const size_t plen = Posix::PathLength(prefix);
     tmpl += Posix::Utf16ToUtf8(prefix, plen < 3 ? plen : 3, false);
@@ -291,6 +354,10 @@ FileHandle FileCreateTemp(const PathChar* prefix, PathChar* outPath) {
     std::vector<char> buf(tmpl.begin(), tmpl.end());
     buf.push_back('\0');
     const int fd = ::mkostemp(buf.data(), O_CLOEXEC);
+    // mkostemp makes 0600; the temp file becomes a save (FileMove) and GetTempFileNameW's
+    // result is an ordinary file, so give it the ordinary 0644 (the umask still applies
+    // to FileCreateWrite's 0666 files).
+    if (fd >= 0) ::fchmod(fd, 0644);
     const std::u16string name = Posix::Utf8ToUtf16(buf.data(), std::strlen(buf.data()));
     Posix::CopyOut(fd < 0 ? std::u16string() : name, outPath, kMaxPath);
     return FromFd(fd);
@@ -340,7 +407,7 @@ int32_t FileMove(const PathChar* from, const PathChar* to) {
 int32_t DirCreate(const PathChar* path) { return ::mkdir(ToNative(path).c_str(), 0777) == 0 ? 1 : 0; }
 
 FileHandle FileOpenReadShared(const PathChar* path) {
-    return FromFd(::open(ToNative(path).c_str(), O_RDONLY | O_CLOEXEC));
+    return FromFd(OpenReadResolved(ToNative(path)));
 }
 
 FileHandle FileCreateWrite(const PathChar* path) {
@@ -359,7 +426,11 @@ int32_t FileReplace(const PathChar* from, const PathChar* to) {
 
 uint32_t PathAttributes(const PathChar* path) {
     struct stat st;
-    if (::stat(ToNative(path).c_str(), &st) != 0) return kInvalidPathAttributes;
+    const std::string native = ToNative(path);
+    if (::stat(native.c_str(), &st) != 0) {
+        const std::string fixed = errno == ENOENT ? ResolveCaseInsensitive(native) : std::string();
+        if (fixed.empty() || ::stat(fixed.c_str(), &st) != 0) return kInvalidPathAttributes;
+    }
     return AttributesOf(st);
 }
 
@@ -367,7 +438,12 @@ uint32_t PathAttributes(const PathChar* path) {
 // with a NUL, as GetModuleFileNameW truncates; the units written.
 uint32_t ExecutablePath(PathChar* buf, uint32_t size) {
     char target[4096];
+#if defined(__APPLE__)
+    uint32_t capacity = sizeof(target);
+    const ssize_t n = _NSGetExecutablePath(target, &capacity) == 0 ? std::strlen(target) : -1;
+#else
     const ssize_t n = ::readlink("/proc/self/exe", target, sizeof(target) - 1);
+#endif
     if (n <= 0) {
         if (size != 0) buf[0] = 0;
         return 0;

@@ -23,7 +23,7 @@
 #include "Action/PathSearch.h"   // GridPathSearch (the worker's search, PathfinderThread +0x78)
 
 #include <algorithm>
-#include <x86intrin.h>   // __rdtsc: the stress harness's tick (CompProf_Now)
+
 #include <cstdio>
 #include <vector>
 
@@ -97,7 +97,7 @@ SearchResult RunFast(WorkerState& w, const GridPathSearch& grid, int start, int 
     return RunFastWith(w.searcher, grid, start, goal, path, PresentMask(w, grid));
 }
 
-long long Ticks() { return static_cast<long long>(__rdtsc()); }
+long long Ticks() { return CompProf_Now(); }
 
 }  // namespace
 

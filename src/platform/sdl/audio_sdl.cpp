@@ -274,6 +274,7 @@ int32_t AudioVoiceCreate(AudioEngine engine, AudioVoice* out, const AudioWaveFor
     SDL_SetBooleanProperty(SDL_GetAudioStreamProperties(stream),
                            SDL_PROP_AUDIOSTREAM_AUTO_CLEANUP_BOOLEAN, false);   // the banner's LIFETIME
     SDL_SetAudioStreamGetCallback(stream, GetCallback, v);
+    
     *out = v;
     return 0;
 }

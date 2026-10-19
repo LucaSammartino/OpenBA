@@ -42,7 +42,11 @@
 #include <execinfo.h>
 #include <fcntl.h>
 #include <signal.h>
+#if defined(__APPLE__)
+#include <sys/ucontext.h>
+#else
 #include <ucontext.h>
+#endif
 #include <unistd.h>
 
 #include <cstdint>
@@ -184,6 +188,14 @@ void CrashHandler(int sig, siginfo_t* si, void* ucv) {
     inHandler = 1;
 
     const ucontext_t* uc = static_cast<const ucontext_t*>(ucv);  // CAST-OK: posix (sigaction's void* is the ucontext_t)
+#if defined(__APPLE__) && defined(__aarch64__)
+    const auto& regs = uc->uc_mcontext->__ss;
+    CrashLogRaw("\n=== STANDALONE CRASH (ARM64) ===\n");
+    CrashLogf("Exception: signal %d (%s) address=%p\n",sig,SignalName(sig),si->si_addr);
+    CrashLogf("PC=%016llX SP=%016llX LR=%016llX FP=%016llX\n",regs.__pc,regs.__sp,regs.__lr,regs.__fp);
+    LogModuleLine("Module: ",reinterpret_cast<void*>(regs.__pc));
+    for(int i=0;i<29;++i) CrashLogf("X%d=%016llX\n",i,regs.__x[i]);
+#else
     const greg_t* g = uc->uc_mcontext.gregs;
 
     CrashLogRaw("\n=== STANDALONE CRASH ===\n");
@@ -243,6 +255,8 @@ void CrashHandler(int sig, siginfo_t* si, void* ucv) {
             break;
         }
     }
+
+#endif
 
     {
         System::MemoryAllocator** const cell = &System::MemoryAllocator::_singleton;

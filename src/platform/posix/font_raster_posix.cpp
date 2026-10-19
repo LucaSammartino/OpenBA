@@ -1,3 +1,6 @@
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 // ============================================================================
 // src/platform/posix/font_raster_posix.cpp -- the posix twin of font_raster_win.cpp
 // ============================================================================
@@ -33,7 +36,12 @@ std::string g_faceWhy;
 
 std::string ExeDir() {
     char buf[4096];
+#if defined(__APPLE__)
+    uint32_t capacity = sizeof(buf);
+    const ssize_t n = _NSGetExecutablePath(buf, &capacity) == 0 ? std::strlen(buf) : -1;
+#else
     const ssize_t n = ::readlink("/proc/self/exe", buf, sizeof buf - 1);
+#endif
     if (n <= 0) return std::string();
     buf[n] = 0;
     const char* slash = std::strrchr(buf, '/');

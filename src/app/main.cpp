@@ -1089,6 +1089,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int) {
     }
     // A failure is logged and boot continues: Application::PlatformStartup then reports
     // retail's "failed to register a window class" (Platform::Window::VideoAvailable).
+#if defined(__APPLE__)
+    if (Opt().background) {
+        SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
+        SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, "0");
+    }
+#endif
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "[SDL] SDL_Init(SDL_INIT_VIDEO) failed: %s\n", SDL_GetError());
     }
@@ -1178,6 +1186,14 @@ int main(int argc, char** argv) {
     SDL_SetHintWithPriority(SDL_HINT_NO_SIGNAL_HANDLERS, "1", SDL_HINT_OVERRIDE);
     SDL_SetHintWithPriority(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1", SDL_HINT_OVERRIDE);
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_AUTO_CAPTURE, "0", SDL_HINT_OVERRIDE);
+#if defined(__APPLE__)
+    if (Opt().background) {
+        SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
+        SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "0");
+        SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, "0");
+    }
+#endif
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "[SDL] SDL_Init(SDL_INIT_VIDEO) failed: %s\n", SDL_GetError());
     }
@@ -1189,6 +1205,9 @@ int main(int argc, char** argv) {
     if (!Init()) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Banished Standalone - Init Failed",
             "Failed to initialize. Check standalone_debug.log for details.", nullptr);
+#if defined(__APPLE__)
+        BootState::Stop();
+#endif
         SDL_Quit();
         return 1;
     }
@@ -1206,6 +1225,9 @@ int main(int argc, char** argv) {
     printf("[Standalone] === GameMain returned %d ===\n", rc);
     PrintExitSummaries();
 
+#if defined(__APPLE__)
+    BootState::Stop();
+#endif
     SDL_Quit();
     return rc;
 }

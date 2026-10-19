@@ -95,6 +95,13 @@ const Options& Opt() { return g_opt; }
 
 void OptionsInit() {
     Options& o = g_opt;
+    o.background = On("OPENBA_BACKGROUND");
+    o.airconv = Raw("OPENBA_AIRCONV");
+    o.metalStats = On("OPENBA_METAL_STATS");
+    o.windowWidth = Int("OPENBA_WINDOW_WIDTH", 0);
+    o.windowHeight = Int("OPENBA_WINDOW_HEIGHT", 0);
+    o.nativeRetina = On("OPENBA_NATIVE_RETINA");
+    o.inputTrace = On("OPENBA_INPUT_TRACE");
 
     // ── harness drivers: menu → game ─────────────────────────────────────────
     o.autostart       = On("BANISHED_AUTOSTART");

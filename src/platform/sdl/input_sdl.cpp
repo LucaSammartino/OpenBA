@@ -48,6 +48,8 @@
 
 #include "platform_input.h"
 #include "sdl_dik_tables.h"
+#include "display_geometry.h"
+#include "mac_keymap.h"
 #include "window_sdl_internal.h"
 
 #include <SDL3/SDL_events.h>
@@ -72,6 +74,36 @@ namespace {
 // window, as DISCL_FOREGROUND / GetForegroundWindow require).
 bool GameWindowHasKeyboardFocus() {
     return SDL_GetKeyboardFocus() == Window::Sdl::GameWindow();
+}
+
+// The window's pixel density: the engine's coordinates are pixels, SDL's window and cursor
+// positions are points (macOS Retina). 1.0 on every other host, so the conversions below
+// are the identity there. Same rule as display_sdl.cpp.
+float WindowDensity() {
+#if defined(__APPLE__)
+    SDL_Window* w = Window::Sdl::GameWindow();
+    if (w != nullptr) {
+        const float d = SDL_GetWindowPixelDensity(w);
+        if (d > 0.0f) return d;
+    }
+#endif
+    return 1.0f;
+}
+
+// SDL's key state with the Mac layer applied (src/platform/common/mac_keymap.h: Command
+// acts as Control, Right Option is a Windows-keyboard layer, F13-F15 are Print Screen /
+// Scroll Lock / Pause). `scratch` receives the result; elsewhere the raw SDL state is
+// returned untouched.
+const bool* EffectiveKeyState(int* count, bool (&scratch)[MacKeys::kStateCount]) {
+    const bool* raw = SDL_GetKeyboardState(count);
+#if defined(__APPLE__)
+    if (*count > MacKeys::kStateCount) *count = MacKeys::kStateCount;
+    MacKeys::ApplyMacKeyLayer(raw, *count, scratch);
+    return scratch;
+#else
+    (void)scratch;
+    return raw;
+#endif
 }
 
 // ReadMouse's sub-pixel remainder: SDL's relative motion is float, DirectInput's mickeys
@@ -114,7 +146,14 @@ void SetRotateDrag(bool on) {
 // The live, LOGICAL buttons (SDL_GetGlobalMouseState: GetAsyncKeyState with
 // SM_SWAPBUTTON applied, SDL_windowsmouse.c), as DirectInput's rgbButtons order.
 SDL_MouseButtonFlags LiveButtons() {
-    return SDL_GetGlobalMouseState(nullptr, nullptr);
+    const SDL_MouseButtonFlags b = SDL_GetGlobalMouseState(nullptr, nullptr);
+#if defined(__APPLE__)
+    // Trackpads have no middle button: Option + left button is the camera-rotate button
+    // (mac_keymap.h rule 4).
+    return MacKeys::RemapMouseButtons(b, static_cast<uint16_t>(SDL_GetModState()));
+#else
+    return b;
+#endif
 }
 
 }  // namespace
@@ -167,7 +206,8 @@ int32_t ReadKeyboard(void* /*device*/, uint8_t dik[256]) {
 #endif
 
     int count = 0;
-    const bool* state = SDL_GetKeyboardState(&count);
+    bool scratch[MacKeys::kStateCount];
+    const bool* state = EffectiveKeyState(&count, scratch);
     if (count > kSdlScancodeCount) count = kSdlScancodeCount;
 
     std::memset(dik, 0, 256);
@@ -270,13 +310,29 @@ int16_t AsyncMouseButtonState(int32_t vk) {
 }
 
 // GetCursorPos: SDL_GetGlobalMouseState is GetCursorPos on Windows (desktop pixels; the
-// process is DPI-unaware, src/app/main.cpp).
+// process is DPI-unaware, src/app/main.cpp). On macOS it is desktop POINTS; the engine's
+// screen coordinates are pixels of the window's display (point * density), so the cursor
+// is scaled here, and ScreenToClient / ClientToScreen / GetWindowRect / ClipCursor use the
+// same unit. A cursor in the last point of the client area is snapped to the last pixel
+// (CursorPointToPixel) so edge scrolling reaches the right and bottom edges.
 void GetCursorPos(Point* out) {
     float x = 0.0f;
     float y = 0.0f;
     SDL_GetGlobalMouseState(&x, &y);
-    out->x = static_cast<int32_t>(std::floor(x));
-    out->y = static_cast<int32_t>(std::floor(y));
+    SDL_Window* w = Window::Sdl::GameWindow();
+    const float d = WindowDensity();
+    if (d == 1.0f || w == nullptr) {
+        out->x = static_cast<int32_t>(std::floor(x));
+        out->y = static_cast<int32_t>(std::floor(y));
+        return;
+    }
+    int wx = 0, wy = 0, ww = 0, wh = 0;
+    SDL_GetWindowPosition(w, &wx, &wy);
+    SDL_GetWindowSize(w, &ww, &wh);
+    out->x = Window::PointsToPixels(static_cast<float>(wx), d) +
+             Window::CursorPointToPixel(x - static_cast<float>(wx), ww, d);
+    out->y = Window::PointsToPixels(static_cast<float>(wy), d) +
+             Window::CursorPointToPixel(y - static_cast<float>(wy), wh, d);
 }
 
 // ScreenToClient: SDL's window position is the client area's screen origin (the inverse
@@ -286,8 +342,11 @@ void ScreenToClient(void* /*window*/, Point* inOut) {
     int x = 0;
     int y = 0;
     if (w != nullptr) SDL_GetWindowPosition(w, &x, &y);
-    inOut->x -= x;
-    inOut->y -= y;
+    // Screen coordinates are in engine pixels (GetCursorPos); the window origin is in
+    // points, so it is scaled by the density first (identity unless Retina).
+    const float d = WindowDensity();
+    inOut->x -= Window::PointsToPixels(static_cast<float>(x), d);
+    inOut->y -= Window::PointsToPixels(static_cast<float>(y), d);
 }
 
 bool ButtonsSwapped() {
@@ -300,7 +359,8 @@ int16_t AsyncKeyState(int32_t vk) {
     if (Diag::TweakOverlay::IsOpen()) return 0;   // the debug tweak overlay has the keyboard
 #endif
     int count = 0;
-    const bool* state = SDL_GetKeyboardState(&count);
+    bool scratch[MacKeys::kStateCount];
+    const bool* state = EffectiveKeyState(&count, scratch);
     for (const uint16_t s : kVirtualKeyToSdlScancode[static_cast<uint8_t>(vk)]) {
         if (s != 0 && s < count && state[s]) return INT16_MIN;   // bit 15: down now
     }
@@ -327,9 +387,21 @@ void ClipCursor(const Rect* screenRect) {
     int ox = 0;
     int oy = 0;
     SDL_GetWindowPosition(w, &ox, &oy);
-    const SDL_Rect r{screenRect->left - ox, screenRect->top - oy,
-                     screenRect->right - screenRect->left,
-                     screenRect->bottom - screenRect->top};
+    // The rect arrives in engine pixels; SDL wants window-relative points (floor the
+    // origin, ceil the far edge, so the clip never shrinks below the client area).
+    float d = 1.0f;
+#if defined(__APPLE__)
+    d = SDL_GetWindowPixelDensity(w);
+    if (!(d > 0.0f)) d = 1.0f;
+#endif
+    const int32_t relL = screenRect->left   - Window::PointsToPixels(static_cast<float>(ox), d);
+    const int32_t relT = screenRect->top    - Window::PointsToPixels(static_cast<float>(oy), d);
+    const int32_t relR = screenRect->right  - Window::PointsToPixels(static_cast<float>(ox), d);
+    const int32_t relB = screenRect->bottom - Window::PointsToPixels(static_cast<float>(oy), d);
+    const int32_t pl = Window::PixelsToPointsFloor(relL, d);
+    const int32_t pt = Window::PixelsToPointsFloor(relT, d);
+    const SDL_Rect r{pl, pt, Window::PixelsToPointsCeil(relR, d) - pl,
+                     Window::PixelsToPointsCeil(relB, d) - pt};
     SDL_SetWindowMouseRect(w, &r);
 }
 

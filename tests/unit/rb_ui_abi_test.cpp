@@ -299,7 +299,13 @@ UNIT_TEST(b39_uid_element_slot0_both_arms) {
     alignas(8) unsigned char one[sizeof(B39ElProbe)];
     B39ElProbe* e = ::new (static_cast<void*>(one)) B39ElProbe();
     g_el = Seen{};
+#if defined(__APPLE__)
+    // Abstract bases have no complete object on Darwin: D1 traps; test the base D2 body.
+    extern void DarwinElementBaseDtor(UI::Element*) RT_ASM_LABEL("_ZN2UI7ElementD2Ev");
+    DarwinElementBaseDtor(e);
+#else
     e->UI::Element::~Element();
+#endif
     CHECK_EQ(g_el.releaseCalls, 1);
     CHECK(g_el.releaseVptr == ElVt());
 
@@ -315,7 +321,13 @@ UNIT_TEST(b39_uid_elementdescription_slot0_both_arms) {
     g_ed = Seen{};
     SharedName name;
     d->_textName._data = name.data();
+#if defined(__APPLE__)
+    // Abstract bases have no complete object on Darwin: D1 traps; test the base D2 body.
+    extern void DarwinDescriptionBaseDtor(UI::ElementDescription*) RT_ASM_LABEL("_ZN2UI18ElementDescriptionD2Ev");
+    DarwinDescriptionBaseDtor(d);
+#else
     d->UI::ElementDescription::~ElementDescription();
+#endif
     CHECK_EQ(RtSystem::StringRefCount(name.data()), 1);
     CHECK(d->_textName._data == nullptr);
 

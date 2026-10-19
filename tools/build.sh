@@ -35,6 +35,10 @@ case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) EXT=.exe;; *) EXT="";; esac
 # the CMake cache var BANISHED_GAME_DIR is set from it at configure time.
 BANISHED_DIR="${BANISHED_DIR:-C:/GOG Games/Banished}"
 B="build/cmake-$FLAV"
+if [ "$(uname -s)" = Darwin ]; then
+  B="build/mac-$FLAV"
+  [ "$FLAV" = debug ] && B="build/mac-arm64"
+fi
 EXE="$B/OpenBA$EXT"
 # THE GATE RUNS FAITHFUL (docs/extensions/DESIGN.md §3 "Gates"): every fix and extension off for
 # this one run, through the exe's own command line (retail's `/key:value` parser, System::Configuration),
@@ -74,7 +78,12 @@ case "$CMD" in
   run)     deploy; ( cd "$BANISHED_DIR" && BANISHED_AUTOSTART=1 MSYS2_ARG_CONV_EXCL="$FAITHFUL" start OpenBA.exe $FAITHFUL )
            echo "Launched (autostart, $FAITHFUL)";;
   run-menu) deploy; ( cd "$BANISHED_DIR" && start OpenBA.exe ); echo "Launched (menu only)";;
-  stress)  deploy; tools/stress_run.sh --no-build ${STRESS_ARGS:-};;
+  stress)  if [ "$(uname -s)" = Darwin ]; then
+             build OpenBA
+             mkdir -p run
+             cp "$EXE" run/OpenBA && codesign --force --sign - run/OpenBA || exit 1
+           else deploy; fi
+           tools/stress_run.sh --no-build ${STRESS_ARGS:-};;
   clean)   if [ "$FLAV_GIVEN" = 1 ]; then rm -rf "$B"; echo "removed $B"
            else rm -rf build/cmake-debug build/cmake-og build/cmake-perf build/cmake-release; echo "removed build/cmake-{debug,og,perf,release}"; fi;;
   *) echo "unknown command $CMD"; sed -n 2,15p "$0"; exit 2;;

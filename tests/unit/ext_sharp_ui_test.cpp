@@ -154,6 +154,12 @@ UNIT_TEST(ext_sharp_ui_variant_pick) {
     CHECK(PickVariantHeight(24, 2.0f) == 24);
     CHECK(PickVariantHeight(24, 0.5f) == 24);
     CHECK(PickVariantHeight(24, 0.0f) == 24);
+    // ...and the swap-for-itself is only for a ratio near 1.
+    CHECK(SharpUI::NativePickFitsRatio(24, 1.0f));
+    CHECK(SharpUI::NativePickFitsRatio(24, 1.015f));
+    CHECK(!SharpUI::NativePickFitsRatio(24, 2.0f));
+    CHECK(!SharpUI::NativePickFitsRatio(14, 0.5f));
+    CHECK(!SharpUI::NativePickFitsRatio(24, 0.0f));
 
     char path[64];
     CHECK(SharpUI::VariantFontPath("FontSmall", 19, path, sizeof path));

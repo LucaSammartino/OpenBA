@@ -1,5 +1,5 @@
 // ============================================================================
-// src/app/options.h — THE inventory of BANISHED_* environment flags.
+// src/app/options.h — inventory of process environment flags (BANISHED_* / OPENBA_*).
 //
 // ENDGAME C.3. Every environment flag the exe honours is a field of the one
 // `Options` struct below, filled ONCE at boot by `OptionsInit()` (called from
@@ -36,6 +36,15 @@
 #include <cstdint>
 
 struct Options {
+    // Native Metal launch controls (tools/metal/run_brief.py).
+    bool background = false;            // OPENBA_BACKGROUND: unobtrusive window
+    const char* airconv = nullptr;       // OPENBA_AIRCONV: replacement converter dylib
+    bool metalStats = false;            // OPENBA_METAL_STATS: diagnostics
+    int windowWidth = 0;                // OPENBA_WINDOW_WIDTH: client points
+    int windowHeight = 0;               // OPENBA_WINDOW_HEIGHT: client points
+    bool nativeRetina = false;          // OPENBA_NATIVE_RETINA: render at SDL pixel density
+    bool inputTrace = false;            // OPENBA_INPUT_TRACE: input_trace.log (tools/macos/handtest/run_handtest.sh)
+
     // ── harness drivers: menu → game (src/diag/autostart.cpp) ──────────────
     bool        autostart            = false;  // Makefile sa-run, tools/cutover_run.sh, perf/mintsel, CLAUDE.md
     int         autostartFrames      = 0;      //   numeric value > 1 overrides the 60-frame menu settle; 0 = default

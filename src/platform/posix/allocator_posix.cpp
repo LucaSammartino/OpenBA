@@ -99,7 +99,9 @@ void PageSpan(void* a, uint64_t n, uintptr_t* lo, uint64_t* len) {
 void* Map(void* at, uint64_t n, bool commit) {
     if (n == 0) return nullptr;   // VirtualAlloc rejects a zero size
     int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
+    #if !defined(__APPLE__)
     if (at != nullptr) flags |= MAP_FIXED_NOREPLACE;
+#endif
     void* p = mmap(at, static_cast<size_t>(n), commit ? (PROT_READ | PROT_WRITE) : PROT_NONE, flags, -1, 0);
     if (p == MAP_FAILED) return nullptr;
     if (at != nullptr && p != at) {   // a kernel without MAP_FIXED_NOREPLACE treats it as a hint
@@ -125,7 +127,13 @@ void Decommit(void* a, uint64_t n) {
     uintptr_t lo;
     uint64_t len;
     PageSpan(a, n, &lo, &len);
+#if defined(__APPLE__)
+    // MAP_FIXED only replaces pages in our existing reservation; guarantees zero on recommit.
+    if (mmap(Ptr(lo), static_cast<size_t>(len), PROT_NONE,
+             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) == MAP_FAILED) std::abort();
+#else
     madvise(Ptr(lo), static_cast<size_t>(len), MADV_DONTNEED);
+#endif
     mprotect(Ptr(lo), static_cast<size_t>(len), PROT_NONE);
 }
 

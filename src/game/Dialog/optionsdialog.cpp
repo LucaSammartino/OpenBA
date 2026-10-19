@@ -9,6 +9,7 @@
 // Original source: C:\Projects\Buildy\code\Game\Dialog/OptionsDialog.h
 //                  Dialog\OptionsDialog.cpp
 
+#include "platform/posix/mac_display_defaults.h"
 #include "ui/TextElement.h"   // ENDGAME B.3.6 UI callers (K2)
 #include "ui/ComboElement.h"   // ENDGAME B.3.6 UI callers (K2)
 #include "ui/TabElement.h"   // ENDGAME B.3.6 UI callers (K2)
@@ -664,7 +665,7 @@ void OptionsDialog::OnOpened() {
     // --- UI scale slider ---
     if (s_enableUIScaleSlider) {
         this->sliderUIScale = FindElementAs<UI::SliderElement>(this, "sliderUIScale");
-        SetSliderRange(this->sliderUIScale, 75.0f, 150.0f);
+        SetSliderRange(this->sliderUIScale, MacDisplay::SliderMin(), MacDisplay::SliderMax());   // 75..150 at density 1
         if (g_gameSettings != nullptr)
             SetSliderValue(this->sliderUIScale, (float)g_gameSettings->uiScale);
     }

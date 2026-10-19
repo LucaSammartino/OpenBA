@@ -9,7 +9,7 @@
 // MemoryAllocator+0x640 still never allocates from the allocator it guards. The
 // spin count has no pthread equivalent and is ignored (a CRITICAL_SECTION's spin is
 // a contention tuning, not a semantic). macOS's pthread_mutex_t is 64 bytes and
-// does not fit: the static_assert below stops that build (plans/THREADS.md B, Q10).
+// does not fit: Darwin stores a pointer to a libc-allocated mutex in the same slot.
 //
 // ONCE: a three-state word in the OnceFlag's pointer slot (null = not run), the
 // losers yielding until the winner has returned: InitOnceExecuteOnce's contract.
@@ -25,17 +25,24 @@
 
 #include <new>
 
+#if !defined(__APPLE__)
 static_assert(sizeof(pthread_mutex_t) <= sizeof(Platform::LockStorage),
               "a pthread_mutex_t must fit the retail 0x28-byte lock slot in place");
 static_assert(alignof(pthread_mutex_t) <= alignof(Platform::LockStorage),
               "LockStorage is aligned for a pthread_mutex_t");
+
+#endif
 
 namespace Platform {
 
 namespace {
 
 pthread_mutex_t* Mx(LockStorage* lock) {
-    return std::launder(reinterpret_cast<pthread_mutex_t*>(lock->bytes));  // CAST-OK: posix
+#if defined(__APPLE__)
+    return *std::launder(reinterpret_cast<pthread_mutex_t**>(lock->bytes));
+#else
+    return std::launder(reinterpret_cast<pthread_mutex_t*>(lock->bytes));
+#endif  // CAST-OK: posix
 }
 
 // The OnceFlag states besides null: the addresses of these two bytes.
@@ -48,13 +55,23 @@ void MutexInit(LockStorage* lock, uint32_t /*spinCount*/) {
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);   // CRITICAL_SECTION is recursive
+#if defined(__APPLE__)
+    // Darwin's mutex is 64 bytes; libc new avoids recursion into the game allocator.
+    new (lock->bytes) pthread_mutex_t*(new pthread_mutex_t);
+#else
     new (lock->bytes) pthread_mutex_t;
+#endif
     pthread_mutex_init(Mx(lock), &attr);
     pthread_mutexattr_destroy(&attr);
 }
 void MutexLock(LockStorage* lock)    { pthread_mutex_lock(Mx(lock)); }
 void MutexUnlock(LockStorage* lock)  { pthread_mutex_unlock(Mx(lock)); }
-void MutexDestroy(LockStorage* lock) { pthread_mutex_destroy(Mx(lock)); }
+void MutexDestroy(LockStorage* lock) {
+    pthread_mutex_destroy(Mx(lock));
+#if defined(__APPLE__)
+    delete Mx(lock);
+#endif
+}
 
 void OnceRun(OnceFlag* flag, void (*fn)()) {
     void* expected = nullptr;

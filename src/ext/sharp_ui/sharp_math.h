@@ -69,6 +69,14 @@ int VariantCount(int baseHeight);
 // rather than one that touches its neighbour).
 int PickVariantHeight(int baseHeight, float pxPerUnit);
 
+// True when drawing the base font through the word run (one texel per device
+// pixel) is right at `pxPerUnit`: the wanted height is within half a pixel of
+// the base. PickVariantHeight also returns baseHeight for a ratio OUTSIDE the
+// compiled range (a Retina 2x frame); there the base glyphs must stay retail's
+// scaled quads, or the text is drawn at its layout size in device pixels
+// (half size, letter-spaced by the layout advances).
+bool NativePickFitsRatio(int baseHeight, float pxPerUnit);
+
 // "Font/Sharp<baseName>_<height>.rsc" (baseName "Font", "FontSmall", ...).
 // False when `cap` is too small.
 bool VariantFontPath(const char* baseName, int height, char* out, size_t cap);

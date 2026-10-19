@@ -98,6 +98,8 @@ private:                                                                        
 // `used`: the slot has no reader but the section walk, so it must be kept.
 #if defined(_WIN32)
 #define OBJECT_EXE_TYPE_ENTRY __attribute__((used, section(".data$exetype_b")))
+#elif defined(__APPLE__)
+#define OBJECT_EXE_TYPE_ENTRY __attribute__((used, section("__DATA,exe_type_records")))
 #else
 // ELF (Phase D.4 LINUX-1): an ELF linker neither sorts nor merges `.data$x` input sections
 // by suffix, so the PE bracket above collects nothing there. A section whose name is a C

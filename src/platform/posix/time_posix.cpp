@@ -85,6 +85,11 @@ WaitTimerHandle WaitTimerCreate() { return new WaitTimerObject(); }
 bool WaitTimerSleep(WaitTimerHandle t, int64_t relative100ns) {
     if (t == nullptr) return false;
     if (relative100ns <= 0) return true;
+#if defined(__APPLE__)
+    struct timespec req{static_cast<time_t>(relative100ns / 10000000),
+                        static_cast<long>((relative100ns % 10000000) * 100)};
+    while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#else
     struct timespec deadline;
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     const int64_t ns = static_cast<int64_t>(deadline.tv_nsec) + relative100ns * 100;
@@ -92,6 +97,7 @@ bool WaitTimerSleep(WaitTimerHandle t, int64_t relative100ns) {
     deadline.tv_nsec = static_cast<decltype(deadline.tv_nsec)>(ns % 1000000000);
     while (clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, nullptr) == EINTR) {
     }
+#endif
     return true;
 }
 

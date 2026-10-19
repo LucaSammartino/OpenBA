@@ -3,6 +3,7 @@
 #include "unit.h"
 
 int main() {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
     int tests = 0;
     for (unit::Test* t = unit::Head(); t; t = t->next) {
         const int before = unit::Failures();
