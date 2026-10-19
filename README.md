@@ -36,17 +36,17 @@ With AO and MSAA enabled on 10x, OpenBA  (left) performs 100fps better than reta
 
 ## Extensions
 
-Extnesions can be enabled in the new **Extensions** button in the main menu.
+Extensions can be enabled in the new **Extensions** button in the main menu.
 
 Types:  
 **Fixes**   Base game bugs: Issues in the base game that are logical or programming errors.  
 **Class A** Basic functionality: Performance, graphics, and basic gameplay changes.  
 **Class B** Advanced/Divergent functionality: Agreessive performance modifications, breaks from base game behavior.  
-Fixes default **on**; non-gameplay changing class A extensions defualt **on**, class B extensions default **off**
+Fixes default **on**; non-gameplay changing class A extensions default **on**, class B extensions default **off**
 
 Extensions include performance tweaks, graphical enhancements, and bug fixes for the base game.  
 (i.e. Advanced graphics settings can be found in the **Enhanced** tab of Options).  
-For a list of extensions see: [docs/extnesions/LIST.md](docs/extensions/LIST.md).  
+For a list of extensions see: [docs/extensions/LIST.md](docs/extensions/LIST.md).  
 For extension design see: [docs/extensions/DESIGN.md](docs/extensions/DESIGN.md).  
 
 ## Building
