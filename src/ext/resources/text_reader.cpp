@@ -57,6 +57,7 @@
 #include "ext/resources/text_reader.h"
 
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -464,7 +465,9 @@ private:
                 const Field* o = Override(f, d);
                 if (const Token* t = Scalar(o, d, false)) {
                     char* end = nullptr;
-                    const long n = std::strtol(t->text.c_str(), &end, 0);
+                    // strtoll clamped to int32: what strtol gives on Win64 (32-bit long), on every host.
+                    long long n = std::strtoll(t->text.c_str(), &end, 0);
+                    n = n < INT32_MIN ? INT32_MIN : (n > INT32_MAX ? INT32_MAX : n);
                     if (end == nullptr || *end != '\0') { Fail("line %d: '%s': bad int %s", o->line, d.name, t->text.c_str()); return; }
                     if (!_clearArrays) *static_cast<int32_t*>(v) = static_cast<int32_t>(n);
                 }
