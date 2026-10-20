@@ -29,6 +29,7 @@
 #include "math/Math.h"
 #include "ext/registry.h"
 #include "ext/eye_camera/eye_camera.h"
+#include "ext/async_save_compress/async_save_compress.h"
 #include "err_line.h"
 #include "load_time.h"
 #include "stress_harness.h"
@@ -149,7 +150,7 @@ void Finish(Job* job) {
                 static_cast<unsigned long long>(LoadTime::HashBytes(image.data(), image.size())));
     }
     if (g_pfProfOn) {
-        const IO::CompressedStream::ExtAsyncStats as = IO::CompressedStream::ExtAsyncLastStats();
+        const ::Ext::AsyncSaveCompress::Stats as = ::Ext::AsyncSaveCompress::LastStats();
         ErrLine("[Stress::save] background main=%.2f ms worker=%.2f ms frozenUpdates=%d total=%.2f ms "
                 "stored=%u async=%d jobs=%d endWait=%.2f\n",
                 job->mainMs, job->workerMs, job->frozenUpdates, LoadTime::NowMs() - job->t0,
@@ -214,7 +215,7 @@ bool Start(Save::SavedState* state) {
     job->cms = ::new (static_cast<void*>(job->cmsStorage)) IO::CompressedMemoryStream();
     job->cms->Create();
     job->async = Ext::Ext().async_save_compress;
-    if (job->async) job->cms->ExtBeginAsyncCompress();
+    if (job->async) ::Ext::AsyncSaveCompress::Begin(*job->cms);
     loop->SerializeAllHead(*job->cms, job->scope);
     // EntityList::Serialize's opening flush and removals: they mutate the entity list and
     // delete entities, so they run here, before the worker starts. Serialize's own call then

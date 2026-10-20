@@ -1,5 +1,5 @@
 // ============================================================================
-// src/engine/io/compressed_stream_async.cpp -- NOT RETAIL. ext.async_save_compress
+// src/ext/async_save_compress/async_save_compress.cpp -- NOT RETAIL. ext.async_save_compress
 // ============================================================================
 // Class A (docs/extensions/handins/HITCH_SAVE.md). Retail compresses a save on the main
 // thread: GameUpdateLoop::SaveRestore writes the whole game state through a
@@ -8,8 +8,10 @@
 // System::Compression::Compress of 32 KB in the middle of the serialize. On the stress
 // town that is ~775 calls, ~35 ms of the ~95 ms save frame.
 //
-// With the extension on, CompressWindow (ExtAsyncCompressWindow below) copies the window
-// and queues it; ONE worker thread runs the jobs in submission order. That order, the
+// With the extension on, CompressWindow (through the engine seam
+// IO::CompressedStream::_extAsyncCompress, point kExtAsyncCompressWindow: SubmitWindow below;
+// the body moved here from src/engine/io/compressed_stream_async.cpp on 2026-10-20) copies the
+// window and queues it; ONE worker thread runs the jobs in submission order. That order, the
 // inputs (the copy is the bytes retail's Compress would read at that moment) and the one
 // Compression object whose hash table carries over between calls are all retail's, so
 // each call returns what the synchronous call returns, and the archive Commit writes is
@@ -18,19 +20,22 @@
 // compressed twice keeps the second result, as retail's overwrite does), at the points
 // that need it:
 //   * every submit stores the jobs already finished (no wait);
-//   * Commit, after it has flushed the resident windows (ExtAsyncEnd waits for the rest);
-//   * Release, should a stream be destroyed without a Commit.
+//   * Commit, after it has flushed the resident windows (point kExtAsyncEnd: End waits for
+//     the rest);
+//   * Release, should a stream be destroyed without a Commit (the same point).
 // SetWindow's in-memory branch (a seek back into an evicted block) is the one reader of a
 // block before Commit: for a block whose job is still queued it copies the job's bytes
-// into the window instead of decoding the stored block. Decompress(Compress(x)) is x, so
-// the window holds what retail's decode writes; the job still lands, in order.
-// uncompressedSize is stored at submit time, as retail stores it before compressing, so
-// GetSize never sees a difference. Nothing else reads a block or a compressedSize
-// while the stream is writing.
+// into the window instead of decoding the stored block (point kExtAsyncCopyQueued).
+// Decompress(Compress(x)) is x, so the window holds what retail's decode writes; the job
+// still lands, in order. uncompressedSize is stored at submit time, as retail stores it
+// before compressing, so GetSize never sees a difference. Nothing else reads a block or a
+// compressedSize while the stream is writing.
 //
 // The main thread never calls Compress while a stream is attached, so the worker owns the
 // table. Blocks are allocated by the worker through the locked MemAlloc retail uses.
 // ============================================================================
+
+#include "ext/async_save_compress/async_save_compress.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -45,11 +50,15 @@
 #include "system/Compression.h"
 #include "system/MemoryAllocator.h"
 
-namespace IO {
+namespace Ext { namespace AsyncSaveCompress {
 
-const CompressedStream* CompressedStream::_extAsyncOwner = nullptr;
+using IO::CompressedStream;
 
 namespace {
+
+// The attached stream, null when no save is attached. Written by Begin / End; read by the seam
+// (any stream's CompressWindow / SetWindow / Commit / Release reaches it while the seam is set).
+const CompressedStream* g_owner = nullptr;
 
 constexpr int32_t kWin = RtIo::kCompressedStreamWindowSize;   // 0x8000
 // Jobs in flight before the main thread waits: 1024 x 32 KB = 32 MB of copies at most. The
@@ -77,7 +86,7 @@ struct AsyncState {
     System::Compression*    comp = nullptr;
     bool                    started = false;
     // counters of the current / last attachment
-    CompressedStream::ExtAsyncStats stats{};
+    Stats                   stats{};
     double                  workerMs = 0.0;
 };
 
@@ -121,11 +130,9 @@ void WorkerMain() {
     }
 }
 
-}  // namespace
-
 // Store the finished jobs at the front of the submission order. `wait` = store all of
 // them, waiting for the worker. Caller holds the lock.
-static void StoreFinished(CompressedStream* cs, std::unique_lock<std::mutex>& lk, bool wait) {
+void StoreFinished(CompressedStream* cs, std::unique_lock<std::mutex>& lk, bool wait) {
     AsyncState& s = S();
     for (;;) {
         while (!s.order.empty() && s.order.front()->done) {
@@ -147,31 +154,16 @@ static void StoreFinished(CompressedStream* cs, std::unique_lock<std::mutex>& lk
     }
 }
 
-void CompressedStream::ExtBeginAsyncCompress() {
-    // Only a writing stream with its Compression object, and one stream at a time; any
-    // other case keeps retail's synchronous body.
-    if (_extAsyncOwner != nullptr || _direction != 1 || _compression == nullptr) return;
-    AsyncState& s = S();
-    std::lock_guard<std::mutex> lk(s.mu);
-    s.comp     = _compression;
-    s.stats    = ExtAsyncStats{};
-    s.workerMs = 0.0;
-    if (!s.started) {
-        s.started = true;
-        std::thread(WorkerMain).detach();
-    }
-    _extAsyncOwner = this;
-}
-
-void CompressedStream::ExtAsyncCompressWindow(int i) {
-    RtIo::CompressedStreamWindow* const w = &_windowData[i];
+// Point kExtAsyncCompressWindow: CompressWindow(i) of the attached stream.
+void SubmitWindow(CompressedStream* cs, int i) {
+    RtIo::CompressedStreamWindow* const w = &cs->_windowData[i];
     if (w->start < 0) return;                                    // as retail: nothing to encode
 
     const double t0 = NowMs();
     AsyncState& s = S();
     const int32_t blk = w->start >> 15;
     const uint16_t len = static_cast<uint16_t>(w->end - w->start);
-    _headerData[blk].uncompressedSize = len;                     // 1800a987f..98, at once
+    cs->_headerData[blk].uncompressedSize = len;                 // 1800a987f..98, at once
 
     uint8_t* buf;
     {
@@ -195,20 +187,23 @@ void CompressedStream::ExtAsyncCompressWindow(int i) {
     ++s.stats.jobs;
     s.work.notify_one();
     s.stats.mainCopyMs += NowMs() - t0;
-    StoreFinished(this, lk, false);
+    StoreFinished(cs, lk, false);
     if (static_cast<int>(s.order.size()) > s.stats.maxQueued) s.stats.maxQueued = static_cast<int>(s.order.size());
     if (s.order.size() > kMaxQueued) {
         const double t1 = NowMs();
         s.done.wait(lk, [&] { return s.order.front()->done; });
         s.stats.fullWaitMs += NowMs() - t1;
-        StoreFinished(this, lk, false);
+        StoreFinished(cs, lk, false);
     }
 }
 
-bool CompressedStream::ExtAsyncCopyQueued(int blk, uint8_t* dst) {
+// Point kExtAsyncCopyQueued: SetWindow's in-memory branch. When a job for `blk` is still
+// queued, copy the bytes it holds (the latest submitted for `blk`) to `dst` and return true;
+// else false (the stored block is final, the engine decodes it as retail does).
+bool CopyQueued(CompressedStream* cs, int blk, uint8_t* dst) {
     AsyncState& s = S();
     std::unique_lock<std::mutex> lk(s.mu);
-    StoreFinished(this, lk, false);
+    StoreFinished(cs, lk, false);
     for (size_t k = s.order.size(); k-- > 0;) {
         const Job* const j = s.order[k];
         if (j->blk != blk) continue;
@@ -222,22 +217,56 @@ bool CompressedStream::ExtAsyncCopyQueued(int blk, uint8_t* dst) {
     return false;
 }
 
-void CompressedStream::ExtAsyncEnd() {
+// Point kExtAsyncEnd: Commit (after its flush, before PreCommit) or Release. Store every
+// queued block (waiting for the worker), then detach: the seam goes back to null.
+void End(CompressedStream* cs) {
     AsyncState& s = S();
     std::unique_lock<std::mutex> lk(s.mu);
-    StoreFinished(this, lk, true);   // every queued block, waiting for the worker
+    StoreFinished(cs, lk, true);   // every queued block, waiting for the worker
     for (uint8_t* b : s.pool) delete[] b;
     s.pool.clear();
     s.pool.shrink_to_fit();
     s.stats.workerMs = s.workerMs;
     s.comp = nullptr;
-    _extAsyncOwner = nullptr;
+    CompressedStream::_extAsyncCompress = nullptr;
+    g_owner = nullptr;
 }
 
-CompressedStream::ExtAsyncStats CompressedStream::ExtAsyncLastStats() {
+// The engine seam (io/Stream.h, CompressedStream::ExtAsyncCompressFn). Set only while a stream
+// is attached; any other stream that reaches a seam point meanwhile gets false (retail's body).
+bool Seam(CompressedStream& cs, int32_t point, int32_t index, uint8_t* dst) {
+    if (&cs != g_owner) return false;
+    switch (point) {
+    case CompressedStream::kExtAsyncCompressWindow: SubmitWindow(&cs, index);   return true;
+    case CompressedStream::kExtAsyncCopyQueued:     return CopyQueued(&cs, index, dst);
+    case CompressedStream::kExtAsyncEnd:            End(&cs);                   return true;
+    default:                                        return false;
+    }
+}
+
+}  // namespace
+
+void Begin(CompressedStream& cs) {
+    // Only a writing stream with its Compression object, and one stream at a time; any
+    // other case keeps retail's synchronous body.
+    if (g_owner != nullptr || cs._direction != 1 || cs._compression == nullptr) return;
+    AsyncState& s = S();
+    std::lock_guard<std::mutex> lk(s.mu);
+    s.comp     = cs._compression;
+    s.stats    = Stats{};
+    s.workerMs = 0.0;
+    if (!s.started) {
+        s.started = true;
+        std::thread(WorkerMain).detach();
+    }
+    g_owner = &cs;
+    CompressedStream::_extAsyncCompress = &Seam;
+}
+
+Stats LastStats() {
     AsyncState& s = S();
     std::lock_guard<std::mutex> lk(s.mu);
     return s.stats;
 }
 
-}  // namespace IO
+}}  // namespace Ext::AsyncSaveCompress
