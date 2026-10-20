@@ -165,9 +165,9 @@ Extensions dialog shows the row; the toolbar page appears when the row is locked
 extension of the same kind adds its own row, its own record and its own page; it shares the button,
 the window shell and the state contract.
 
-**The format to follow (code).** Every name below that does not exist yet (`StateCodec`,
-`Toolbar::Contribution`) is built by the first extension that needs it, in the shape shown, and the
-next extension reuses it. Existing names are the real ones.
+**The format to follow (code).** Every name below that does not exist yet (`SaveTail::StateCodec`,
+`Toolbar::Contribution`, `FindElement`) is built by the first extension that needs it, in the shape and under
+the name shown (the Names table below), and the next extension reuses it. Existing names are the real ones.
 
 *1. The registry row.* `src/ext/registry.h` gets the bool, `registry.cpp` the row, exactly like
 every row today (class C, `formatVersion` 1, default OFF):
@@ -186,7 +186,8 @@ bool my_list = false;   // class C: src/ext/my_list/ (docs/extensions/handins/MY
 *2. The state contract.* A codec per class C extension, registered beside the Entry by id. The
 serializer calls it through the registry and never includes the extension's header:
 ```cpp
-// registry.h (new, shared): what a class C extension gives the save tail
+// savetail.h (new, shared): what a class C extension gives the save tail
+namespace Ext { namespace SaveTail {
 struct StateCodec {
     const char* id;                                       // the Entry id
     void (*encode)(std::vector<uint8_t>& payload);        // the save arm: append this town's state
@@ -194,9 +195,8 @@ struct StateCodec {
                                                           // the load arm: false = malformed (fatal)
     void (*reset)();                                      // a new game, or the game ends: empty state
 };
-int StateCodecCount();
-const StateCodec& StateCodecAt(int i);
-const StateCodec* FindStateCodec(const char* id);         // null: a class B row, no state
+const StateCodec* FindCodec(const char* id);              // null: a class B row, no state (state_codecs.cpp)
+}}
 
 // src/ext/my_list/save_state.cpp: the codec and its registration
 namespace Ext { namespace MyList {
@@ -204,12 +204,13 @@ namespace {
 // Wire format v1 (little-endian): u32 count, count x { u32 len, u8 name[len] }.
 // Names are template paths, never indices (mods change load order between sessions).
 void Encode(std::vector<uint8_t>& out) {
-    PutU32(out, static_cast<uint32_t>(g_names.size()));
-    for (const std::string& n : g_names) { PutU32(out, uint32_t(n.size())); PutBytes(out, n); }
+    SaveTail::Writer w(out);
+    w.U32(static_cast<uint32_t>(g_names.size()));
+    for (const std::string& n : g_names) w.String(n);   // u32 len + bytes
 }
 bool Decode(const uint8_t* p, size_t size, int32_t savedVersion) {
     if (savedVersion != 1) return false;   // Validate already refused a NEWER version; older = migrate here
-    ByteReader r(p, size); uint32_t count = 0;
+    SaveTail::Reader r(p, size); uint32_t count = 0;
     if (!r.U32(count)) return false;
     g_names.clear();
     for (uint32_t i = 0; i < count; ++i) { std::string n; if (!r.String(n)) return false; g_names.push_back(n); }
@@ -217,21 +218,21 @@ bool Decode(const uint8_t* p, size_t size, int32_t savedVersion) {
 }
 void Reset() { g_names.clear(); }
 }  // namespace
-const StateCodec& Codec() { static const StateCodec c = { "my_list", Encode, Decode, Reset }; return c; }
+const SaveTail::StateCodec& Codec() { static const SaveTail::StateCodec c = { "my_list", Encode, Decode, Reset }; return c; }
 }}  // namespace Ext::MyList
 
-// registry.cpp, kStateCodecs: one line per class C extension
-const StateCodec kStateCodecs[] = { MyList::Codec(), };
+// src/ext/state_codecs.cpp (exe only), kCodecs: one line per class C extension
+const SaveTail::StateCodec* const kCodecs[] = { &MyList::Codec(), };
 ```
 The two serializer arms (`gameupdateloop_serialize.cpp`, `ExtSave_WriteTail` / `ExtSave_ReadTail`)
 grow by one loop each and stay the only place the tail is touched:
 ```cpp
 // SAVE: savetail.cpp ActiveRecords(), after r.formatVersion = e.formatVersion
-if (const StateCodec* c = FindStateCodec(e.id)) c->encode(r.payload);   // class B: no codec, empty payload
+if (const StateCodec* c = FindCodec(e.id)) c->encode(r.payload);   // class B: no codec, empty payload
 
 // LOAD: ExtSave_ReadTail, after LockForGameWithSet succeeded
 for (const Ext::SaveTail::Record& r : records)
-    if (const Ext::StateCodec* c = Ext::FindStateCodec(r.id.c_str()))
+    if (const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec(r.id.c_str()))
         if (!c->decode(r.payload.data(), r.payload.size(), r.formatVersion))
             ExtSave_Fatal("This save's ext:" + r.id + " state is damaged.");
 ```
@@ -260,18 +261,18 @@ bool AddButton(UI::Element* toolbar);            // the host's one button; false
 namespace Ext { namespace MyList {
 namespace {
 UI::TableElement* g_table = nullptr;
-void Open(UI::Element* page) { g_table = Toolbar::FindIn<UI::TableElement>(page, "tableMyList"); /* fill rows */ }
+void Open(UI::Element* page) { g_table = FindElement<UI::TableElement>(page, "tableMyList"); /* fill rows */ }
 void Changed(UI::Element* page) { /* read the checks into g_names; mark the object flags (section 4) */ }
 void Close() { g_table = nullptr; }
 }  // namespace
-const Toolbar::Contribution& Page() {
-    static const Toolbar::Contribution c = { "my_list", "Dialog/MyListPage.rsc:pageMyList", Open, Changed, Close };
+}}
+const Ext::Toolbar::Contribution& Ext::Toolbar::MyListPage() {
+    static const Contribution c = { "my_list", "Dialog/MyListPage.rsc:pageMyList", MyList::Open, MyList::Changed, MyList::Close };
     return c;
 }
-}}
 ```
 The host's `// EXT SEAM` is the one line in the toolbar's build (`src/game/...`) that calls
-`Ext::Toolbar::AddButton`; the page table in `toolbar.cpp` lists `MyList::Page()` the way
+`Ext::Toolbar::AddButton`; the page table in `toolbar.cpp` lists `MyListPage()` the way
 `enhanced_tab.cpp` lists its entries.
 
 *4. The sim seam.* The decision is made once when the list changes and stored on the object; the
@@ -293,6 +294,39 @@ predictable branch and the resave gate stays byte-identical.
 *5. The tests.* `tests/unit/ext_my_list_test.cpp`: the codec round-trips (encode then decode gives
 the same list), decode refuses a truncated payload, `reset` empties the state, and the sim seam's
 helper returns false for every object while the row is off.
+
+**Names (the standard, ruled 2026-10-20).** Fixed here so every extension spells things the same
+way. The existing extensions already follow most of it (they were cloned from each other); the
+exceptions listed at the end are legacy and are NOT renamed. `<id>` is the settings id
+(`[a-z0-9_]+`, e.g. `my_list`), `<Id>` its PascalCase (`MyList`), `<ID>` its upper case with the
+underscores dropped (`MYLIST`).
+
+| Thing | Name |
+|---|---|
+| settings key / registry id | `ext.<id>` / `fix.<id>`; the bool `Extensions::<id>`; a valued key `ext.<owner>_<what>` |
+| directory | `src/ext/<id>/` (one per extension; a row with no code has none) |
+| namespace | `Ext::<Id>` (`Ext::EyeCamera`, `Ext::SpreadWarmth`); shared hosts `Ext::EnhancedTab`, `Ext::Toolbar`, `Ext::SaveTail`, `Ext::Resources` |
+| bodies + the seam helpers | `src/ext/<id>/<id>.h` / `<id>.cpp` (the header every faithful seam includes) |
+| Enhanced tab rows | `src/ext/<id>/enhanced_entry.cpp`, accessor `Ext::EnhancedTab::<Id>Entry()` declared in `enhanced_tab.h` |
+| toolbar page | `src/ext/<id>/toolbar_page.cpp`, accessor `Ext::Toolbar::<Id>Page()` declared in `src/ext/toolbar/toolbar.h` |
+| class C codec | `src/ext/<id>/save_state.cpp`, accessor `Ext::<Id>::Codec()` declared in `<id>.h`; the struct `Ext::SaveTail::StateCodec` in `savetail.h`; the table `kCodecs` + `Ext::SaveTail::FindCodec(id)` in `src/ext/state_codecs.cpp` (exe only: `savetail.cpp` stays unit-linkable without the extensions) |
+| byte helpers | `Ext::SaveTail::Writer` (`U32`, `I32`, `String`, `Bytes`) and `Ext::SaveTail::Reader` (`U32`, `I32`, `String`, `Bytes`, `AtEnd`), promoted from `savetail.cpp` to `savetail.h` by the first codec; no per-extension copies |
+| codec callbacks | `encode` / `decode` / `reset`; the wire format is documented at the top of `save_state.cpp` ("Wire format v<n>") |
+| toolbar host | `src/ext/toolbar/toolbar.{h,cpp}`: `Contribution { id, page, open, changed, close }`, `Offered()`, `AddButton(UI::Element*)` |
+| element lookup | `Ext::FindElement<T>(page, name)` in `src/ext/ui/find_element.h` (the generic form of `EnhancedTab::FindIn`, which stays) |
+| our `.rsc` text | `src/ext/ui/Dialog/<Id>Page.rsc`, root object `page<Id>`; elements `<kind><Id><What>` (`tableMyList`, `checkMyListRow`, `comboAmbientOcclusion`); strings in `Dialog/ExtensionsStringTable.rsc`, `_name = "<Id><What>"` |
+| sprites | `src/ext/ui/Dialog/Sprite/Extensions/Entry_<id>.png` (the dialog row's icon), `Page_<id>.png` (the toolbar page's tab), `Toolbar_extensions.png` (the one shared button); baked by `tools/ext_sprites_bake.py` |
+| per-object flag | never a new field in a retail class (every `sizeof` is asserted): a side table in the extension keyed by the object's id, or a documented spare bit; engine-side seams are `_ext<What>` static data pointers (`Graphics::SunLight::_extShadowFitView`) |
+| seam comment | `// EXT SEAM (NOT RETAIL, docs/extensions/handins/<ID>.md): <one line of what and when>` at every faithful site, including dialog arms |
+| log prefix | `[<Id>]` on stderr (`[ExtSave]`, `[ShadowResMenu]`); never stdout |
+| hand-in / block | `docs/extensions/handins/<ID>.md`; a follow-up block `<ID>2`, `<ID>-<PART>` (`FAA-SHADOW2`) |
+| unit tests | `tests/unit/ext_<id>_test.cpp`, cases `ext_<id>_<what_it_proves>` |
+| list / status rows | `docs/extensions/LIST.MD` (`Ext C | <display name> | ...`), `docs/runtime_port/STATUS.md` |
+
+Legacy exceptions, left as they are: `src/ext/perfx/` holds two rows (`render_culling`, `anim_batch`);
+`src/ext/draw_gather/` holds `gather_threads`; `walk_batch_grid` lives in `src/ext/walk_batch/`;
+`max_shadow_res` has no directory (its row file is `enhanced_tab/shadow_res_entry.cpp`); the Options
+dialog's arms are commented `EXT ARM`; `EnhancedTab::FindIn` predates `FindElement`.
 
 **Rules that carry over unchanged.** No doors (`tools/acceptance/acceptance.sh` at target: nothing
 registers or resolves a body by retail name or address). No null guard on a faithful crash. Every
