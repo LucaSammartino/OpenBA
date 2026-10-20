@@ -82,7 +82,7 @@ struct Extensions {
     bool gather_threads = false; // class A: src/ext/draw_gather/ (docs/extensions/handins/CULLPAR.md); needs draw_gather
     bool quick_screens  = false; // class A: src/ext/quick_screens/ (docs/extensions/handins/SPLASH.md)
     bool ambient_occlusion = false; // class A: src/ext/ambient_occlusion/ (docs/extensions/AO.md)
-    bool max_shadow_res = false; // class A: the Graphics::SunLight seam (docs/extensions/handins/FAA-SHADOW.md)
+    bool max_shadow_res = false; // class A: src/ext/max_shadow_res/ (the Enhanced tab row) + the Graphics::SunLight seam (docs/extensions/handins/FAA-SHADOW.md)
     bool seamless_loops = false; // class A, next start: src/ext/seamless_loops/ (docs/extensions/handins/SEAMLESS.md)
     bool better_trees = false; // class A: src/ext/better_trees/ (docs/extensions/handins/BETTER-TREES.md): smooth leaf edges + stable tree shading + edge dapple
     bool spread_warmth = false; // class B: src/ext/spread_warmth/ (docs/extensions/handins/HITCH_PFBURST.md)

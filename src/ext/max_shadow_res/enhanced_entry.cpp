@@ -1,9 +1,9 @@
-// src/ext/enhanced_tab/shadow_res_entry.cpp -- ext.max_shadow_res's row of the Enhanced tab (blocks FAA-MENU, FAA-SHADOW2)
+// src/ext/max_shadow_res/enhanced_entry.cpp -- ext.max_shadow_res's row of the Enhanced tab (blocks FAA-MENU, FAA-SHADOW2)
 //
 // NOT RETAIL. The combo "Max shadow resolution" Off / 4096 / 8192: Off = the bool row
 // `ext.max_shadow_res` off (the stored `ext.max_shadow_size` is kept), 4096 / 8192 = the row on and
 // the valued key `ext.max_shadow_size` (the sun map's size while the retail Shadow Resolution combo
-// is at High; Medium / Low stay 1024 / 512). The row has no code directory: its seam is
+// is at High; Medium / Low stay 1024 / 512). This directory holds only the tab row: the seam is
 // Graphics::SunLight::_extMaxShadowRes / _extMaxShadowSize (docs/extensions/handins/FAA-SHADOW.md,
 // FAA-SHADOW2.md). SetAndRecord / SetValueAndRecord record the keys and request the map's rebuild on
 // this (the main) thread, so the next frame follows Apply / OK.

@@ -6,7 +6,7 @@
 // of rows; each extension contributes its own rows through a Contribution:
 //   ambient_occlusion/enhanced_entry.cpp   combo "Ambient occlusion" + slider "AO strength"
 //   better_trees/enhanced_entry.cpp        combo "Better trees"
-//   enhanced_tab/shadow_res_entry.cpp      combo "Max shadow resolution"
+//   max_shadow_res/enhanced_entry.cpp      combo "Max shadow resolution"
 //   seamless_loops/enhanced_entry.cpp      combo "Seamless ambient loops"
 // A contribution keeps its own element pointers (found by name in the new page); this file holds
 // only the dialog key, never OptionsDialog fields (its sizeof 0x1C0 is retail's, asserted). One
