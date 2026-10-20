@@ -708,7 +708,7 @@ public:
     // ?DecompressFromSource@CompressedStream@IO@@AEAA_NH@Z       0x1800a96b0
     bool DecompressFromSource(int blk);
 
-    // EXT SEAM (NOT RETAIL; docs/extensions/handins/HITCH_SAVE.md, DESIGN.md §3 hook rule 5).
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVE.md): ext.async_save_compress's hook (DESIGN.md §3 hook rule 5).
     // Null by default; src/ext/async_save_compress sets it while the class A extension
     // ext.async_save_compress has a save attached (Begin, right after Create) and clears it
     // when that save ends (point kExtAsyncEnd). It returns false for any stream other than the

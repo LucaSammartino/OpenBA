@@ -143,7 +143,7 @@ public:
     // atomic load when nothing is queued.
     void EnsureDecodedAtLoad() const;
 
-    // EXT SEAM (NOT RETAIL; docs/extensions/DESIGN.md §3 hook rule 5, block SEAMLESS): null by default.
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/SEAMLESS.md): ext.seamless_loops' loop hook, null by default (DESIGN.md §3 hook rule 5).
     // ext.seamless_loops installs it at boot (src/ext/registry_boot.cpp) when the row is on; DecodeAtLoad
     // calls it on a LOOPING buffer's decoded PCM (interleaved S16, `frames` frames) and keeps the frame
     // count it returns (<= frames). The same single null-default pointer shape as

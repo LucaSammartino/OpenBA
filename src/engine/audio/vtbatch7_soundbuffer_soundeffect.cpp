@@ -299,7 +299,7 @@ uint64_t PcmHash(const int16_t* pcm, size_t values) {
 #endif
 }  // namespace
 
-SoundBuffer::ExtLoopSeam SoundBuffer::_extLoopSeam = nullptr;   // EXT SEAM (SoundBuffer.h)
+SoundBuffer::ExtLoopSeam SoundBuffer::_extLoopSeam = nullptr;   // EXT SEAM (NOT RETAIL, docs/extensions/handins/SEAMLESS.md): ext.seamless_loops' loop hook, null by default (SoundBuffer.h)
 
 // Block SNDPAR: the decode is split in two so that a load's buffers can decode in
 // parallel (src/engine/audio/load_decode_batch.h). DecodeXwmaJob is the pure half: it
@@ -354,7 +354,7 @@ void FinishXwmaJob(SoundBuffer& buf, const XwmaJob& job) {
     size_t samples = job.samples;
     if (job.opened) {
         if (samples < job.total) g_decodeShort.fetch_add(1, std::memory_order_relaxed);
-        // EXT SEAM (ext.seamless_loops, NOT RETAIL): a looping buffer's PCM may be rewritten in place
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/SEAMLESS.md): ext.seamless_loops -- a looping buffer's PCM may be rewritten in place
         // and shortened. Null unless the row was on at boot; `_loopForever` was read by Serialize
         // before the payload, and PlayPlatform loops a buffer by that flag alone.
         if (LoopSeamApplies(SoundBuffer::_extLoopSeam != nullptr, buf._loopForever, pcm, samples))

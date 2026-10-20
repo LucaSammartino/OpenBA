@@ -656,7 +656,7 @@ public:
     int                       GetShaderDetail() const;                       // 0x180018060
     void                      SetShaderDetail(int detail);                   // 0x180018050
 
-    // NOT RETAIL -- EXT SEAM (ext.ambient_occlusion; renderer_ext_ao.h has the
+    // EXT SEAM (NOT RETAIL, docs/extensions/AO.md): ext.ambient_occlusion's frame (renderer_ext_ao.h has the
     // contract). Null always, except for the span of the game's own Draw call
     // (GameUpdateLoop::Draw step 7 arms and disarms it). A static: the 0x50-byte
     // layout below is unchanged.
