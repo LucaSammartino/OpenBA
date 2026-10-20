@@ -145,7 +145,8 @@ else()
                                                     ${CMAKE_SOURCE_DIR}/src/platform/common/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/sdl/*.cpp)
 endif()
-file(GLOB_RECURSE RENDER_SRCS   CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/dx11/*.cpp)
+file(GLOB_RECURSE RENDER_SRCS   CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/dx11/*.cpp
+                                                  ${CMAKE_SOURCE_DIR}/src/render/common/*.cpp)
 file(GLOB         APP_SRCS      CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/app/*.cpp)
 file(GLOB         DIAG_SRCS     CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/diag/*.cpp)
 # src/diag/win: the Windows-only diagnostics (crash / hang handlers, watchdog, sampler,
@@ -165,6 +166,7 @@ list(REMOVE_ITEM GAME_SRCS ${TWEAK_SRCS})
 set(BANISHED_INCLUDES
   ${CMAKE_SOURCE_DIR}/src/game
   ${CMAKE_SOURCE_DIR}/src/engine
+  ${CMAKE_SOURCE_DIR}/src/render/common
   ${CMAKE_SOURCE_DIR}/src/render/dx11
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/src/diag

@@ -1,5 +1,5 @@
 // ============================================================================
-// src/render/dx11/better_trees/cutout_rewrite.cpp -- see cutout_rewrite.h
+// src/render/common/better_trees/cutout_rewrite.cpp -- see cutout_rewrite.h
 // ============================================================================
 // NOT RETAIL (ext.foliage_aa). Pure: no D3D, no retail bytes.
 // ============================================================================

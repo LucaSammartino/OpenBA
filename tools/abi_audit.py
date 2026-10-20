@@ -451,7 +451,7 @@ def write_baseline(counts, pinned):
 # (iii) --layout
 # ---------------------------------------------------------------------------------------------
 
-INCLUDES = ['-I.', '-Isrc/game', '-Isrc/engine', '-Isrc/render/dx11', '-Isrc/app', '-Isrc/diag']
+INCLUDES = ['-I.', '-Isrc/game', '-Isrc/engine', '-Isrc/render/common', '-Isrc/render/dx11', '-Isrc/app', '-Isrc/diag']
 FLAGS = ['-std=c++17', '-fexceptions', '-fno-strict-aliasing', '-fno-lifetime-dse', '-w',
          '-fsyntax-only', '-fdump-lang-class']
 RE_DUMP_CLASS = re.compile(r'^Class ([^\n]+)\n[ \t]+size=(\d+) align=\d+\n[ \t]+base size=(\d+) base align=\d+\n(.*?)(?=\n\n|\Z)', re.M | re.S)

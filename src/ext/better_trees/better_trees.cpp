@@ -7,8 +7,8 @@
 
 #include "ext/registry.h"
 
-#include "better_trees/foliage_aa_backend.h"                // src/render/dx11/better_trees: no D3D types
-#include "better_trees/billboard_shadow_backend.h"    // src/render/dx11/better_trees: no D3D types
+#include "better_trees/foliage_aa_backend.h"                // src/render/common/better_trees: no D3D types
+#include "better_trees/billboard_shadow_backend.h"    // src/render/common/better_trees: no D3D types
 #include "better_trees/receiver_rewrite.h"            // BbsRewrite::Params (pure)
 #if BANISHED_TWEAK_OVERLAY
 #include "ext/tweak/ext_tweaks.h"   // the debug tweak overlay's k / floor / dapple set (debug flavour only)

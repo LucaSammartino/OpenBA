@@ -6,7 +6,7 @@
 // `faa` = the foliage cutout side (dxbc, cutout_rewrite); the two files merged 2026-10-20.
 //
 // bbs:
-// src/render/dx11/better_trees/receiver_rewrite.{h,cpp} (the margin lookup of handins/TS-CORE.md
+// src/render/common/better_trees/receiver_rewrite.{h,cpp} (the margin lookup of handins/TS-CORE.md
 // "TS-FIX2") and the registry row (src/ext/registry.cpp).
 //
 // NO RETAIL BYTES: every blob here is SYNTHETIC, assembled token by token in the SHAPE TS-CORE
@@ -17,7 +17,7 @@
 // moved along the light direction to the card centre's depth minus k |C - P| (TS-FIX2).
 //
 // faa:
-// src/render/dx11/better_trees/dxbc.{h,cpp} (the DXBC container, its checksum, the
+// src/render/common/better_trees/dxbc.{h,cpp} (the DXBC container, its checksum, the
 // SM4 token walk) and cutout_rewrite.{h,cpp} (the cutout grammar of FOLIAGE_AA.md
 // §6.1 and the emit), plus the registry row / key (src/ext/registry.cpp).
 //

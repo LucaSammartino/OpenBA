@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/better_trees/edge_dither.h -- ext.better_trees' billboard PIXEL-shader rewrite:
+// src/render/common/better_trees/edge_dither.h -- ext.better_trees' billboard PIXEL-shader rewrite:
 // per-texel noise on the shadow compare depth (docs/extensions/handins/BETTER-TREES.md)
 // ============================================================================
 // NOT RETAIL. Pure: no D3D, no retail bytes (the unit tests build synthetic ps_4_0 blobs). It reads
