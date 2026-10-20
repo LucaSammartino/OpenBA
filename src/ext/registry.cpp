@@ -55,6 +55,14 @@ const Entry kEntries[] = {
       "Follow a citizen at eye level, looking where they look.",
       0, [](State& s) -> bool& { return s.ext.eye_camera; } },
 
+    // BETTERCAM (docs/extensions/handins/BETTERCAM.md): the two camera fixes of Banished Game Tweaks, in source.
+    // Class A but OFF by default: it changes how the world looks until the player turns it on.
+    { "better_camera", Tier::Extension, Class::A, false,
+      "Better camera",
+      "Zoom in much closer and out much farther, and keep the camera's tilt when zoomed out "
+      "instead of flattening to top-down.",
+      0, [](State& s) -> bool& { return s.ext.better_camera; } },
+
     { "sharp_ui", Tier::Extension, Class::A, true,
       "Sharp UI",
       "Crisp text and sprites at any UI scale. Layout is unchanged.",
