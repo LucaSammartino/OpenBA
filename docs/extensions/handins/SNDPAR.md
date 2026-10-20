@@ -189,3 +189,11 @@ jobs, whose owner holds nothing and runs to the end.
 `ext_sheet_kit_crosscheck`, no kit output; pre-existing). The install-gated batch test ran (install
 present): `load batch: 24/24 byte-identical to the inline decode, 24 in Defer order`; the synthetic one
 37/37 byte-identical, once, in order for 0 / 1 / 2 / 4 / 7 workers. Perf / release flavours not built.
+
+## Measured (coordinator, 2026-10-19 night, perf exe, machine CLEAN, mods parked)
+
+New game, `[LoadTime] loader.resources -> loader.load` of the gameplay load, two runs each:
+main `01fbb55ca` 170.3 / 163.9 ms, branch 100.8 / 101.3 ms (-65 ms, -39%). `[SoundDecode]` identical
+to main (decoded=56 refused=0 short=0 xwmaBytes=2000696 pcmBytes=45594624 pcmHash=02c8071bd4ca4cea,
+debug exe, seed 12345 small, faithful). Resave gate PASS (a save load route); unit 1182 / 0 / 0 on the
+merged branch `perf-unbanished`; no crash log on any run.

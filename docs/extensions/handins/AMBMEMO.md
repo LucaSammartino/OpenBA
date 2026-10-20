@@ -161,3 +161,13 @@ re-described in place. No hook was needed.
 - Write rate: every hooked store costs one division and one store. Trees growing / being felled
   write cells often in a big town; each write only re-scans the regions over that block (a 32x32
   region spans 4 blocks of 16x16).
+
+## Measured (coordinator, 2026-10-19 night, perf exe, machine CLEAN, mods parked)
+
+Shadow: `tools/build.sh stress` with `BANISHED_STRESS_COMPPROF=4` ->
+`[AmbMemo] hits=476605 misses=2643 uncached=0 verified=476605 mismatches=0`, every `[VERIFY] AmbientMemo`
+and `[VERIFY] TerrainSidecar` window mismatches=0 (`perf/results/20261019_225320_ambmemo_verify`).
+A/B against `perf/baselines/current.csv` (`perf/results/20261019_230957_unbanished_ab`, merged branch
+`perf-unbanished`): AmbientEnvironmentComponent 0.127 -> 0.010 ms/frame (80 calls/frame);
+sim 0.16 -> 0.15 ms / iteration (-9.2%), update 1.65 -> 1.49 ms/frame (-9.3%), EntityList 1.40 -> 1.26
+(-10.0%); hitch verdict PASS; PLAN 5% gate PASS. Resave gate PASS; unit 1182 / 0 / 0.

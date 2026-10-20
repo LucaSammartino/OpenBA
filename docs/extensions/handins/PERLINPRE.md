@@ -82,3 +82,12 @@ in place, it is drawn only for spawned cells), `RegisterEntity`, `SeedInitialSpa
 The idea (precompute the scatter's surface noise in parallel rows) was prompted by the unbanished
 project's `docs/PERFORMANCE.md` (parallel surface-map rows). The implementation here is our own, on the
 WGPAR `System::ParallelFor` pool.
+
+## Measured (coordinator, 2026-10-19 night, perf exe, machine CLEAN, mods parked)
+
+New game, default autostart map, `[LoadTime] gul.starttown -> gul.starttown.done`, two runs each:
+main `01fbb55ca` 89.2 / 93.7 ms, branch 37.8 / 35.2 ms (-55 ms, -60%). All nine `[WorldHash]` rows
+of `loadkit/hash_base_4bdffa55a.txt` reproduced bit for bit (debug exe); resave gate PASS; unit 1182 / 0 / 0
+on the merged branch `perf-unbanished`. In the faithful profile the saving hides under the loading
+dialog's ~1,010 ms minimum hold on a small map; with the user's settings (ext.quick_screens on) the
+dialog-start to first-draw time fell 1,022 -> 930 ms for the three merged blocks together.
