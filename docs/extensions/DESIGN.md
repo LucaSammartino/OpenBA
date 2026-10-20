@@ -45,6 +45,18 @@ the class says what a toggle costs the player:
 | **B** | sim-divergent, format-neutral | locked for the game's lifetime; recorded in the save | pathfinding changes |
 | **C** | format-extending | locked for the game's lifetime; recorded in the save | anything with new per-entity or per-town state |
 
+**What the lock covers (ruled 2026-10-20).** The B / C lock is on the extension's *activation*: whether
+it is on for this town. It says nothing about the extension's own state, which may change live for
+the whole game (a class B pathfinder's data changes every frame; a class C extension's per-town
+settings change whenever the player edits them). A window that edits class C state is fully live;
+what the lock fixes is whether that window exists for the town. "A live control cannot be class C"
+is a misreading: the control is live, the feature is locked.
+
+**Which class, decided by one test.** Must a reload restore the extension's state for the town to play
+on as it was saved? Then the state is per-town and the extension is class C, whatever the state's
+size. Such state never lives in `settings.cfg`: a save opened beside a different `settings.cfg`
+would play differently while its mod list claims nothing, and class A's "no sim effect" fails too.
+
 Class C state is written in a chunk at the **tail of block 1 (the compressed game-state block)**,
 after the last faithful Serialize and before the stream closes (`gameupdateloop_serialize.cpp`,
 the save arm of `GameUpdateLoop::SaveRestore`), never inside a retail class's serialization. Retail's
@@ -105,6 +117,53 @@ src/game/Dialog/ExtensionsDialog.*   the menu, cloned from the Mods dialog shape
    (as Ghidra is) and inputs at build or run time on the user's machine. An extension that needs a
    changed version of retail data transforms the user's installed copy at load (the FOLIAGE_AA
    bytecode rewriter is the pattern). It never ships the changed copy. Hand-ins state it.
+
+**Class C state: the contract (ruled 2026-10-20).** A class C extension's per-town state travels in
+the payload of its own record in the tail chunk (`src/ext/savetail.h`, `Record::payload`), never in
+a retail class's Serialize. The extension gives the registry a pair of callbacks beside its Entry:
+*encode* (its state into the payload, at the save arm) and *decode* (from the payload, when the
+loader locks the game's set from the manifest). The serializer never learns what the payload means.
+Rules: the record exists whenever the extension is active, even with empty state (the lock set must
+not depend on content; the faithful profile still writes zero bytes); state refers to game objects by
+name (template path, string id), never by index, because mods change load order between sessions;
+the extension's `formatVersion` is bumped when the payload's layout changes; a shipped class C
+extension gets its own resave golden under its profile (Gates, below). With the extension disabled
+our loader shows the notice, plays the town without the feature and drops the payload at the next
+save, the missing-mod paradigm.
+
+**Surfaces: the UI axis is not the class axis (ruled 2026-10-20).** The class letter answers one
+question only, what a toggle costs the player's save. Where an extension shows up in the UI is a
+separate axis, a *surface*, and every surface is built once as a host that extensions contribute to:
+
+| Surface | Host | What an extension contributes |
+|---|---|---|
+| Extensions dialog (front end) | `src/game/Dialog/ExtensionsDialog.*` | its registry row (mandatory) |
+| Enhanced tab (Options dialog) | `src/ext/enhanced_tab/` | rows for its class A values (`EnhancedTab::Contribution`: open / apply / close) |
+| In-game toolbar window | one extension button on the toolbar opening a window of pages, built with the first extension that needs it | a page, offered only while the extension is active for the town |
+
+A new window is never a new class and never a button per feature: the toolbar gets ONE extension
+button, the window shows one page per active contributing extension, and with no active contributor
+the button is not added and the toolbar is retail's. Dialog resources are our own text `.rsc`
+served by the resource providers (KITFREE.md §2), as the Extensions dialog's are.
+
+*Example, a generic class C extension with its own window.* An extension `ext.<id>` that keeps a
+per-town list the player edits in game ships as:
+```
+src/ext/<id>/
+  <id>.h / <id>.cpp        the bodies behind the one sim seam (the decision hoisted out of the
+                           per-entity loop into a flag on the object, hook rule 4)
+  save_state.cpp           encode / decode of the list for the tail record (names, not indices)
+  toolbar_page.cpp         the page contribution: find its elements by name, fill, apply
+  src/ext/ui/Dialog/<Id>Page.rsc   the page's objects (ours; derived from the installed base
+                           objects at load, rule 7)
+src/ext/registry.{h,cpp}   the row: class C, formatVersion 1, default OFF, + the state callbacks
+tests/unit/ext_<id>_test.cpp   the codec round-trips, the off path is retail's bit for bit
+docs/extensions/handins/<ID>.md
+```
+plus `// EXT SEAM` lines at the sim site and the toolbar host, each citing the hand-in. The
+Extensions dialog shows the row; the toolbar page appears when the row is locked active. A second
+extension of the same kind adds its own row, its own record and its own page; it shares the button,
+the window shell and the state contract.
 
 **Rules that carry over unchanged.** No doors (`tools/acceptance/acceptance.sh` at target: nothing
 registers or resolves a body by retail name or address). No null guard on a faithful crash. Every
