@@ -363,7 +363,7 @@ the first rows match the pre-fix town.
 
 PerfX was a perf-build-only, env-gated set of non-retail knobs (`-DBANISHED_PERF_EXPERIMENTAL`,
 `BANISHED_PERF_*`, 2026-09-05). Since PERFXEXT (`docs/extensions/handins/PERFXEXT.md`) it is two
-extensions in `src/ext/perfx/`, compiled into every flavour and default OFF like every extension:
+extensions in `src/ext/render_culling/` (with `src/ext/anim_batch/`; `src/ext/perfx/` until 2026-10-20), compiled into every flavour and default OFF like every extension:
 a `settings.cfg` key (`ext.render_culling=1`, `ext.anim_batch=1`) or the Extensions dialog turns
 them on. **Every `BANISHED_PERF_*` flag and the build master are gone**; the perf build no longer
 differs from the others in behaviour, only in optimisation.

@@ -1,5 +1,7 @@
 # AOCORE -- `ext.ambient_occlusion` (class A): the depth, the pass, the seam (hand-in, 2026-10-14)
 
+> (moved to the DESIGN.md §3 names 2026-10-20, block ext-standard: `src/ext/ambient_occlusion/ao.{h,cpp}` moved to `ambient_occlusion.{h,cpp}` (namespaces `AmbientOcclusion` / `Ext::AO` / `AoMath` -> `Ext::AmbientOcclusion` / `Ext::AmbientOcclusion::AoMath`), `tests/unit/ext_ao_test.cpp` to `ext_ambient_occlusion_test.cpp`; the `[AO]` stderr prefix is `[AmbientOcclusion]`.)
+
 Block AOCORE of `docs/extensions/AO.md` §4. Branch `worktree-agent-a5e8b4a1bb43292ab`. Main is merged
 in, including AOMENU (f333a092d): the row, the valued keys, and `Ext::AO::Current()` are main's.
 Nothing is pushed or merged. The coordinator runs the gate.

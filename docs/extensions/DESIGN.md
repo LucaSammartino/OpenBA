@@ -166,7 +166,7 @@ extension of the same kind adds its own row, its own record and its own page; it
 the window shell and the state contract.
 
 **The format to follow (code).** Every name below that does not exist yet (`SaveTail::StateCodec`,
-`Toolbar::Contribution`, `FindElement`) is built by the first extension that needs it, in the shape and under
+`Toolbar::Contribution`) is built by the first extension that needs it, in the shape and under
 the name shown (the Names table below), and the next extension reuses it. Existing names are the real ones.
 
 *1. The registry row.* `src/ext/registry.h` gets the bool, `registry.cpp` the row, exactly like
@@ -296,8 +296,8 @@ the same list), decode refuses a truncated payload, `reset` empties the state, a
 helper returns false for every object while the row is off.
 
 **Names (the standard, ruled 2026-10-20).** Fixed here so every extension spells things the same
-way. The existing extensions already follow most of it (they were cloned from each other); the
-exceptions listed at the end are legacy and are NOT renamed. `<id>` is the settings id
+way. The existing extensions were brought into line with it on 2026-10-20
+(block ext-standard). `<id>` is the settings id
 (`[a-z0-9_]+`, e.g. `my_list`), `<Id>` its PascalCase (`MyList`), `<ID>` its upper case with the
 underscores dropped (`MYLIST`).
 
@@ -313,7 +313,7 @@ underscores dropped (`MYLIST`).
 | byte helpers | `Ext::SaveTail::Writer` (`U32`, `I32`, `String`, `Bytes`) and `Ext::SaveTail::Reader` (`U32`, `I32`, `String`, `Bytes`, `AtEnd`), promoted from `savetail.cpp` to `savetail.h` by the first codec; no per-extension copies |
 | codec callbacks | `encode` / `decode` / `reset`; the wire format is documented at the top of `save_state.cpp` ("Wire format v<n>") |
 | toolbar host | `src/ext/toolbar/toolbar.{h,cpp}`: `Contribution { id, page, open, changed, close }`, `Offered()`, `AddButton(UI::Element*)` |
-| element lookup | `Ext::FindElement<T>(page, name)` in `src/ext/ui/find_element.h` (the generic form of `EnhancedTab::FindIn`, which stays) |
+| element lookup | `Ext::FindElement<T>(page, name)` in `src/ext/ui/find_element.h` (the Enhanced tab's contributions use it) |
 | our `.rsc` text | `src/ext/ui/Dialog/<Id>Page.rsc`, root object `page<Id>`; elements `<kind><Id><What>` (`tableMyList`, `checkMyListRow`, `comboAmbientOcclusion`); strings in `Dialog/ExtensionsStringTable.rsc`, `_name = "<Id><What>"` |
 | sprites | `src/ext/ui/Dialog/Sprite/Extensions/Entry_<id>.png` (the dialog row's icon), `Page_<id>.png` (the toolbar page's tab), `Toolbar_extensions.png` (the one shared button); baked by `tools/ext_sprites_bake.py` |
 | per-object flag | never a new field in a retail class (every `sizeof` is asserted): a side table in the extension keyed by the object's id, or a documented spare bit; engine-side seams are `_ext<What>` static data pointers (`Graphics::SunLight::_extShadowFitView`) |
@@ -322,11 +322,6 @@ underscores dropped (`MYLIST`).
 | hand-in / block | `docs/extensions/handins/<ID>.md`; a follow-up block `<ID>2`, `<ID>-<PART>` (`FAA-SHADOW2`) |
 | unit tests | `tests/unit/ext_<id>_test.cpp`, cases `ext_<id>_<what_it_proves>` |
 | list / status rows | `docs/extensions/LIST.MD` (`Ext C | <display name> | ...`), `docs/runtime_port/STATUS.md` |
-
-Legacy exceptions, left as they are: `src/ext/perfx/` holds two rows (`render_culling`, `anim_batch`);
-`src/ext/draw_gather/` holds `gather_threads`; `walk_batch_grid` lives in `src/ext/walk_batch/`;
-`max_shadow_res` has no directory (its row file is `enhanced_tab/shadow_res_entry.cpp`); the Options
-dialog's arms are commented `EXT ARM`; `EnhancedTab::FindIn` predates `FindElement`.
 
 **Rules that carry over unchanged.** No doors (`tools/acceptance/acceptance.sh` at target: nothing
 registers or resolves a body by retail name or address). No null guard on a faithful crash. Every
