@@ -37,5 +37,5 @@ def draw_better_camera(px):
 
 
 ICONS = {
-    "better_camera": ("A", draw_better_camera),
+    "better_camera": ("B", draw_better_camera),
 }
