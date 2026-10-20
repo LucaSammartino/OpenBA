@@ -271,7 +271,7 @@ uint32_t LockEpoch();
 bool EntryLocked(const Entry& e);
 
 // ---------------------------------------------------------------------------
-// EXT SEAM (block SAVETAIL): the save's mod list
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/SAVETAIL.md, EXTSAVE.md): the save's mod list, every active class B / C extension as a pseudo-mod, at save write
 // ---------------------------------------------------------------------------
 // Every ACTIVE class B / C extension, as the pseudo-mod the save must carry
 // (DESIGN.md §2 as amended by SAVETAIL, main 1a180d42f): ModInfo name = the
