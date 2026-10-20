@@ -42,8 +42,8 @@
 #include "video/Device.h"   // ENDGAME B.3.9 SS2: Video::Device::_singleton
 #include "Entity/ComponentEntity.h"
 #include "Game/WorldGeometry.h"
-#include "ext/registry.h"                 // EXT SEAM: Ext::Ext() (NOT RETAIL)
-#include "ext/eye_camera/eye_camera.h"   // EXT SEAM: ext.eye_camera's followed entity (NOT RETAIL)
+#include "ext/registry.h"                 // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): Ext::Ext()
+#include "ext/eye_camera/eye_camera.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): ext.eye_camera's followed entity
 #include "Game/Map.h"
 #include "Game/PlayerController.h"   // PlayerController::WorldToScreen (0x140098210)
 

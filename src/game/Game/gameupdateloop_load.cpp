@@ -84,9 +84,9 @@
 #include "save/SaveLoad.h"              // RtSave_SaveLoad_Ctor / RtSave_SavedState_Dtor
 #include "utility/PerlinNoise.h"        // RtUtility_PerlinNoise_Ctor
 #include "Entity/ComponentEntity.h"   // B4 S4 RT2: InternalPtr<ComponentEntity>::Get() needs the class complete
-#include "ext/registry.h"   // EXT SEAM: Ext::LockForGame (NOT RETAIL)
-#include "ext/fast_paths/fast_paths.h"   // EXT SEAM: Ext::FastPaths::SelectForGame (NOT RETAIL)
-#include "ext/path_workers/path_workers.h"   // EXT SEAM: Ext::PathWorkers::SelectForGame (NOT RETAIL)
+#include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): Ext::LockForGame
+#include "ext/fast_paths/fast_paths.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md): Ext::FastPaths::SelectForGame
+#include "ext/path_workers/path_workers.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/PATHWORKERS.md): Ext::PathWorkers::SelectForGame
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
 
 // ============================================================
@@ -729,7 +729,7 @@ void GameUpdateLoop::Load() {
     // Audio::Pause at the tail).
     _singleton = this;
 
-    // EXT SEAM (docs/extensions/DESIGN.md §2; NOT RETAIL): a new game or a
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): the class lock (DESIGN.md §2) -- a new game or a
     // load takes the class B / C lock for this loop's lifetime. A no-op on the
     // game while no B / C extension is registered.
     Ext::LockForGame(this);
@@ -1356,7 +1356,7 @@ void GameUpdateLoop::Load() {
         }
     }
 
-    // EXT SEAM (NOT RETAIL): the class B set is final here on every route (a
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md, PATHWORKERS.md): the class B set is final here on every route (a
     // load's manifest was read in SaveRestore above); ext.fast_paths takes its
     // selection for the game before the sim issues its first path request.
     Ext::FastPaths::SelectForGame();

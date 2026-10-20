@@ -94,10 +94,10 @@
 #include "Game/WorldGeometry.h"   // WorldGeometry::Serialize (0x1400b04d0)
 #include "Game/PlayerController.h"   // PlayerController::Serialize (0x1400988c0)
 #include "rt_crt.h"   // rtcrt::StrICmp, retail's _stricmp (D.4 Q9)
-#include "system/Error.h"   // EXT SEAM: a bad B / C manifest is retail's fatal error box
-#include "ext/registry.h"   // EXT SEAM: the B / C lock from the save (NOT RETAIL)
-#include "ext/savetail.h"   // EXT SEAM: the block-1 tail manifest (NOT RETAIL)
-#include "ext/async_save_compress/async_save_compress.h"   // EXT SEAM: ext.async_save_compress, the save arm (NOT RETAIL)
+#include "system/Error.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): a bad B / C manifest is retail's fatal error box
+#include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): the B / C lock from the save
+#include "ext/savetail.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): the block-1 tail manifest
+#include "ext/async_save_compress/async_save_compress.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVE.md): ext.async_save_compress, the save arm
 #include <string>
 #include <vector>
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
@@ -759,7 +759,7 @@ void GameUpdateLoop::SerializeAllBody(IO::Stream& stream, SerializeScope& scope)
 // never reads (row 1247). The door's reader-less
 // RegisterExeAddr(0x1400959c0) row went with it.
 // ------------------------------------------------------------
-// EXT SEAM (NOT RETAIL): the class B / C manifest at block 1's tail
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md, SAVETAIL.md §1 / §4): the class B / C manifest at block 1's tail
 // ------------------------------------------------------------
 // docs/extensions/DESIGN.md §2, handins/SAVETAIL.md §1 / §4, handins/EXTSAVE.md.
 // SAVE: after the last faithful Serialize, the active B / C set as a small
@@ -842,7 +842,7 @@ void GameUpdateLoop_SaveRestoreBody(GameUpdateLoop* self, IO::CompressedMemorySt
                                     Save::SavedState* savedState,
                                     GameUpdateLoop::SerializeScope& scope) {
     self->SerializeAllBody(*cms, scope);
-    ExtSave_WriteTail(cms);         // EXT SEAM (NOT RETAIL): zero bytes when no B / C is active
+    ExtSave_WriteTail(cms);         // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): zero bytes when no B / C is active
     cms->IO::CompressedMemoryStream::Close();
     savedState->Store(cms->GetMemoryStream());
 }
@@ -864,7 +864,7 @@ void GameUpdateLoop::SaveRestore(bool save, Save::SavedState* savedState) {
         LoadTime::Stamp("ser.open");   // NOT RETAIL: print-only
         cms->Open();
         SerializeAll(*cms);
-        ExtSave_ReadTail(this, cms);    // EXT SEAM (NOT RETAIL): see above
+        ExtSave_ReadTail(this, cms);    // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): the manifest's load arm, see above
         cms->IO::CompressedMemoryStream::Close();
     } else {
         const double t0 = g_pfProfOn ? LoadTime::NowMs() : 0.0;   // NOT RETAIL: the HITCH_SAVE line
@@ -875,7 +875,7 @@ void GameUpdateLoop::SaveRestore(bool save, Save::SavedState* savedState) {
         const bool async = Ext::Ext().async_save_compress;
         if (async) Ext::AsyncSaveCompress::Begin(*cms);
         SerializeAll(*cms);
-        ExtSave_WriteTail(cms);         // EXT SEAM (NOT RETAIL): zero bytes when no B / C is active
+        ExtSave_WriteTail(cms);         // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): zero bytes when no B / C is active
         cms->IO::CompressedMemoryStream::Close();
         savedState->Store(cms->GetMemoryStream());
         if (g_pfProfOn) {   // NOT RETAIL (HITCH_SAVE): one line per save in a stress run
@@ -905,7 +905,7 @@ void GameUpdateLoop::SaveRestore(bool save, Save::SavedState* savedState) {
 // so a difference can be diffed offline.
 // ENDGAME B.3.9 IO (W2): the ?Read / ?GetSize@CompressedStream doors it
 // resolved by name are the class's own members now, called non-virtually.
-// EXT SEAM note (EXTSAVE.md): this reads the WHOLE image, GetSize() bytes, so a
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): a note -- this reads the WHOLE image, GetSize() bytes, so a
 // B / C manifest at the tail is part of the compare. Faithful profile: no tail
 // on either side, the compare is retail's. With a B / C extension active, a
 // save WITHOUT a manifest (Gate.sav) resaves WITH one: an expected DIFF.

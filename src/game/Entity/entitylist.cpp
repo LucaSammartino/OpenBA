@@ -41,8 +41,8 @@
 #include "Component/CharacterComponent.h"  // [PREFETCH] the staged walk prefetch (kWalkPrefetch == 2)
 #include "graphics/ParticleInstance.h"     // [PREFETCHCOV] the emitter instance lines (kPrefetchCovParticle)
 #include "stress_harness.h"               // g_compProfOn / CompProf_AddVtbl (BANISHED_STRESS)
-#include "ext/walk_batch/walk_batch.h"    // EXT SEAM ext.walk_batch (A) / ext.walk_batch_grid (B): the batched walk instantiations
-#include "ext/walk_batch_grid/walk_batch_grid.h"   // EXT SEAM ext.walk_batch_grid (B): the grid walk's character tick
+#include "ext/walk_batch/walk_batch.h"    // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md, WALKGRID.md): ext.walk_batch (A) / ext.walk_batch_grid (B), the batched walk instantiations
+#include "ext/walk_batch_grid/walk_batch_grid.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKGRID.md): ext.walk_batch_grid (B), the grid walk's character tick
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -633,7 +633,7 @@ template <class Fn>
 template <int kWalk>
 static inline auto MakeWalkTick(const System::Time* time) {
     if constexpr (kWalk != Ext::WalkBatch::kWalkFaithful) {
-        // [EXT SEAM ext.walk_batch (class A) / ext.walk_batch_grid (class B) -- NON-RETAIL] a
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md, WALKGRID.md): ext.walk_batch (class A) / ext.walk_batch_grid (class B) -- a
         // CharacterComponent (told by its vptr, as the walk prefetch does) gets
         // Ext::WalkBatch::TickCharacter (kWalkPlace) or Ext::WalkBatchGrid::TickCharacter (kWalkNoPlace), which
         // take MoveTo::Execute's walking branch with a short step and run
@@ -972,12 +972,12 @@ void EntityList::Update(const System::Time* time) {
     UpdateImpl<Ext::WalkBatch::kWalkFaithful>(time);
 }
 
-// [EXT SEAM ext.walk_batch -- NON-RETAIL, class A] src/ext/walk_batch/walk_batch.h.
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md): ext.walk_batch (class A), src/ext/walk_batch/walk_batch.h.
 void EntityList::UpdateWalkBatch(const System::Time* time) {
     UpdateImpl<Ext::WalkBatch::kWalkPlace>(time);
 }
 
-// [EXT SEAM ext.walk_batch_grid -- NON-RETAIL, class B] src/ext/walk_batch_grid/walk_batch_grid.h.
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKGRID.md): ext.walk_batch_grid (class B), src/ext/walk_batch_grid/walk_batch_grid.h.
 void EntityList::UpdateWalkBatchGrid(const System::Time* time) {
     UpdateImpl<Ext::WalkBatch::kWalkNoPlace>(time);
 }

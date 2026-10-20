@@ -34,7 +34,7 @@
 #include "system/MemoryAllocator.h"
 #include "system/String.h"
 #include "math/Math.h"
-#include "ext/render_culling/render_culling.h"   // EXT SEAM: ext.render_culling (PC_Culled)
+#include "ext/render_culling/render_culling.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/PERFXEXT.md): ext.render_culling (PC_Culled)
 #include "stress_harness.h"    // g_verifyOn / StressHarness_Verify (the PerfXSim shadow)
 #include "io/Serializer.h"   // ENDGAME B.3.4 caller batch A
 #include "io/Stream.h"      // ENDGAME B.3.4 callers batch H: IO::Stream::GetDirection
@@ -538,7 +538,7 @@ static void PC_UnstampOwnEmitters(ParticleComponent* self) {
     }
 }
 
-// EXT SEAM ext.render_culling (class A, NOT RETAIL; src/ext/render_culling/render_culling.h) -- a particle
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/PERFXEXT.md): ext.render_culling (class A, src/ext/render_culling/render_culling.h) -- a particle
 // system nobody can see is FROZEN (not ticked) rather than simulated; when the camera
 // reaches it the plume it had simply continues. Position = the first live emitter
 // geometry's transform translation (+0x94).

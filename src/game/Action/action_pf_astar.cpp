@@ -33,7 +33,7 @@
 #include "system/MemoryAllocator.h"   // System::MemoryAllocator::MemAlloc / MemFree
 #include "system/Thread.h"     // ENDGAME B.3.4b System callers
 #include "stress_harness.h"   // PFBENCH: g_pfProfOn / PfProf_* (stress harness only; one branch when off)
-#include "ext/fast_paths/fast_paths.h"   // EXT SEAM (NOT RETAIL): ext.fast_paths, cases 2 and 5 below
+#include "ext/fast_paths/fast_paths.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md): ext.fast_paths, cases 2 and 5 below
 #include <atomic>      // std::atomic_signal_fence (ApplyCommand case 5: retail's per-iteration reloads)
 #include <cstdint>
 #include <cstdio>    // [FLOODDIAG] diagnostic reporting
@@ -681,7 +681,7 @@ void PathfinderThread::ApplyCommand(const PathCommandArgs& cmd) {
         return;
     case 2:
         pbVar3 = &grid.cellFlags[cmd.arg1];
-        if (Ext::FastPaths::Engaged()) Ext::FastPaths::NoteCellTerrain(*pbVar3, cmd.arg2);   // EXT SEAM (NOT RETAIL): ext.fast_paths' type counts
+        if (Ext::FastPaths::Engaged()) Ext::FastPaths::NoteCellTerrain(*pbVar3, cmd.arg2);   // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md): ext.fast_paths' type counts
         *pbVar3 = static_cast<uint8_t>((*pbVar3 & 0x80) | static_cast<uint8_t>(cmd.arg2));
         return;
     case 3:
@@ -701,7 +701,7 @@ void PathfinderThread::ApplyCommand(const PathCommandArgs& cmd) {
         // open; see docs/extensions/handins/PFBENCH.md). Nothing inside FindPath is touched;
         // with the harness off this is one load and branch of g_pfProfOn each side.
         const long long pfT0 = g_pfProfOn ? CompProf_Now() : 0;
-        iVar2 = Ext::FastPaths::Engaged() ? Ext::FastPaths::Run(grid, cmd.arg1, cmd.arg2, auStack_10008)   // EXT SEAM (NOT RETAIL): ext.fast_paths
+        iVar2 = Ext::FastPaths::Engaged() ? Ext::FastPaths::Run(grid, cmd.arg1, cmd.arg2, auStack_10008)   // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md): ext.fast_paths
                                      : grid.Run(cmd.arg1, cmd.arg2, auStack_10008);   // 0x14001ce00
         if (pfT0 != 0) {
             // The fast search reports its own pops (Ext::FastPaths::LastRunExpanded); retail's

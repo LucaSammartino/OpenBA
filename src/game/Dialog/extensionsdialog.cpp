@@ -250,7 +250,7 @@ void ExtensionsDialog::Close() {
 // The game reload ModDialog::CloseAndReload (0x14006e9b0) runs for a mods
 // change: save-restore the running game and load it again through the menu.
 // The new GameUpdateLoop takes the class lock with the new request
-// (Ext::LockForGame, the EXT SEAM in GameUpdateLoop::Load).
+// (Ext::LockForGame, the seam in GameUpdateLoop::Load).
 void ExtensionsDialog::ReloadGame() {
     if (_parentMenu.Get() == nullptr) return;
     Save::SavedState* state = nullptr;
@@ -348,7 +348,7 @@ void ExtensionsDialog_OpenFromMainMenu(MainMenuDialog* menu) {
 }
 
 // ===========================================================================
-// The menu button (EXT SEAM in MainMenuDialog::OnOpened)
+// The menu button (the seam in MainMenuDialog::OnOpened)
 // ===========================================================================
 void ExtensionsDialog_AttachMenuButton(MainMenuDialog* menu) {
     if (menu == nullptr || menu->_ui == nullptr || menu->_dialog == nullptr) return;

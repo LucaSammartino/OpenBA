@@ -47,9 +47,9 @@
 #include "video/Device.h"   // ENDGAME B.3.9 SS2: Video::Device::_singleton
 #include "Entity/ComponentEntity.h"   // B4 S4 RT2: InternalPtr<ComponentEntity>::Get() needs the class complete
 #include "Player/Tool.h"            // UpdateHotkeys: the current tool's OnKey / OnCancel
-#include "ext/registry.h"             // EXT SEAM: Ext::Ext() (NOT RETAIL)
-#include "ext/eye_camera/eye_camera.h"   // EXT SEAM: ext.eye_camera's zoom (NOT RETAIL)
-#include "ext/better_camera/better_camera.h"   // EXT SEAM: ext.better_camera's zoom range + steady tilt (NOT RETAIL)
+#include "ext/registry.h"             // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md, BETTERCAM.md): Ext::Ext()
+#include "ext/eye_camera/eye_camera.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): ext.eye_camera's zoom
+#include "ext/better_camera/better_camera.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/BETTERCAM.md): ext.better_camera's zoom range + steady tilt
 
 extern "C" bool StartTown_GetSpawnTile(int* x, int* y);   // starttown.cpp (BANISHED_CAMERA_PIN=town)
 

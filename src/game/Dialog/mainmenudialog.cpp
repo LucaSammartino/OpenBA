@@ -25,7 +25,7 @@
 #include "Game/GameLoadDialogLoopT.h"
 #include "Game/GameLoaderLoop.h"
 #include "Dialog/ModDialog.h"
-#include "Dialog/ExtensionsDialog.h"   // EXT SEAM: the Extensions button (NOT RETAIL)
+#include "Dialog/ExtensionsDialog.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): the Extensions button
 #include "Dialog/NewGameDialog.h"
 #include "Dialog/MapParamsDialog.h"
 #include "Dialog/AchievementDialog.h"
@@ -538,7 +538,7 @@ void MainMenuDialog::OnOpened() {
         textBuildNotice->SetParameter(1, buildIdStr);
     }
 
-    // EXT SEAM (docs/extensions/DESIGN.md §3 "Menu"; NOT RETAIL): the
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): DESIGN.md §3 "Menu" -- the
     // Extensions button beside Mods. Retail's steps above are untouched; under
     // the gate's command-line faithful profile this adds nothing.
     ExtensionsDialog_AttachMenuButton(this);
@@ -656,7 +656,7 @@ void MainMenuDialog::OnElementEvent(Object::InternalPtr<UI::Element>* /*element*
         ModDialog_OpenFromMainMenu(this);
         break;
     case kExtensionsMenuButtonId:
-        // EXT SEAM (NOT RETAIL): the Extensions button ExtensionsDialog_
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): the Extensions button ExtensionsDialog_
         // AttachMenuButton adds in OnOpened. Retail has no id 13.
         printf("[MainMenuDialog::OnCommand] -> OpenExtensions (ExtensionsDialog)\n");
         ExtensionsDialog_OpenFromMainMenu(this);
