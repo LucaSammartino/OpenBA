@@ -253,7 +253,7 @@ void ExtAoAfterOpaque(Video::Context& context, const ExtAoFrame& frame,
     g_pass.stage->Resize(dev, td.Width, td.Height);
 
     float lh[16];
-    AoMath::AssaoProjection(entry._camera._projection.m, lh);
+    Ext::AmbientOcclusion::AoMath::AssaoProjection(entry._camera._projection.m, lh);
 
     StateBackup saved(dc);
     if (saved.Colour() == nullptr) return;   // nothing bound to darken (never seen; restored by `saved`)
@@ -263,7 +263,7 @@ void ExtAoAfterOpaque(Video::Context& context, const ExtAoFrame& frame,
     // before Renderer::Draw): the materials fogged their pixels already, so AO must be
     // gone where the fog is (ao_math.h FadeFromFog; the user's look 2026-10-14).
     Graphics::ExtAoFrame fogged = frame;
-    AoMath::FadeFromFog(context._fogParams.x, context._fogParams.y, fogged);
+    Ext::AmbientOcclusion::AoMath::FadeFromFog(context._fogParams.x, context._fogParams.y, fogged);
     g_pass.stage->Draw(dc, raw, lh, fogged);
 }
 

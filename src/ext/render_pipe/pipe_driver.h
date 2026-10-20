@@ -35,6 +35,7 @@
 #include "ext/render_pipe/pipe_state.h"
 #include "ext/render_pipe/render_pipe.h"   // Counters
 
+namespace Ext {
 namespace RenderPipe {
 
 // What one emit reports to the join.
@@ -184,3 +185,4 @@ private:
 };
 
 }  // namespace RenderPipe
+}  // namespace Ext

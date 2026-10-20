@@ -1062,7 +1062,7 @@ void OptionsDialog::OnApply() {
 
     ApplyGameSettings();
 
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/AOMENU.md): the Enhanced tab's values (Ext::AO::Set records ext.ao_quality /
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/AOMENU.md): the Enhanced tab's values (Ext::AmbientOcclusion::Set records ext.ao_quality /
     // ext.ao_opacity / ext.ambient_occlusion into the map the WriteSettings below flushes).
     Ext::EnhancedTab::Apply(this);
 

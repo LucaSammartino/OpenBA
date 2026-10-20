@@ -173,8 +173,8 @@ void PlayerToolManager::UpdateCamera(int inputFlag, int64_t timeTicks) {
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): while
     // ext.eye_camera follows a citizen the zoom moves the eye's own distance
     // and retail's zoom target (+0x3C) is left alone.
-    if (Ext::Ext().eye_camera && EyeCamera::Active())
-        zoomDir = EyeCamera::Zoom(zoomDir);
+    if (Ext::Ext().eye_camera && Ext::EyeCamera::Active())
+        zoomDir = Ext::EyeCamera::Zoom(zoomDir);
 
     // ── manual pitch accumulator +0x44 (0..1) from PitchUp/PitchDown (ids 0x11/0x12) ──
     if (keyMap->Pressed(0, 0x11))
@@ -186,14 +186,14 @@ void PlayerToolManager::UpdateCamera(int inputFlag, int64_t timeTicks) {
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/BETTERCAM.md): ext.better_camera's zoom range and steady
     // tilt, the toggle read once per frame. Off = retail's own constants (the values below are the same floats).
     const bool betterCam = Ext::Ext().better_camera;
-    const float zMin  = betterCam ? BetterCamera::kZoomMin  : kZoomMin;
-    const float zMax  = betterCam ? BetterCamera::kZoomMax  : kZoomMax;
-    const float zSpan = betterCam ? BetterCamera::kZoomSpan : kZoomSpan;
+    const float zMin  = betterCam ? Ext::BetterCamera::kZoomMin  : kZoomMin;
+    const float zMax  = betterCam ? Ext::BetterCamera::kZoomMax  : kZoomMax;
+    const float zSpan = betterCam ? Ext::BetterCamera::kZoomSpan : kZoomSpan;
     // Row off: a zoom target outside retail's range (a save, or a camera preset, written with the row on) goes back into
     // 20 .. 130 before anything reads it. A no-op for every value retail itself can hold; retail's own seeding of a zero
     // target from the distance (above) has already run.
     if (!betterCam)
-        field_0x3C = BetterCamera::ClampToRetailRange(field_0x3C);
+        field_0x3C = Ext::BetterCamera::ClampToRetailRange(field_0x3C);
 
     // ── apply zoom step to the zoom target, clamp 20..130 ──
     if (zoomDir != 0) {
@@ -204,7 +204,7 @@ void PlayerToolManager::UpdateCamera(int inputFlag, int64_t timeTicks) {
     // ── pitch/distance coupling ──
     const float manual  = field_0x44;                        // 0..1
     const float normZ   = (field_0x3C - zMin) / zSpan;       // 0..1
-    const float pitchTarget = BetterCamera::PitchTarget(manual, normZ, kPitchFarMan, kPitchFarFlat, kPitchNearMan, kPitchNearFlt, betterCam);
+    const float pitchTarget = Ext::BetterCamera::PitchTarget(manual, normZ, kPitchFarMan, kPitchFarFlat, kPitchNearMan, kPitchNearFlt, betterCam);
     field_0x40 = pitchTarget;                                // +0x40
 
     // pan speed scales with zoom (near=12, far=70)

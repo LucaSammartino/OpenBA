@@ -45,6 +45,7 @@
 #include <thread>
 #include <vector>
 
+namespace Ext {
 namespace BackgroundSave {
 namespace {
 
@@ -284,7 +285,7 @@ void FrozenUpdate(GameUpdateLoop& loop, const System::Time& time) {
         ToggleExercise(false);
     }
     PlayerController* pc = loop.m_playerController;
-    if (!(Ext::Ext().eye_camera && EyeCamera::Active())) {
+    if (!(Ext::Ext().eye_camera && Ext::EyeCamera::Active())) {
         // PlayerToolManager::Update's camera half (UpdateCamera, 0x1400feec0) on the shadow: the
         // controller's yaw / target / distance (serialised in the head) and the shadow's floats.
         // Hotkeys, tools and the UI do not run: they act on the world the worker is reading.
@@ -328,3 +329,4 @@ void Join(bool finishSave) {
 }
 
 }  // namespace BackgroundSave
+}  // namespace Ext

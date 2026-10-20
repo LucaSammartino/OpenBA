@@ -204,7 +204,7 @@ void Snap(Snapshot& s) {
     s.aoOpacity = Ext::Val().ao_opacity;
     s.faaMode   = Ext::Val().foliage_aa_mode;
     s.shadowChoice = Ext::MaxShadowResChoice();
-    s.aoEnabled = AmbientOcclusion::Enabled();
+    s.aoEnabled = Ext::AmbientOcclusion::Enabled();
     s.valid     = true;
 }
 

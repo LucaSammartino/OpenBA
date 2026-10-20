@@ -26,6 +26,7 @@ class Tool;
 namespace Graphics { class Renderer; class Material; }
 namespace Save { class SaveLoad; }
 
+namespace Ext {
 namespace RenderPipe {
 
 struct Packet {
@@ -105,3 +106,4 @@ void Emit(Ops& ops, const Packet& p) {
 }
 
 }  // namespace RenderPipe
+}  // namespace Ext

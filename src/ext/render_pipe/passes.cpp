@@ -33,6 +33,7 @@
 #include "video/Context.h"
 #include "video/Device.h"   // Video::RenderBuffer::width / height
 
+namespace Ext {
 namespace RenderPipe {
 
 using Graphics::Renderer;
@@ -152,3 +153,4 @@ void Pass2(Renderer& r, Video::Context& context, const Graphics::ExtAoFrame* ao)
 }
 
 }  // namespace RenderPipe
+}  // namespace Ext

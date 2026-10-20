@@ -33,10 +33,10 @@
 
 namespace {
 
-using RenderPipe::Packet;
-using RenderPipe::PipeState;
-using RenderPipe::TailInputs;
-using RenderPipe::TailPlan;
+using Ext::RenderPipe::Packet;
+using Ext::RenderPipe::PipeState;
+using Ext::RenderPipe::TailInputs;
+using Ext::RenderPipe::TailPlan;
 
 struct RecordOps {
     std::vector<std::string> log;
@@ -71,7 +71,7 @@ TailInputs Clear() { return TailInputs{}; }
 UNIT_TEST(ext_render_pipe_emit_replays_in_retail_order) {
     RecordOps ops;
     Packet p;
-    RenderPipe::Emit(ops, p);
+    Ext::RenderPipe::Emit(ops, p);
     // Retail's frame from the Frame tail on, minus the main half's steps (3, 4,
     // the sun half of 5, 6 and pass 1): mainloop_frame.cpp tail, loops.cpp
     // MainLoop::Draw, gameupdateloop.cpp Draw steps 2, 5, 7 (pass 2), 8, 10-12.
@@ -88,7 +88,7 @@ UNIT_TEST(ext_render_pipe_emit_stops_after_a_failed_begin) {
     RecordOps ops;
     ops.begin = false;
     Packet p;
-    RenderPipe::Emit(ops, p);
+    Ext::RenderPipe::Emit(ops, p);
     const std::vector<std::string> want = { "FrameTailTime", "BeginCommands", "BeginFailed" };
     CHECK(ops.log == want);
 }
@@ -246,10 +246,10 @@ UNIT_TEST(ext_render_pipe_registry_row) {
 // ============================================================================
 namespace {
 
-using RenderPipe::Counters;
-using RenderPipe::Driver;
-using RenderPipe::EmitResult;
-using RenderPipe::Handoff;
+using Ext::RenderPipe::Counters;
+using Ext::RenderPipe::Driver;
+using Ext::RenderPipe::EmitResult;
+using Ext::RenderPipe::Handoff;
 
 struct FakeHost {
     Driver<FakeHost>* driver = nullptr;
@@ -271,7 +271,7 @@ struct FakeHost {
         if (emitting.load()) ++errors;  // read only with nothing in flight
         return ctxIndex.load();
     }
-    void MainHalf(RenderPipe::Packet& next, const RenderPipe::TailPlan& plan) {
+    void MainHalf(Ext::RenderPipe::Packet& next, const Ext::RenderPipe::TailPlan& plan) {
         if (std::this_thread::get_id() != mainId) ++errors;
         if (plan.renderIdle && emitting.load()) ++errors;   // fixes 4 / 5 write only when idle
         if (driver->State().Pending() && next.slot == driver->State().PendingSlot()) ++errors;
@@ -279,7 +279,7 @@ struct FakeHost {
         // Pass 1 takes a while; the emit of the pending packet runs meanwhile.
         for (volatile int i = 0, n = static_cast<int>(rngMain() % 64); i < n; i = i + 1) {}
     }
-    EmitResult Emit(const RenderPipe::Packet& p, bool onThread) {
+    EmitResult Emit(const Ext::RenderPipe::Packet& p, bool onThread) {
         EmitResult r;
         if (onThread != threaded) ++errors;
         if (threaded && std::this_thread::get_id() == mainId) ++errors;
@@ -308,7 +308,7 @@ struct FakeHost {
         // The recreated context counts from where the lost one stopped (the lost
         // emit did not increment it): nothing to do here.
     }
-    void AfterJoin(const RenderPipe::Packet&) {
+    void AfterJoin(const Ext::RenderPipe::Packet&) {
         if (emitting.load()) ++errors;   // the camera shadow writes the real camera: render idle
     }
     void FaithfulTail() {

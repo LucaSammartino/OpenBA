@@ -123,16 +123,16 @@ void InitFromSettings() {
     // and returns 0 records while none is on, so the engine appends nothing.
     ::Save::SaveLoad::_extExtraMods = SaveModsProvider() != nullptr ? &EngineExtraMods : nullptr;
     // ext.draw_gather (class A, live): the three Graphics::Scene seams (scene_ext.h).
-    DrawGather::Sync();
+    Ext::DrawGather::Sync();
     // ext.render_pipe (class A, live): the Engine::MainLoop::_extFrame seam.
-    RenderPipe::Sync();
+    Ext::RenderPipe::Sync();
     // ext.ambient_occlusion (class A, live): the main depth's format + the per-frame arm.
-    AmbientOcclusion::Sync();
+    Ext::AmbientOcclusion::Sync();
     // ext.better_trees (class A, live): the VideoDX11::g_extFoliageAA seam + the mode, and the
     // billboard-shadow D3D stage (null seam while the row is off).
     BetterTrees::Sync();
     // ext.background_save (class A, live): the Save::SaveLoad::_extSaveStart / _extSavePoll seam.
-    BackgroundSave::Sync();
+    Ext::BackgroundSave::Sync();
     // ext.max_shadow_res (class A, live): the Graphics::SunLight seam follows the
     // row's live bool (a toggle rebuilds the map through Device::settingsChanged).
     // Installed once, like the save seam above: the profile is fixed for the run,
@@ -191,11 +191,11 @@ void InitFromSettings() {
 
 bool SetAndRecord(const Entry& e, bool on) {
     const bool changedNow = SetRequested(e, on);
-    DrawGather::Sync();   // a class A toggle takes effect now (no-op for every other entry)
-    RenderPipe::Sync();   // on: installed now; off: drained and removed at the next Frame tail
-    AmbientOcclusion::Sync();   // on / off: the depth rebuild is requested, the arm follows at once
+    Ext::DrawGather::Sync();   // a class A toggle takes effect now (no-op for every other entry)
+    Ext::RenderPipe::Sync();   // on: installed now; off: drained and removed at the next Frame tail
+    Ext::AmbientOcclusion::Sync();   // on / off: the depth rebuild is requested, the arm follows at once
     BetterTrees::Sync();        // on: the seams are set now; off: cleared at the next pixel / vertex bind
-    BackgroundSave::Sync();     // on: the save seam is set now; off: cleared now, or after a running save
+    Ext::BackgroundSave::Sync();     // on: the save seam is set now; off: cleared now, or after a running save
     // ext.max_shadow_res: the sun map is rebuilt through Device::settingsChanged, raised HERE (main thread,
     // between frames) so render_pipe runs the resize sequentially; see SunLight.h (FAA-MENU).
     if (changedNow && std::strcmp(e.id, "max_shadow_res") == 0) ::Graphics::SunLight::ExtRequestMaxShadowResSync();

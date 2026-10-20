@@ -67,7 +67,7 @@ UNIT_TEST(ext_better_camera_off_is_retails_pitch_to_the_last_bit) {
         const float manual = m * 0.125f;                              // the manual pitch steps in 0.125
         for (int i = -10; i <= 120; ++i) {
             const float normZ = i * 0.01f;                            // beyond 0..1 on purpose: a stale saved zoom
-            const float got = BetterCamera::PitchTarget(manual, normZ, kFarMan, kFarFlat, kNearMan, kNearFlat, false);
+            const float got = Ext::BetterCamera::PitchTarget(manual, normZ, kFarMan, kFarFlat, kNearMan, kNearFlat, false);
             CHECK(got == RetailPitch(manual, normZ));                 // exact, not approximate
         }
     }
@@ -80,7 +80,7 @@ UNIT_TEST(ext_better_camera_steady_tilt_is_the_same_at_every_zoom) {
         CHECK(std::fabs(RetailPitch(manual, 0.0f) - nearTilt) < 1e-4f);                  // (the near end of retail's blend)
         for (int i = -50; i <= 150; ++i) {
             const float normZ = i * 0.01f;
-            const float got = BetterCamera::PitchTarget(manual, normZ, kFarMan, kFarFlat, kNearMan, kNearFlat, true);
+            const float got = Ext::BetterCamera::PitchTarget(manual, normZ, kFarMan, kFarFlat, kNearMan, kNearFlat, true);
             CHECK(std::fabs(got - nearTilt) < 1e-3f);
         }
     }
@@ -90,20 +90,20 @@ UNIT_TEST(ext_better_camera_steady_tilt_is_the_same_at_every_zoom) {
 }
 
 UNIT_TEST(ext_better_camera_zoom_limits) {
-    CHECK(BetterCamera::kRetailZoomMin == 20.0f && BetterCamera::kRetailZoomMax == 130.0f && BetterCamera::kRetailZoomSpan == 110.0f);
-    CHECK(BetterCamera::kRetailZoomSpan == BetterCamera::kRetailZoomMax - BetterCamera::kRetailZoomMin);
-    CHECK(BetterCamera::kZoomMin == 6.0f && BetterCamera::kZoomMax == 200.0f);
+    CHECK(Ext::BetterCamera::kRetailZoomMin == 20.0f && Ext::BetterCamera::kRetailZoomMax == 130.0f && Ext::BetterCamera::kRetailZoomSpan == 110.0f);
+    CHECK(Ext::BetterCamera::kRetailZoomSpan == Ext::BetterCamera::kRetailZoomMax - Ext::BetterCamera::kRetailZoomMin);
+    CHECK(Ext::BetterCamera::kZoomMin == 6.0f && Ext::BetterCamera::kZoomMax == 200.0f);
     // the floor keeps the eye clear of the terrain at the shallow tilt (25 degrees): distance * sin(25 deg) above the focus point
-    CHECK(BetterCamera::kZoomMin * std::sin(25.0f * 3.14159265f / 180.0f) > 2.0f);
-    CHECK(BetterCamera::kZoomSpan == BetterCamera::kZoomMax - BetterCamera::kZoomMin);       // recomputed, as the exe fix does
-    CHECK(BetterCamera::kZoomMin < BetterCamera::kRetailZoomMin && BetterCamera::kZoomMax > BetterCamera::kRetailZoomMax);
+    CHECK(Ext::BetterCamera::kZoomMin * std::sin(25.0f * 3.14159265f / 180.0f) > 2.0f);
+    CHECK(Ext::BetterCamera::kZoomSpan == Ext::BetterCamera::kZoomMax - Ext::BetterCamera::kZoomMin);       // recomputed, as the exe fix does
+    CHECK(Ext::BetterCamera::kZoomMin < Ext::BetterCamera::kRetailZoomMin && Ext::BetterCamera::kZoomMax > Ext::BetterCamera::kRetailZoomMax);
     // normalised zoom runs 0 .. 1 across the wider range, so the pan speed and (retail) pitch blend keep their shape
-    CHECK((BetterCamera::kZoomMin - BetterCamera::kZoomMin) / BetterCamera::kZoomSpan == 0.0f);
-    CHECK(std::fabs((BetterCamera::kZoomMax - BetterCamera::kZoomMin) / BetterCamera::kZoomSpan - 1.0f) < 1e-6f);
+    CHECK((Ext::BetterCamera::kZoomMin - Ext::BetterCamera::kZoomMin) / Ext::BetterCamera::kZoomSpan == 0.0f);
+    CHECK(std::fabs((Ext::BetterCamera::kZoomMax - Ext::BetterCamera::kZoomMin) / Ext::BetterCamera::kZoomSpan - 1.0f) < 1e-6f);
 }
 
 UNIT_TEST(ext_better_camera_clamp_to_retail_range_when_off) {
-    using BetterCamera::ClampToRetailRange;
+    using Ext::BetterCamera::ClampToRetailRange;
     // The identity over every value retail can hold, bit for bit: clamping every frame costs the faithful route nothing.
     for (int i = 0; i <= 1100; ++i) {
         const float t = 20.0f + i * 0.1f;
@@ -127,7 +127,7 @@ UNIT_TEST(ext_better_camera_a_wide_target_cannot_push_the_faithful_pitch_out_of_
         const float wide = RetailPitch(manual, (200.0f - 20.0f) / 110.0f);
         CHECK(wide < lo - 1.0f || wide > hi + 1.0f);                                          // the hazard is real
         for (int target = 1; target <= 200; ++target) {
-            const float normZ = (BetterCamera::ClampToRetailRange(static_cast<float>(target)) - 20.0f) / 110.0f;
+            const float normZ = (Ext::BetterCamera::ClampToRetailRange(static_cast<float>(target)) - 20.0f) / 110.0f;
             const float got = RetailPitch(manual, normZ);
             CHECK(got >= lo - 1e-3f && got <= hi + 1e-3f);                                    // clamped: never outside
         }

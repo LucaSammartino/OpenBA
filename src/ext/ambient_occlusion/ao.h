@@ -13,7 +13,7 @@
 //   Arm()      once per frame, right before a Renderer::Draw: the game's draw
 //              (GameUpdateLoop::Draw step 7) and the main-menu backdrop's
 //              (MenuDialogLoopT::DrawScene_PhaseA, handins/AO-MENU.md). Reads
-//              Ext::AO::Current() ONCE, builds the frame record and points
+//              Ext::AmbientOcclusion::Current() ONCE, builds the frame record and points
 //              Graphics::Renderer::_extAo at it. Disarm() nulls it right after
 //              that Draw. Nothing else arms it, so the minimap never gets AO.
 //   BuildFrame()  the same record for ext.render_pipe's main half, which carries
@@ -24,6 +24,7 @@
 class PlayerController;
 namespace Graphics { struct ExtAoFrame; }
 
+namespace Ext {
 namespace AmbientOcclusion {
 
 void Sync();
@@ -44,3 +45,4 @@ bool Arm(const PlayerController& pc);
 void Disarm();
 
 }  // namespace AmbientOcclusion
+}  // namespace Ext

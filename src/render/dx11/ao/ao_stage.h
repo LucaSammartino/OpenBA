@@ -35,7 +35,7 @@ public:
     // `depth`: R32_FLOAT raw depth, 1x, `width` x `height` (Resize's).
     // `projection`: row-major, row-vector convention, a standard LEFT-HANDED 0..1
     // perspective (x right, y up, z forward; AO.md §6.2: the camera's Z-up
-    // projection with rows 1 and 2 swapped, AoMath::AssaoProjection).
+    // projection with rows 1 and 2 swapped, Ext::AmbientOcclusion::AoMath::AssaoProjection).
     virtual void Draw(ID3D11DeviceContext* context, ID3D11ShaderResourceView* depth,
                       const float projection[16], const Graphics::ExtAoFrame& frame) = 0;
 };

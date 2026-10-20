@@ -28,6 +28,7 @@
 #include "video/Context.h"
 #include "video/Device.h"
 
+namespace Ext {
 namespace SharpUI {
 
 namespace {
@@ -323,3 +324,4 @@ void Draw(UI::UserInterface& ui, Video::Context& context) {
 }
 
 }  // namespace SharpUI
+}  // namespace Ext

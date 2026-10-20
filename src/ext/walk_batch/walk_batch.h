@@ -38,6 +38,7 @@
 class CharacterComponent;                // Component/CharacterComponent.h
 namespace System { class Time; }         // src/engine/system/Value.h
 
+namespace Ext {
 namespace WalkBatch {
 
 // The walk an EntityList update runs (EntityList::UpdateImpl's template argument).
@@ -87,3 +88,4 @@ void TickCharacter(CharacterComponent* self, const System::Time* time);
 void TickCharacterGrid(CharacterComponent* self, const System::Time* time);
 
 }  // namespace WalkBatch
+}  // namespace Ext

@@ -483,7 +483,7 @@ void MenuDialogLoopT::Draw(float alpha) {
     if (context) {
         // EXT SEAM (ext.sharp_ui, NOT RETAIL): as GameUpdateLoop::Draw step 12.
         if (Ext::Ext().sharp_ui)
-            SharpUI::Draw(_ui, *context);
+            Ext::SharpUI::Draw(_ui, *context);
         else
             _ui.Draw(*context);
     } else if (trace) {

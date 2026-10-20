@@ -46,7 +46,7 @@
 
 namespace Cpu {
 
-constexpr int kMaxPathWorkers = 4;   // == PathWorkers::kMaxWorkers (asserted in path_workers.cpp)
+constexpr int kMaxPathWorkers = 4;   // == Ext::PathWorkers::kMaxWorkers (asserted in path_workers.cpp)
 constexpr int kMaxCullHelpers = 2;
 constexpr int kMaxParallelWorkers = 7;   // == System::Parallel::kMaxWorkers
 

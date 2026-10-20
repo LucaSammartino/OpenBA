@@ -16,7 +16,7 @@
 //          and its threads are joined BEFORE the results, the cell bytes and
 //          the queue are freed. No pool thread outlives the grid it reads.
 //   GameUpdateLoop::Load (Game/gameupdateloop_load.cpp), beside both
-//          FastPaths::SelectForGame calls: SelectForGame().
+//          Ext::FastPaths::SelectForGame calls: SelectForGame().
 // Retail's ApplyCommand, search bodies, TakePath and enqueuers are untouched.
 //
 // THE MODE. g_mode bit 0 = selected for this game (SelectForGame), bit 1 = a
@@ -32,6 +32,7 @@
 
 class PathfinderThread;
 
+namespace Ext {
 namespace PathWorkers {
 
 enum : uint8_t {
@@ -61,3 +62,4 @@ void Dispatch(PathfinderThread& pf);
 void ReleaseFor(PathfinderThread* pf);
 
 }  // namespace PathWorkers
+}  // namespace Ext

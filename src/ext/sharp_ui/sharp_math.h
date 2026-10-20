@@ -34,6 +34,7 @@
 
 #include "ui/SharpDraw.h"   // UI::SharpGlyphPlace (standard C++)
 
+namespace Ext {
 namespace SharpUI {
 
 // The layout extent retail derives from a back-buffer extent and _uiScale:
@@ -96,3 +97,4 @@ bool Twin2xPath(const char* path, char* out, size_t cap);
 bool WantTwin2x(float pxPerUnitX, float pxPerUnitY);
 
 }  // namespace SharpUI
+}  // namespace Ext

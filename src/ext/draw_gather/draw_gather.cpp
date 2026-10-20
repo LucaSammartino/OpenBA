@@ -49,6 +49,7 @@
 #include "ext/cpu/topology.h"    // CULLPAR: Cpu::Get().physical
 #include "stress_harness.h"        // g_verifyOn / StressHarness_Verify (COMPPROF=4 shadows)
 
+namespace Ext {
 namespace DrawGather {
 
 namespace {
@@ -394,3 +395,4 @@ Counters TakeWindow() {
 }
 
 }  // namespace DrawGather
+}  // namespace Ext

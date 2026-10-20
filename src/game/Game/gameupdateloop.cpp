@@ -63,8 +63,8 @@
 #include "stress_harness.h"   // BANISHED_STRESS Update/Draw brackets (standalone/)
 #include "ext/render_culling/render_culling.h" // EXT SEAM: ext.render_culling / ext.anim_batch (PerfX, NOT RETAIL)
 #include "ext/walk_batch/walk_batch.h" // EXT SEAM: ext.walk_batch (NOT RETAIL)
-#include "ext/spread_warmth/spread_warmth.h"   // EXT SEAM ext.spread_warmth (class B): SpreadWarmth::BeginFrame
-#include "ext/drain_split/drain_split.h"       // EXT SEAM ext.drain_split (class B): DrainSplit::BeginFrame
+#include "ext/spread_warmth/spread_warmth.h"   // EXT SEAM ext.spread_warmth (class B): Ext::SpreadWarmth::BeginFrame
+#include "ext/drain_split/drain_split.h"       // EXT SEAM ext.drain_split (class B): Ext::DrainSplit::BeginFrame
 #include "Game/terrain_sidecar.h" // the terrain-type mirror's teardown (faithful perf work)
 #include <cstdio>
 #include <cstring>
@@ -561,8 +561,8 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
     // EXT SEAM (NOT RETAIL): ext.background_save -- while the save is serialised on its worker
     // the sim is frozen and this Update is the camera and the save poll only
     // (src/ext/background_save, docs/extensions/handins/HITCH_SAVESNAP.md).
-    if (BackgroundSave::Busy()) {
-        BackgroundSave::FrozenUpdate(*this, *time);
+    if (Ext::BackgroundSave::Busy()) {
+        Ext::BackgroundSave::FrozenUpdate(*this, *time);
         return true;
     }
 
@@ -576,9 +576,9 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
     ApplyForceSpeed(m_toolManager);
     StressHarness_UpdateBegin(s_frameNum);   // [STRESS] no-op unless BANISHED_STRESS
     Ext::RenderCulling::BeginFrame(m_renderer);      // EXT SEAM: ext.render_culling / ext.anim_batch read once per frame (frustum, pause flush)
-    WalkBatch::BeginFrame();            // EXT SEAM: ext.walk_batch (A) / ext.walk_batch_grid (B) read once per frame
-    SpreadWarmth::BeginFrame();         // EXT SEAM: ext.spread_warmth (B) read once per frame, its budget reset
-    DrainSplit::BeginFrame();           // EXT SEAM: ext.drain_split (B) read once per frame, the owed half's frame count
+    Ext::WalkBatch::BeginFrame();            // EXT SEAM: ext.walk_batch (A) / ext.walk_batch_grid (B) read once per frame
+    Ext::SpreadWarmth::BeginFrame();         // EXT SEAM: ext.spread_warmth (B) read once per frame, its budget reset
+    Ext::DrainSplit::BeginFrame();           // EXT SEAM: ext.drain_split (B) read once per frame, the owed half's frame count
 
     // [EVENTS] RETIRED: the BANISHED_LIVE_EVENTS resource-shortage scanner used to
     // run here (a second port of FUN_14008c100 via EventLog_CheckResourceShortages).
@@ -815,9 +815,9 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
                 // NON-RETAIL] an intermediate iteration while either row is on walks with the
                 // batched character tick (src/ext/walk_batch/walk_batch.h); otherwise retail's
                 // EntityList::Update.
-                const int walk = WalkBatch::Select(rootOnly);
-                if (walk == WalkBatch::kWalkNoPlace) m_entityList->UpdateWalkBatchGrid(time);
-                else if (walk == WalkBatch::kWalkPlace) m_entityList->UpdateWalkBatch(time);
+                const int walk = Ext::WalkBatch::Select(rootOnly);
+                if (walk == Ext::WalkBatch::kWalkNoPlace) m_entityList->UpdateWalkBatchGrid(time);
+                else if (walk == Ext::WalkBatch::kWalkPlace) m_entityList->UpdateWalkBatch(time);
                 else m_entityList->Update(time);
                 }
                 TRACE("[GameUpdateLoop::Update] EntityList::Update done\n");
@@ -1010,8 +1010,8 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
             // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): while
             // ext.eye_camera follows a citizen, the eye transform replaces the
             // camera write (retail's CalcTransform still runs inside Apply).
-            if (Ext::Ext().eye_camera && EyeCamera::Active()) {
-                EyeCamera::Apply(*playerCtrl);
+            if (Ext::Ext().eye_camera && Ext::EyeCamera::Active()) {
+                Ext::EyeCamera::Apply(*playerCtrl);
             } else {
                 Math::Transform transform = playerCtrl->CalcTransform();   // 0x1400983f0
                 // AsTransform3 on the result, then SetCameraToWorld
@@ -1326,7 +1326,7 @@ void GameUpdateLoop::Draw(float alpha) {
     bool paused = m_userInterface->PausesGame();
     bool entityUIPaused = m_toolManager->paused;
     // EXT SEAM (NOT RETAIL): ext.background_save's frozen sim holds the last tick's pose too.
-    if (paused || entityUIPaused || BackgroundSave::Busy()) {
+    if (paused || entityUIPaused || Ext::BackgroundSave::Busy()) {
         alpha = kRdata_14017214c; // 1.0f
     }
 
@@ -1372,8 +1372,8 @@ void GameUpdateLoop::Draw(float alpha) {
     TRACE("[GameUpdateLoop::Draw] updating player camera...\n");
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): ext.eye_camera
     // builds the eye at the renderer's alpha and the near plane 0.1 per frame.
-    if (Ext::Ext().eye_camera && EyeCamera::Active())
-        EyeCamera::ApplyFrame(*m_playerController, alpha, kRdata_1401721dc, kRdata_140172240);
+    if (Ext::Ext().eye_camera && Ext::EyeCamera::Active())
+        Ext::EyeCamera::ApplyFrame(*m_playerController, alpha, kRdata_1401721dc, kRdata_140172240);
     else
         m_playerController->UpdateCamera(kRdata_1401721dc, kRdata_140172174, kRdata_140172240);   // 0x140098660
     TRACE("[GameUpdateLoop::Draw] player camera done\n");
@@ -1444,20 +1444,20 @@ void GameUpdateLoop::Draw(float alpha) {
         // EXT SEAM (NOT RETAIL, docs/extensions/handins/AOCORE.md): ext.ambient_occlusion
         // arms Graphics::Renderer::_extAo for this one Draw (the game's main scene
         // only: the menu backdrop and the minimap never come through here).
-        const bool aoArmed = AmbientOcclusion::Enabled() && AmbientOcclusion::Arm(*m_playerController);
+        const bool aoArmed = Ext::AmbientOcclusion::Enabled() && Ext::AmbientOcclusion::Arm(*m_playerController);
         // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md §9): while
         // ext.eye_camera follows a citizen, the same Renderer::Draw with the
         // sun's shadow camera fitted to a view over the citizen (retail's fit
         // to the eye-level view misses it).
-        if (Ext::Ext().eye_camera && EyeCamera::Active())
-            EyeCamera::DrawScene(*m_renderer, *videoCtx, alpha, *m_graphicsScene,
+        if (Ext::Ext().eye_camera && Ext::EyeCamera::Active())
+            Ext::EyeCamera::DrawScene(*m_renderer, *videoCtx, alpha, *m_graphicsScene,
                                  *m_playerController);
         else
             m_renderer->Draw(
                 *videoCtx, alpha,
                 *m_graphicsScene,
                 m_playerController->camera);
-        if (aoArmed) AmbientOcclusion::Disarm();
+        if (aoArmed) Ext::AmbientOcclusion::Disarm();
     }
     TRACE("[GameUpdateLoop::Draw] Renderer::Draw done\n");
 
@@ -1536,10 +1536,10 @@ void GameUpdateLoop::Draw(float alpha) {
     TRACE("[GameUpdateLoop::Draw] calling UI::UserInterface::Draw...\n");
     {
         Video::Context* videoCtx = ::Engine::MainLoop::_singleton->_context;
-        // EXT SEAM (ext.sharp_ui, NOT RETAIL): retail's Draw inside SharpUI::Draw
+        // EXT SEAM (ext.sharp_ui, NOT RETAIL): retail's Draw inside Ext::SharpUI::Draw
         // (font variants, pixel snap); off = retail's call.
         if (Ext::Ext().sharp_ui)
-            SharpUI::Draw(*m_userInterface, *videoCtx);
+            Ext::SharpUI::Draw(*m_userInterface, *videoCtx);
         else
             m_userInterface->Draw(*videoCtx);
     }
@@ -1872,7 +1872,7 @@ void GameUpdateLoop::Shutdown() {
     // EXT SEAM (NOT RETAIL): ext.background_save -- Engine::MainLoop runs Shutdown before the
     // destructor, and the teardown below frees the world a save worker may still be reading (a
     // window close pumped during the frozen frames). Wait for it and finish that save first.
-    BackgroundSave::Join(true);
+    Ext::BackgroundSave::Join(true);
     Ext::RenderCulling::Reset();   // [PerfX] drop cached model pointers before the world is freed
     TerrainSidecar::Report();       // [terrain sidecar] the COMPPROF=4 shadow's totals
     AmbientEnvironmentComponent::ReportMemo();   // [AMBMEMO] hit / miss / shadow totals
@@ -2264,7 +2264,7 @@ GameUpdateLoop::~GameUpdateLoop() {
 
     // EXT SEAM (NOT RETAIL): ext.background_save -- never free the world under its worker
     // (Shutdown has joined already when it ran; this covers a loop deleted without it).
-    BackgroundSave::Join(false);
+    Ext::BackgroundSave::Join(false);
 
     // Step 2: Clear game world singleton
     _singleton = nullptr;

@@ -85,8 +85,8 @@
 #include "utility/PerlinNoise.h"        // RtUtility_PerlinNoise_Ctor
 #include "Entity/ComponentEntity.h"   // B4 S4 RT2: InternalPtr<ComponentEntity>::Get() needs the class complete
 #include "ext/registry.h"   // EXT SEAM: Ext::LockForGame (NOT RETAIL)
-#include "ext/fast_paths/fast_paths.h"   // EXT SEAM: FastPaths::SelectForGame (NOT RETAIL)
-#include "ext/path_workers/path_workers.h"   // EXT SEAM: PathWorkers::SelectForGame (NOT RETAIL)
+#include "ext/fast_paths/fast_paths.h"   // EXT SEAM: Ext::FastPaths::SelectForGame (NOT RETAIL)
+#include "ext/path_workers/path_workers.h"   // EXT SEAM: Ext::PathWorkers::SelectForGame (NOT RETAIL)
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
 
 // ============================================================
@@ -736,8 +736,8 @@ void GameUpdateLoop::Load() {
     // ext.fast_paths (class B) reads the lock here; final for a new game, a
     // load's manifest replaces it in SaveRestore and the second call below
     // re-reads it (src/ext/fast_paths/fast_paths.h).
-    FastPaths::SelectForGame();
-    PathWorkers::SelectForGame();   // ext.path_workers (class B), the same rule
+    Ext::FastPaths::SelectForGame();
+    Ext::PathWorkers::SelectForGame();   // ext.path_workers (class B), the same rule
 
     // Steps 1-4: resource Finds (Diseases/Profession/Material/Help). Only step 3
     // (UI material) is still DEFERRED (left null; consumers guarded).
@@ -1359,8 +1359,8 @@ void GameUpdateLoop::Load() {
     // EXT SEAM (NOT RETAIL): the class B set is final here on every route (a
     // load's manifest was read in SaveRestore above); ext.fast_paths takes its
     // selection for the game before the sim issues its first path request.
-    FastPaths::SelectForGame();
-    PathWorkers::SelectForGame();   // ext.path_workers (class B), the same rule
+    Ext::FastPaths::SelectForGame();
+    Ext::PathWorkers::SelectForGame();   // ext.path_workers (class B), the same rule
 
     // Step 32 — AchievementInstance (retail 0x140097645-0x1400976dd).
     //

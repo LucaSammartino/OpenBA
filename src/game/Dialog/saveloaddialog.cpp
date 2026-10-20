@@ -432,7 +432,7 @@ void SaveLoadDialog::OnOpened() {
     // EXT SEAM (block SPLASH, NOT RETAIL): ext.quick_screens ends the list's
     // floor once the scan is done (SaveLoad::Update runs it only with the
     // persistence worker idle). docs/extensions/handins/SPLASH.md.
-    if (Ext::Ext().quick_screens) timeVal._ticks = QuickScreens::kNoMinOperationTime;
+    if (Ext::Ext().quick_screens) timeVal._ticks = Ext::QuickScreens::kNoMinOperationTime;
     ::Save::SaveLoad::_singleton->SetMinOperationTime(timeVal);
 
     // --- Start operation: 1 (list/scan), param = -2 or -3 based on mode ---
@@ -821,7 +821,7 @@ void SaveLoadDialog::DoSave() {
     RtSystem_Time_Ctor(&minTime, 1.5f);
     // EXT SEAM (block SPLASH, NOT RETAIL): ext.quick_screens ends the floor once
     // the worker has written the file. docs/extensions/handins/SPLASH.md.
-    if (Ext::Ext().quick_screens) minTime._ticks = QuickScreens::kNoMinOperationTime;
+    if (Ext::Ext().quick_screens) minTime._ticks = Ext::QuickScreens::kNoMinOperationTime;
     saveLoad->SetMinOperationTime(minTime);
 
     // Check if the selected save slot already contains data
@@ -868,7 +868,7 @@ void SaveLoadDialog::DoLoad() {
     RtSystem_Time_Ctor(&minTime, 1.5f);
     // EXT SEAM (block SPLASH, NOT RETAIL): ext.quick_screens ends the floor once
     // the worker has read the file (LOADPLAN ruling 3). docs/extensions/handins/SPLASH.md.
-    if (Ext::Ext().quick_screens) minTime._ticks = QuickScreens::kNoMinOperationTime;
+    if (Ext::Ext().quick_screens) minTime._ticks = Ext::QuickScreens::kNoMinOperationTime;
     saveLoad->SetMinOperationTime(minTime);
 
     // If game world is active, ask user to confirm leaving the current game

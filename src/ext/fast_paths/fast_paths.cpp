@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <vector>
 
+namespace Ext {
 namespace FastPaths {
 
 std::atomic<uint8_t> g_mode{0};
@@ -217,9 +218,10 @@ ShadowResult Shadow(const Request& req) {
 }
 
 }  // namespace FastPaths
+}  // namespace Ext
 
-void FastPaths_ShadowHook(const FastPaths::Request& req) {
-    const FastPaths::ShadowResult r = FastPaths::Shadow(req);
+void FastPaths_ShadowHook(const Ext::FastPaths::Request& req) {
+    const Ext::FastPaths::ShadowResult r = Ext::FastPaths::Shadow(req);
     if (r.ourUnsupported) return;   // retail ran both: nothing to compare
     StressHarness_PathShadow(r.retailTicks, r.ourTicks, r.retailExpanded, r.ourExpanded,
                              r.retailCost, r.ourCost, r.sameCells ? 1 : 0);

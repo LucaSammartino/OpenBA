@@ -150,7 +150,7 @@ struct EntityList {
     void Shutdown();                                  // 0x1400c3d30 (body in Game/gameupdateloop_teardown.cpp)
 
 private:
-    // Update's body; kWalk (a WalkBatch::Walk) picks the snapshot walk's per-character tick
+    // Update's body; kWalk (a Ext::WalkBatch::Walk) picks the snapshot walk's per-character tick
     // (entitylist.cpp).
     template <int kWalk> void UpdateImpl(const System::Time* time);
     // The retail step-5 tail of Update (0x1400c4090), relocated to the top of the

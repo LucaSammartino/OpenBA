@@ -659,7 +659,7 @@ void ImageBufferData::Bind(void* context, unsigned slot) {
     // EXT SEAM (ext.sharp_ui, NOT RETAIL): ::Video::ImageBufferData::
     // _extPointSampling is false by default and in the faithful profile, which
     // takes retail's two lines below untouched. Set only inside a UI pass drawn
-    // at an integer ratio >= 2 (SharpUI::Draw); a comparison (shadow) image
+    // at an integer ratio >= 2 (Ext::SharpUI::Draw); a comparison (shadow) image
     // keeps its own sampler regardless.
     if (::Video::ImageBufferData::_extPointSampling && ((_owner->_flags >> 6) & 1) == 0) {
         if (ID3D11SamplerState* point = AcquirePointSampler(_owner)) {

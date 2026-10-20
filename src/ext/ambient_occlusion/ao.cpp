@@ -16,6 +16,7 @@
 
 #include <cstdio>
 
+namespace Ext {
 namespace AmbientOcclusion {
 
 namespace detail {
@@ -46,8 +47,8 @@ void Sync() {
 }
 
 bool BuildFrame(const PlayerController& pc, Graphics::ExtAoFrame& out) {
-    const Ext::AO::Params& params = Ext::AO::Current();   // the one read of the frame
-    return AoMath::FrameFor(params, pc.distance, out);
+    const Ext::AmbientOcclusion::Params& params = Ext::AmbientOcclusion::Current();   // the one read of the frame
+    return Ext::AmbientOcclusion::AoMath::FrameFor(params, pc.distance, out);
 }
 
 bool Arm(const PlayerController& pc) {
@@ -61,3 +62,4 @@ void Disarm() {
 }
 
 }  // namespace AmbientOcclusion
+}  // namespace Ext

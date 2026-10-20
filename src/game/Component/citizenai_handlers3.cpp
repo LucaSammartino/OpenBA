@@ -144,9 +144,9 @@ uint64_t CitizenAIComponent::State_ElderTransition() {
         CitizenBehavior* listEnt = GameUpdateLoop::_singleton->m_citizenList;
         const ModelComponent* model = CitizenModel(citizen.Get());
         uint32_t cell = ModelCell(model, mg);
-        deferred = SpreadWarmth::Defer(listEnt->field_0x20._size);   // EXT SEAM (above)
+        deferred = Ext::SpreadWarmth::Defer(listEnt->field_0x20._size);   // EXT SEAM (above)
         if (!deferred) {
-            SpreadWarmth::ScanMeter<RegionPairCache> meter(mg->regionPairCache);   // EXT SEAM (above): inert while off
+            Ext::SpreadWarmth::ScanMeter<RegionPairCache> meter(mg->regionPairCache);   // EXT SEAM (above): inert while off
             listEnt->FindElderResidence(&found, cell, &dest.x);   // find nearest valid residence
             if (found != nullptr) { holderEntity = found; doPush = true; }
         }

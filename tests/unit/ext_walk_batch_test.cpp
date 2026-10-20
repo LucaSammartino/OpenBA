@@ -245,22 +245,22 @@ struct BatchStats { long long batched = 0, waypoints = 0, inDestBatched = 0; };
 bool BatchTick(const World& wd, Walker& k, BatchStats& st, bool placeEveryTick) {
     if (!k.active) return false;                               // no stack: the real tick
     if (k.pathIndex < 0) return false;
-    const int destCell = WalkBatch::WorldToCell(wd.size, k.dest[0], k.dest[1]);
-    const int curCell = WalkBatch::WorldToCell(wd.size, k.pos[0], k.pos[1]);
-    if (WalkBatch::DecideWalk(k.pathIndex, k.pathCount, curCell, destCell, k.follow) != WalkBatch::kBatch)
+    const int destCell = Ext::WalkBatch::WorldToCell(wd.size, k.dest[0], k.dest[1]);
+    const int curCell = Ext::WalkBatch::WorldToCell(wd.size, k.pos[0], k.pos[1]);
+    if (Ext::WalkBatch::DecideWalk(k.pathIndex, k.pathCount, curCell, destCell, k.follow) != Ext::WalkBatch::kBatch)
         return false;
     if (curCell == destCell) ++st.inDestBatched;              // never: DecideWalk
     ++st.batched;
     // Execute's walking branch
-    const float cellSpeed = WalkBatch::TerrainSpeed(wd.terrain[(size_t)curCell], k.desc->f34, k.desc->f38);
+    const float cellSpeed = Ext::WalkBatch::TerrainSpeed(wd.terrain[(size_t)curCell], k.desc->f34, k.desc->f38);
     k.c38 = cellSpeed * k.mult;
     if (curCell == k.path[k.pathIndex]) { k.pathIndex = k.pathIndex + 1; UpdateFacing(wd, k); ++st.waypoints; }
     // the tail, rootOnly set, no trig / rotation / push (and no Place without placeEveryTick)
-    float fVar14 = WalkBatch::Heading(k.c3C, k.yaw, k.desc->f24, k.desc->slow28);
+    float fVar14 = Ext::WalkBatch::Heading(k.c3C, k.yaw, k.desc->f24, k.desc->slow28);
     float r[4] = { 0, 0, 0, 0 };
     RootOffset(k, r);
-    const float speed = WalkBatch::RootSpeed(r[0], r[1], r[2], k.c38);
-    const WalkBatch::Pos p = WalkBatch::StepPos(k.pos[0], k.pos[1], k.pos[2], speed, k.dir[0], k.dir[1],
+    const float speed = Ext::WalkBatch::RootSpeed(r[0], r[1], r[2], k.c38);
+    const Ext::WalkBatch::Pos p = Ext::WalkBatch::StepPos(k.pos[0], k.pos[1], k.pos[2], speed, k.dir[0], k.dir[1],
                                                 k.dir[2], k.desc->b3c, k.desc->f40);
     fVar14 = fVar14 + k.desc->f24;
     k.pos[0] = p.x; k.pos[1] = p.y; k.pos[2] = p.z;
@@ -512,7 +512,7 @@ UNIT_TEST(ext_walk_batch_rules_match_retail) {
     for (int sz : sizes)
         for (int i = 0; i < 2000; ++i) {
             const float x = (g.Unit() - 0.5f) * (float)sz * 1.2f, y = (g.Unit() - 0.5f) * (float)sz * 1.2f;
-            CHECK_EQ(WalkBatch::WorldToCell(sz, x, y), CellRef(sz, x, y));
+            CHECK_EQ(Ext::WalkBatch::WorldToCell(sz, x, y), CellRef(sz, x, y));
         }
     // The terrain speed (follow clear): road bytes 1 and 9, normal 0, the rest 1.0.
     for (int t = 0; t < 256; ++t) {
@@ -521,24 +521,24 @@ UNIT_TEST(ext_walk_batch_rules_match_retail) {
         if (((tt - 1) & 0xFFFFFFF7) == 0) want = 1.5f;
         else if (tt == 0) want = 0.75f;
         else want = kRdata_14017214c;
-        CHECK_EQ(Bits(WalkBatch::TerrainSpeed(tt, 1.5f, 0.75f)), Bits(want));
+        CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(tt, 1.5f, 0.75f)), Bits(want));
     }
-    CHECK_EQ(Bits(WalkBatch::TerrainSpeed(1, 2.0f, 3.0f)), Bits(2.0f));
-    CHECK_EQ(Bits(WalkBatch::TerrainSpeed(9, 2.0f, 3.0f)), Bits(2.0f));
-    CHECK_EQ(Bits(WalkBatch::TerrainSpeed(0, 2.0f, 3.0f)), Bits(3.0f));
-    CHECK_EQ(Bits(WalkBatch::TerrainSpeed(2, 2.0f, 3.0f)), Bits(1.0f));
-    CHECK_EQ(Bits(WalkBatch::TerrainSpeed(8, 2.0f, 3.0f)), Bits(1.0f));
+    CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(1, 2.0f, 3.0f)), Bits(2.0f));
+    CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(9, 2.0f, 3.0f)), Bits(2.0f));
+    CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(0, 2.0f, 3.0f)), Bits(3.0f));
+    CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(2, 2.0f, 3.0f)), Bits(1.0f));
+    CHECK_EQ(Bits(Ext::WalkBatch::TerrainSpeed(8, 2.0f, 3.0f)), Bits(1.0f));
     // The step: no step at speed <= 0 or NaN; b3c pins z; -0.0 z becomes +0 only on a step.
-    WalkBatch::Pos p = WalkBatch::StepPos(1.0f, 2.0f, -0.0f, 0.0f, 1.0f, 0.0f, 0.0f, false, 9.0f);
+    Ext::WalkBatch::Pos p = Ext::WalkBatch::StepPos(1.0f, 2.0f, -0.0f, 0.0f, 1.0f, 0.0f, 0.0f, false, 9.0f);
     CHECK(Bits(p.x) == Bits(1.0f) && Bits(p.z) == Bits(-0.0f));
-    p = WalkBatch::StepPos(1.0f, 2.0f, -0.0f, 0.5f, 1.0f, 0.0f, 0.0f, false, 9.0f);
+    p = Ext::WalkBatch::StepPos(1.0f, 2.0f, -0.0f, 0.5f, 1.0f, 0.0f, 0.0f, false, 9.0f);
     CHECK(Bits(p.x) == Bits(1.5f) && Bits(p.z) == Bits(0.0f));
-    p = WalkBatch::StepPos(1.0f, 2.0f, 3.0f, std::nanf(""), 1.0f, 0.0f, 0.0f, true, 9.0f);
+    p = Ext::WalkBatch::StepPos(1.0f, 2.0f, 3.0f, std::nanf(""), 1.0f, 0.0f, 0.0f, true, 9.0f);
     CHECK(Bits(p.x) == Bits(1.0f) && Bits(p.z) == Bits(9.0f));
 }
 
 UNIT_TEST(ext_walk_batch_decline_rules) {
-    using namespace WalkBatch;
+    using namespace Ext::WalkBatch;
     CHECK(DecideWalk(3, 10, 5, 9, false) == kBatch);
     CHECK(DecideWalk(-1, 10, 5, 9, false) == kPathWait);
     CHECK(DecideWalk(3, 10, 9, 9, false) == kInDestCell);

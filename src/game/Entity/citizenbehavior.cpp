@@ -106,7 +106,7 @@ void CitizenBehavior::Update(const System::Time* deltaTime) {
     // AssignCitizens a split drain owes runs here, at the drain's place in the first Update of the
     // next frame (or now, if the path-graph branch below is due: it may rebuild the cost map).
     // g_pending is never set while the row is off.
-    if (DrainSplit::g_pending) DrainSplit::RunDue(pathGraph, pathInterval <= field_0x190._ticks);
+    if (Ext::DrainSplit::g_pending) Ext::DrainSplit::RunDue(pathGraph, pathInterval <= field_0x190._ticks);
 
     if (pathInterval <= field_0x190._ticks) {
         // Try to process pending paths. The null tests on the path graph are the
@@ -365,7 +365,7 @@ bool PathGraph::ProcessPaths() {
         // [EXT SEAM ext.drain_split -- NON-RETAIL, class B] src/ext/drain_split/drain_split.h:
         // AssignCitizens is owed to the next frame (CitizenBehavior::Update runs it, and prints
         // this drain's [Stress::pathgraph] line). Off: one test of g_on per drain.
-        const bool split = DrainSplit::g_on && DrainSplit::DeferAssign(pg, pg->m_pairCount, t1 - t0);
+        const bool split = Ext::DrainSplit::g_on && Ext::DrainSplit::DeferAssign(pg, pg->m_pairCount, t1 - t0);
         // Citizen assignment sweep
         if (!split) pg->AssignCitizens();   // 0x1400d43b0
         if (t0 && split) {

@@ -7,7 +7,7 @@
 #pragma once
 
 namespace Ext {
-namespace AO {
+namespace AmbientOcclusion {
 
 struct Params {
     // 0 = off (the row's bool mirrors `quality > 0`), 1 Low, 2 Medium, 3 High (AO.md §3 "Tiers").
@@ -25,5 +25,5 @@ const Params& Current();
 // bool in step with `quality > 0`. AOCORE never calls it.
 void Set(const Params& p);
 
-}  // namespace AO
+}  // namespace AmbientOcclusion
 }  // namespace Ext

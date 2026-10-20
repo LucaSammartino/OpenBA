@@ -169,7 +169,7 @@ void Resolve() {
         // level, not a new flag (PATHRESEARCH section 6 Q4).
         const int cp = Opt().stressCompProf;
         g_compProfOn = cp >= 3 ? 1 : cp;
-        if (cp == 3) FastPaths::SetShadowArmed(true);
+        if (cp == 3) Ext::FastPaths::SetShadowArmed(true);
         g_verifyOn = cp == 4 ? 1 : 0;   // ELPROF verification shadows
         if (cp >= 1) rtcoll::g_setSizeProfOn = 1;   // DRAWSORT: counted on the thread DrawBegin marks
         if (cp >= 1) DrawSort::g_profOn = 1;         // DRAWSORT: the draw-item sort row
@@ -774,7 +774,7 @@ void CharProfReport(FILE* o) {
             const CharProf::Cell& e = w.cell[v][CharProf::kWalk];
             interCalls += e.chars - e.lastCalls; interTicks += e.ticks - e.lastTicks;
         }
-        const long long bCalls = WalkBatch::g_profCalls, bTicks = WalkBatch::g_profTicks;
+        const long long bCalls = Ext::WalkBatch::g_profCalls, bTicks = Ext::WalkBatch::g_profTicks;
         const long long fullCalls = interCalls - bCalls, fullTicks = interTicks - bTicks;
         const double bNs = bCalls ? 1e6 * TscMs(bTicks) / (double)bCalls : 0.0;
         const double fullNs = fullCalls > 0 ? 1e6 * TscMs(fullTicks) / (double)fullCalls : 0.0;
@@ -1078,7 +1078,7 @@ void CompProfReport(int frame) {
     s_tzWin.Reset(); s_tzEpoch0 = StillTerrain::g_epoch; s_tzFloor0 = StillTerrain::g_floor;
     s_partWin.Reset();
     SkinMemoReset();
-    WalkBatch::g_profTicks = 0; WalkBatch::g_profCalls = 0;   // WALKBATCH: the /char walkbatch row's window
+    Ext::WalkBatch::g_profTicks = 0; Ext::WalkBatch::g_profCalls = 0;   // WALKBATCH: the /char walkbatch row's window
     for (int i = 0; i < kCompSlots; ++i) { s_comp[i].ticks = 0; s_comp[i].calls = 0; }
     g_elProfDrainTicks = g_elProfPreTicks = g_elProfTreeTicks = g_elProfBucketTicks = 0;
     g_elProfTreeNodes = g_elProfBucketVisits = g_elProfBucketTicked = 0;
@@ -1417,7 +1417,7 @@ void EmitRow(GameUpdateLoop* gul, int frame) {
     const double pipeEmit   = pipeEmitN   ? pipeEmitSum   / pipeEmitN   : 0.0;
     // RENDERPIPE-1: the hand-off waits (us per draw frame of the window) and the packet
     // latency (hand-off -> Present done, mean us); 0 in the sequential split.
-    const RenderPipe::Counters rp = RenderPipe::TakeWindow();
+    const Ext::RenderPipe::Counters rp = Ext::RenderPipe::TakeWindow();
     const double pipeWaitUs    = s_drawN ? static_cast<double>(rp.waitUs) / s_drawN : 0.0;
     const double pipeLatencyUs = rp.latencyN ? static_cast<double>(rp.latencyUs) / rp.latencyN : 0.0;
     double frameMean = 0;
@@ -1505,26 +1505,26 @@ void EmitRow(GameUpdateLoop* gul, int frame) {
     // DRAWGATHER (ext.draw_gather, docs/extensions/handins/DRAWGATHER.md): per draw frame of
     // the window. Printed only while the extension is on or counted something.
     {
-        const DrawGather::Counters g = DrawGather::TakeWindow();
-        if (DrawGather::Installed() || g.gathers != 0) {
+        const Ext::DrawGather::Counters g = Ext::DrawGather::TakeWindow();
+        if (Ext::DrawGather::Installed() || g.gathers != 0) {
             const double df = s_drawN > 0 ? static_cast<double>(s_drawN) : 1.0;
             std::fprintf(stderr, "[Stress::gather] draw_gather=%d per frame: gathers=%.1f nodes=%.0f visible=%.0f "
                                  "geoTouched=%.0f (%.1f%% of nodes) refreshes=%.1f cleans=%.1f | window: logged=%llu rebuilds=%llu\n",
-                         DrawGather::Installed() ? 1 : 0, g.gathers / df, g.nodesTested / df, g.visible / df,
+                         Ext::DrawGather::Installed() ? 1 : 0, g.gathers / df, g.nodesTested / df, g.visible / df,
                          g.geoTouched / df, g.nodesTested ? 100.0 * g.geoTouched / g.nodesTested : 0.0,
                          g.refreshes / df, g.cleans / df,
                          static_cast<unsigned long long>(g.logged), static_cast<unsigned long long>(g.rebuilds));
         }
         // CULLPAR (ext.gather_threads, docs/extensions/handins/CULLPAR.md): the parallel walk's
         // tasks, the helpers' share of them and the main thread's join wait (summed per pass).
-        if (DrawGather::ParallelHelpers() > 0 || g.parPasses != 0) {
+        if (Ext::DrawGather::ParallelHelpers() > 0 || g.parPasses != 0) {
             const double df = s_drawN > 0 ? static_cast<double>(s_drawN) : 1.0;
             const double pp = g.parPasses ? static_cast<double>(g.parPasses) : 1.0;
             const double waitUs = 1000.0 * QpcMs(static_cast<long long>(g.parWaitTicks));
             std::fprintf(stderr, "[Stress::gather] gather_threads helpers=%d per frame: wakes=%.2f passes=%.1f "
                                  "tasks=%.1f (%.1f/pass) helperShare=%.1f%% joinWait=%.1fus (%.2fus/pass) "
                                  "| window: sideGrew=%llu\n",
-                         DrawGather::ParallelHelpers(), g.parWakes / df, g.parPasses / df, g.parTasks / df,
+                         Ext::DrawGather::ParallelHelpers(), g.parWakes / df, g.parPasses / df, g.parTasks / df,
                          g.parTasks / pp, g.parTasks ? 100.0 * g.parHelper / g.parTasks : 0.0,
                          waitUs / df, waitUs / pp, static_cast<unsigned long long>(g.parSideGrew));
         }
@@ -1532,12 +1532,12 @@ void EmitRow(GameUpdateLoop* gul, int frame) {
     // RENDERPIPE (ext.render_pipe, docs/extensions/handins/RENDERPIPE0.md): printed only
     // while the extension is installed or counted something.
     {
-        if (RenderPipe::Installed() || rp.pipelined != 0 || rp.emits != 0) {
+        if (Ext::RenderPipe::Installed() || rp.pipelined != 0 || rp.emits != 0) {
             std::fprintf(stderr, "[Stress::pipe] render_pipe=%d thread=%d draw main=%.3fms packet=%.3fms emit=%.3fms "
                                  "(main share %.1f%%) wait=%.1fus/frame latency=%.1fus | window: pipelined=%llu "
                                  "sequential=%llu emits=%llu waits=%llu (fence %llu) recoveries=%llu "
                                  "drains step=%llu other=%llu discarded=%llu idle writes=%llu skips=%llu\n",
-                         RenderPipe::Installed() ? 1 : 0, RenderPipe::Threaded() ? 1 : 0,
+                         Ext::RenderPipe::Installed() ? 1 : 0, Ext::RenderPipe::Threaded() ? 1 : 0,
                          pipeMain, pipePacket, pipeEmit,
                          pipeMain + pipePacket > 0 ? 100.0 * pipeMain / (pipeMain + pipePacket) : 0.0,
                          pipeWaitUs, pipeLatencyUs,
@@ -1638,14 +1638,14 @@ extern "C" void StressHarness_UpdateEnd(GameUpdateLoop* gul, int frameNum) {
     if (gw && s_homeWatch) HomeShadowScan(gw);
     if (s_worldFrame % s_interval == 0) EmitRow(gul, frameNum);
     if (gw && s_worldFrame % s_interval == 0) FoodCensus(gw, s_worldFrame);
-    if (s_worldFrame % s_interval == 0 && SpreadWarmth::g_on) {   // HITCH_PFBURST: ext.spread_warmth, cumulative
-        const SpreadWarmth::Stats& w = SpreadWarmth::GetStats();
+    if (s_worldFrame % s_interval == 0 && Ext::SpreadWarmth::g_on) {   // HITCH_PFBURST: ext.spread_warmth, cumulative
+        const Ext::SpreadWarmth::Stats& w = Ext::SpreadWarmth::GetStats();
         std::fprintf(stderr, "[Stress::warmth] frame=%d scans=%lld candidates=%lld searches=%lld maxFrameSearches=%d deferrals=%lld framesDeferring=%d maxStreak=%d budget=%d/%d\n",
                      s_worldFrame, w.scans, w.charged, w.searches, w.maxFrameSearches, w.deferrals, w.framesDeferring, w.maxStreak,
-                     SpreadWarmth::kMissBudget, SpreadWarmth::kCandidateBudget);
+                     Ext::SpreadWarmth::kMissBudget, Ext::SpreadWarmth::kCandidateBudget);
     }
-    if (s_worldFrame % s_interval == 0 && DrainSplit::g_on) {   // HITCH_DRAINSPLIT: ext.drain_split, cumulative
-        const DrainSplit::Stats& d = DrainSplit::GetStats();
+    if (s_worldFrame % s_interval == 0 && Ext::DrainSplit::g_on) {   // HITCH_DRAINSPLIT: ext.drain_split, cumulative
+        const Ext::DrainSplit::Stats& d = Ext::DrainSplit::GetStats();
         std::fprintf(stderr, "[Stress::drainsplit] frame=%d splits=%lld runs=%lld forced=%lld dropped=%lld overlaps=%lld "
                      "gapTicks=%lld maxGapTicks=%d citizensAtDrain=%lld gone=%lld born=%lld changed=%lld "
                      "home=%lld work=%lld prof=%lld idle=%lld\n",

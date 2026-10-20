@@ -629,13 +629,13 @@ template <class Fn>
 }
 
 // The walk's per-component tick: the faithful one exactly as before, or a batched one.
-// kWalk is a WalkBatch::Walk (walk_batch.h).
+// kWalk is a Ext::WalkBatch::Walk (walk_batch.h).
 template <int kWalk>
 static inline auto MakeWalkTick(const System::Time* time) {
-    if constexpr (kWalk != WalkBatch::kWalkFaithful) {
+    if constexpr (kWalk != Ext::WalkBatch::kWalkFaithful) {
         // [EXT SEAM ext.walk_batch (class A) / ext.walk_batch_grid (class B) -- NON-RETAIL] a
         // CharacterComponent (told by its vptr, as the walk prefetch does) gets
-        // WalkBatch::TickCharacter (kWalkPlace) or Ext::WalkBatchGrid::TickCharacter (kWalkNoPlace), which
+        // Ext::WalkBatch::TickCharacter (kWalkPlace) or Ext::WalkBatchGrid::TickCharacter (kWalkNoPlace), which
         // take MoveTo::Execute's walking branch with a short step and run
         // CharacterComponent::Tick for everything else (src/ext/walk_batch/walk_batch.h); every
         // other component gets the faithful tick. Out of line on purpose: this TU's faithful
@@ -643,10 +643,10 @@ static inline auto MakeWalkTick(const System::Time* time) {
         const void* const charVt = CharacterComponent::Vtable();
         return [time, charVt](Component* c) {
             if (*reinterpret_cast<const void* const*>(c) == charVt) {  // CAST-OK: vslot (the vptr names the class)
-                if constexpr (kWalk == WalkBatch::kWalkNoPlace)
+                if constexpr (kWalk == Ext::WalkBatch::kWalkNoPlace)
                     Ext::WalkBatchGrid::TickCharacter(static_cast<CharacterComponent*>(c), time);
                 else
-                    WalkBatch::TickCharacter(static_cast<CharacterComponent*>(c), time);
+                    Ext::WalkBatch::TickCharacter(static_cast<CharacterComponent*>(c), time);
             } else {
                 TickOneComponent(c, time);
             }
@@ -657,7 +657,7 @@ static inline auto MakeWalkTick(const System::Time* time) {
 }
 
 // Returns true when the snapshot walk ran (so the tree walk is skipped).
-// kWalk (a WalkBatch::Walk): kWalkPlace is the instantiation EntityList::UpdateWalkBatch runs
+// kWalk (a Ext::WalkBatch::Walk): kWalkPlace is the instantiation EntityList::UpdateWalkBatch runs
 // (ext.walk_batch), kWalkNoPlace EntityList::UpdateWalkBatchGrid's (ext.walk_batch_grid);
 // kWalkFaithful is the faithful walk (EntityList::Update), the body as it was, with no test in
 // its loop.
@@ -665,7 +665,7 @@ template <int kWalk>
 static bool WalkUpdateTreeSnapshot(EntityList* self, const System::Time* time, bool prof) {
     if (!kTreeSnapshot) return false;
     if (s_walkDirty || s_walkOwner != self || s_walkCountAtBuild != self->updateTree._count) {
-        if (!RebuildWalkSnapshot<kWalk == WalkBatch::kWalkFaithful>(self)) return false;   // corrupt: fall back to the tree walk
+        if (!RebuildWalkSnapshot<kWalk == Ext::WalkBatch::kWalkFaithful>(self)) return false;   // corrupt: fall back to the tree walk
     }
     const size_t n = s_walkSnap.size();
     ComponentEntity* const* arr = s_walkSnap.data();
@@ -966,20 +966,20 @@ template <int kWalk>
 // 0x1400c4090. The body is UpdateImpl<kWalkFaithful> (defined above these three, so it is
 // inlined here); UpdateImpl<kWalkPlace> is ext.walk_batch's (UpdateWalkBatch) and
 // UpdateImpl<kWalkNoPlace> ext.walk_batch_grid's (UpdateWalkBatchGrid): the same body whose
-// snapshot walk offers each character's tick to WalkBatch::TickCharacter / TickCharacterGrid.
-// GameUpdateLoop::Update picks one per sim iteration (WalkBatch::Select).
+// snapshot walk offers each character's tick to Ext::WalkBatch::TickCharacter / TickCharacterGrid.
+// GameUpdateLoop::Update picks one per sim iteration (Ext::WalkBatch::Select).
 void EntityList::Update(const System::Time* time) {
-    UpdateImpl<WalkBatch::kWalkFaithful>(time);
+    UpdateImpl<Ext::WalkBatch::kWalkFaithful>(time);
 }
 
 // [EXT SEAM ext.walk_batch -- NON-RETAIL, class A] src/ext/walk_batch/walk_batch.h.
 void EntityList::UpdateWalkBatch(const System::Time* time) {
-    UpdateImpl<WalkBatch::kWalkPlace>(time);
+    UpdateImpl<Ext::WalkBatch::kWalkPlace>(time);
 }
 
 // [EXT SEAM ext.walk_batch_grid -- NON-RETAIL, class B] src/ext/walk_batch_grid/walk_batch_grid.h.
 void EntityList::UpdateWalkBatchGrid(const System::Time* time) {
-    UpdateImpl<WalkBatch::kWalkNoPlace>(time);
+    UpdateImpl<Ext::WalkBatch::kWalkNoPlace>(time);
 }
 
 // The retail step-5 body (0x1400c4090 tail), relocated so it drains the PRIOR

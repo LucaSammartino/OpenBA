@@ -31,39 +31,39 @@ void GameProjection(float n, float f, float sx, float sy, float m[16]) {
 }  // namespace
 
 UNIT_TEST(ext_ao_tier_table) {
-    AoMath::Tier t{};
-    CHECK(!AoMath::TierFor(0, false, t));
-    CHECK(!AoMath::TierFor(4, false, t));
-    CHECK(!AoMath::TierFor(-1, false, t));
-    CHECK(AoMath::TierFor(1, false, t) && t.qualityLevel == AoMath::kAssaoLow && t.blurPassCount == 1);
-    CHECK(AoMath::TierFor(1, true, t) && t.qualityLevel == AoMath::kAssaoLowest);
-    CHECK(AoMath::TierFor(2, false, t) && t.qualityLevel == AoMath::kAssaoMedium && t.blurPassCount == 2);
-    CHECK(AoMath::TierFor(3, false, t) && t.qualityLevel == AoMath::kAssaoHigh && t.blurPassCount == 2);
+    Ext::AmbientOcclusion::AoMath::Tier t{};
+    CHECK(!Ext::AmbientOcclusion::AoMath::TierFor(0, false, t));
+    CHECK(!Ext::AmbientOcclusion::AoMath::TierFor(4, false, t));
+    CHECK(!Ext::AmbientOcclusion::AoMath::TierFor(-1, false, t));
+    CHECK(Ext::AmbientOcclusion::AoMath::TierFor(1, false, t) && t.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoLow && t.blurPassCount == 1);
+    CHECK(Ext::AmbientOcclusion::AoMath::TierFor(1, true, t) && t.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoLowest);
+    CHECK(Ext::AmbientOcclusion::AoMath::TierFor(2, false, t) && t.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoMedium && t.blurPassCount == 2);
+    CHECK(Ext::AmbientOcclusion::AoMath::TierFor(3, false, t) && t.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoHigh && t.blurPassCount == 2);
     // ASSAO's QualityLevel numbering (ASSAO.h): -1 lowest, 0 low, 1 medium, 2 high
-    CHECK(AoMath::kAssaoLowest == -1 && AoMath::kAssaoLow == 0 && AoMath::kAssaoMedium == 1 &&
-          AoMath::kAssaoHigh == 2);
+    CHECK(Ext::AmbientOcclusion::AoMath::kAssaoLowest == -1 && Ext::AmbientOcclusion::AoMath::kAssaoLow == 0 && Ext::AmbientOcclusion::AoMath::kAssaoMedium == 1 &&
+          Ext::AmbientOcclusion::AoMath::kAssaoHigh == 2);
 }
 
 UNIT_TEST(ext_ao_zoom_curve) {
-    const AoMath::Zoom street = AoMath::ZoomFor(AoMath::kZoomMin);
-    const AoMath::Zoom over   = AoMath::ZoomFor(AoMath::kZoomMax);
-    CHECK(Near(street.t, 0.0f) && Near(street.radius, AoMath::kRadiusStreet));
-    CHECK(Near(over.t, 1.0f) && Near(over.radius, AoMath::kRadiusOverview));
+    const Ext::AmbientOcclusion::AoMath::Zoom street = Ext::AmbientOcclusion::AoMath::ZoomFor(Ext::AmbientOcclusion::AoMath::kZoomMin);
+    const Ext::AmbientOcclusion::AoMath::Zoom over   = Ext::AmbientOcclusion::AoMath::ZoomFor(Ext::AmbientOcclusion::AoMath::kZoomMax);
+    CHECK(Near(street.t, 0.0f) && Near(street.radius, Ext::AmbientOcclusion::AoMath::kRadiusStreet));
+    CHECK(Near(over.t, 1.0f) && Near(over.radius, Ext::AmbientOcclusion::AoMath::kRadiusOverview));
     // clamped outside the camera's range, NaN -> street
-    CHECK(Near(AoMath::ZoomFor(5.0f).radius, AoMath::kRadiusStreet));
-    CHECK(Near(AoMath::ZoomFor(500.0f).radius, AoMath::kRadiusOverview));
-    CHECK(Near(AoMath::ZoomFor(std::nanf("")).radius, AoMath::kRadiusStreet));
+    CHECK(Near(Ext::AmbientOcclusion::AoMath::ZoomFor(5.0f).radius, Ext::AmbientOcclusion::AoMath::kRadiusStreet));
+    CHECK(Near(Ext::AmbientOcclusion::AoMath::ZoomFor(500.0f).radius, Ext::AmbientOcclusion::AoMath::kRadiusOverview));
+    CHECK(Near(Ext::AmbientOcclusion::AoMath::ZoomFor(std::nanf("")).radius, Ext::AmbientOcclusion::AoMath::kRadiusStreet));
     // monotonic, and the fade always ends before the far plane (the sky, depth 1.0 = 512)
     float prev = -1.0f;
     for (float d = 0.0f; d <= 200.0f; d += 2.5f) {
-        const AoMath::Zoom z = AoMath::ZoomFor(d);
+        const Ext::AmbientOcclusion::AoMath::Zoom z = Ext::AmbientOcclusion::AoMath::ZoomFor(d);
         CHECK(z.radius >= prev);
         prev = z.radius;
         CHECK(z.fadeOutFrom < z.fadeOutTo);
-        CHECK(z.fadeOutTo < AoMath::kFar);
+        CHECK(z.fadeOutTo < Ext::AmbientOcclusion::AoMath::kFar);
     }
-    const AoMath::Zoom mid = AoMath::ZoomFor(0.5f * (AoMath::kZoomMin + AoMath::kZoomMax));
-    CHECK(Near(mid.radius, 0.5f * (AoMath::kRadiusStreet + AoMath::kRadiusOverview)));
+    const Ext::AmbientOcclusion::AoMath::Zoom mid = Ext::AmbientOcclusion::AoMath::ZoomFor(0.5f * (Ext::AmbientOcclusion::AoMath::kZoomMin + Ext::AmbientOcclusion::AoMath::kZoomMax));
+    CHECK(Near(mid.radius, 0.5f * (Ext::AmbientOcclusion::AoMath::kRadiusStreet + Ext::AmbientOcclusion::AoMath::kRadiusOverview)));
 }
 
 UNIT_TEST(ext_ao_linearisation_constants) {
@@ -74,7 +74,7 @@ UNIT_TEST(ext_ao_linearisation_constants) {
     CHECK(Near(game[3 * 4 + 2], -2.00784f));
 
     float mul = 0, add = 0;
-    CHECK(AoMath::LinearizeConsts(game, mul, add));
+    CHECK(Ext::AmbientOcclusion::AoMath::LinearizeConsts(game, mul, add));
     CHECK(Near(mul, 2.00784f));   // n f / (f - n)
     CHECK(Near(add, 1.00392f));   // f / (f - n)
     // depth 0 = near, depth 1 = far (the sky's clear value)
@@ -83,55 +83,55 @@ UNIT_TEST(ext_ao_linearisation_constants) {
 
     // ASSAO's matrix: rows 1 and 2 swapped = a standard LH perspective
     float lh[16];
-    AoMath::AssaoProjection(game, lh);
+    Ext::AmbientOcclusion::AoMath::AssaoProjection(game, lh);
     CHECK(Near(lh[1 * 4 + 1], 2.74748f) && Near(lh[2 * 4 + 2], 1.00392f) && lh[2 * 4 + 3] == 1.0f);
     CHECK(lh[1 * 4 + 2] == 0.0f && lh[2 * 4 + 1] == 0.0f);
     float amul = 0, aadd = 0, tx = 0, ty = 0;
-    AoMath::AssaoUnpack(lh, amul, aadd, tx, ty);
+    Ext::AmbientOcclusion::AoMath::AssaoUnpack(lh, amul, aadd, tx, ty);
     CHECK(Near(amul, mul) && Near(aadd, add));        // ASSAO linearises exactly as §6.2
     CHECK(Near(ty, std::tan(20.0f * 3.14159265f / 180.0f), 1e-3f));   // fovY 40
     CHECK(Near(tx, 1.0f / 1.60033f));
     // the swap is its own inverse
     float back[16];
-    AoMath::AssaoProjection(lh, back);
+    Ext::AmbientOcclusion::AoMath::AssaoProjection(lh, back);
     for (int i = 0; i < 16; ++i) CHECK(back[i] == game[i]);
 
     // eye_camera's near 0.1: the constants follow the matrix, whatever n is
     GameProjection(0.1f, 512.0f, 1.6f, 2.74748f, game);
-    CHECK(AoMath::LinearizeConsts(game, mul, add));
+    CHECK(Ext::AmbientOcclusion::AoMath::LinearizeConsts(game, mul, add));
     CHECK(Near(mul / add, 0.1f) && Near(mul / (add - 1.0f), 512.0f, 1e-3f));
 
     // orthographic (no clip-w row): refused
     float ortho[16] = {};
     ortho[0] = ortho[5] = ortho[10] = ortho[15] = 1.0f;
-    CHECK(!AoMath::LinearizeConsts(ortho, mul, add));
+    CHECK(!Ext::AmbientOcclusion::AoMath::LinearizeConsts(ortho, mul, add));
 }
 
 UNIT_TEST(ext_ao_frame_record) {
-    Ext::AO::Params p;   // the contract's defaults: Medium, 20 percent
+    Ext::AmbientOcclusion::Params p;   // the contract's defaults: Medium, 20 percent
     CHECK(p.quality == 2 && p.opacity == 20);
-    const float kDefault = 0.20f * AoMath::kShadowMultiplier;
+    const float kDefault = 0.20f * Ext::AmbientOcclusion::AoMath::kShadowMultiplier;
     Graphics::ExtAoFrame f{};
-    CHECK(AoMath::FrameFor(p, AoMath::kZoomMin, f));
-    CHECK(f.qualityLevel == AoMath::kAssaoMedium);
-    CHECK(Near(f.radius, AoMath::kRadiusStreet));
+    CHECK(Ext::AmbientOcclusion::AoMath::FrameFor(p, Ext::AmbientOcclusion::AoMath::kZoomMin, f));
+    CHECK(f.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoMedium);
+    CHECK(Near(f.radius, Ext::AmbientOcclusion::AoMath::kRadiusStreet));
     CHECK(Near(f.shadowMultiplier, kDefault));
-    CHECK(f.fadeOutTo < AoMath::kFar);
+    CHECK(f.fadeOutTo < Ext::AmbientOcclusion::AoMath::kFar);
 
     p.opacity = 10;
-    CHECK(AoMath::FrameFor(p, AoMath::kZoomMax, f));
+    CHECK(Ext::AmbientOcclusion::AoMath::FrameFor(p, Ext::AmbientOcclusion::AoMath::kZoomMax, f));
     CHECK(Near(f.shadowMultiplier, 0.5f * kDefault));
-    CHECK(Near(f.radius, AoMath::kRadiusOverview));
+    CHECK(Near(f.radius, Ext::AmbientOcclusion::AoMath::kRadiusOverview));
     p.opacity = 250;   // clamped to the 30 ceiling
-    CHECK(AoMath::FrameFor(p, 50.0f, f) && Near(f.shadowMultiplier, 1.5f * kDefault));
+    CHECK(Ext::AmbientOcclusion::AoMath::FrameFor(p, 50.0f, f) && Near(f.shadowMultiplier, 1.5f * kDefault));
 
     p.opacity = 0;     // nothing to draw
-    CHECK(!AoMath::FrameFor(p, 50.0f, f));
+    CHECK(!Ext::AmbientOcclusion::AoMath::FrameFor(p, 50.0f, f));
     p.opacity = 20;
     p.quality = 0;     // off
-    CHECK(!AoMath::FrameFor(p, 50.0f, f));
+    CHECK(!Ext::AmbientOcclusion::AoMath::FrameFor(p, 50.0f, f));
     p.quality = 3;
-    CHECK(AoMath::FrameFor(p, 50.0f, f) && f.qualityLevel == AoMath::kAssaoHigh);
+    CHECK(Ext::AmbientOcclusion::AoMath::FrameFor(p, 50.0f, f) && f.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoHigh);
 }
 
 UNIT_TEST(ext_ao_fade_follows_fog) {
@@ -139,17 +139,17 @@ UNIT_TEST(ext_ao_fade_follows_fog) {
     // exactly that range (the materials' fog is linear in view depth over it).
     Graphics::ExtAoFrame f{};
     f.fadeOutFrom = 120.0f; f.fadeOutTo = 220.0f;        // the zoom fade, to be replaced
-    CHECK(AoMath::FadeFromFog(-80.0f, 1.0f / (300.0f - 80.0f), f));
+    CHECK(Ext::AmbientOcclusion::AoMath::FadeFromFog(-80.0f, 1.0f / (300.0f - 80.0f), f));
     CHECK(Near(f.fadeOutFrom, 80.0f) && Near(f.fadeOutTo, 300.0f));
     // A far fog is capped below the far plane: the sky (view depth 512) stays unoccluded.
-    CHECK(AoMath::FadeFromFog(-100.0f, 1.0f / (900.0f - 100.0f), f));
-    CHECK(Near(f.fadeOutFrom, 100.0f) && f.fadeOutTo < AoMath::kFar);
+    CHECK(Ext::AmbientOcclusion::AoMath::FadeFromFog(-100.0f, 1.0f / (900.0f - 100.0f), f));
+    CHECK(Near(f.fadeOutFrom, 100.0f) && f.fadeOutTo < Ext::AmbientOcclusion::AoMath::kFar);
     // A fog starting past the cap still fades in order (from < to).
-    CHECK(AoMath::FadeFromFog(-600.0f, 1.0f / 100.0f, f));
-    CHECK(f.fadeOutFrom < f.fadeOutTo && f.fadeOutTo < AoMath::kFar);
+    CHECK(Ext::AmbientOcclusion::AoMath::FadeFromFog(-600.0f, 1.0f / 100.0f, f));
+    CHECK(f.fadeOutFrom < f.fadeOutTo && f.fadeOutTo < Ext::AmbientOcclusion::AoMath::kFar);
     // No fog (y = 0, the cleared constants) or a negative range: the zoom fade is kept.
     f.fadeOutFrom = 120.0f; f.fadeOutTo = 220.0f;
-    CHECK(!AoMath::FadeFromFog(-0.0f, 0.0f, f));
-    CHECK(!AoMath::FadeFromFog(-50.0f, -1.0f, f));
+    CHECK(!Ext::AmbientOcclusion::AoMath::FadeFromFog(-0.0f, 0.0f, f));
+    CHECK(!Ext::AmbientOcclusion::AoMath::FadeFromFog(-50.0f, -1.0f, f));
     CHECK(Near(f.fadeOutFrom, 120.0f) && Near(f.fadeOutTo, 220.0f));
 }

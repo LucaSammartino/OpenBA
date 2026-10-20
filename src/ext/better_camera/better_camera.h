@@ -35,6 +35,7 @@
 // ceiling is -85), which flips the view. The clamp is a no-op for every value retail itself can hold.
 // ============================================================================
 
+namespace Ext {
 namespace BetterCamera {
 
 // Retail's limits (the faithful values; camera_input.cpp keeps its own copy of the .rdata constants).
@@ -68,3 +69,4 @@ inline float ClampToRetailRange(float zoomTarget) {
 }
 
 }  // namespace BetterCamera
+}  // namespace Ext

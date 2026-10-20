@@ -35,6 +35,7 @@
 #include <condition_variable>
 #include <mutex>
 
+namespace Ext {
 namespace RenderPipe {
 
 class Handoff {
@@ -101,3 +102,4 @@ private:
 };
 
 }  // namespace RenderPipe
+}  // namespace Ext

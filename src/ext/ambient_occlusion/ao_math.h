@@ -10,8 +10,10 @@
 #include <cstdint>
 
 namespace Graphics { struct ExtAoFrame; }
-namespace Ext { namespace AO { struct Params; } }
+namespace Ext { namespace AmbientOcclusion { struct Params; } }
 
+namespace Ext {
+namespace AmbientOcclusion {
 namespace AoMath {
 
 // ---------------------------------------------------------------------------
@@ -93,7 +95,7 @@ constexpr float kShadowPower           = 1.5f;
 constexpr float kHorizonAngleThreshold = 0.06f;
 constexpr float kSharpness             = 0.98f;
 constexpr float kDetailShadowStrength  = 0.5f;
-bool FrameFor(const Ext::AO::Params& params, float cameraDistance, Graphics::ExtAoFrame& out);
+bool FrameFor(const Ext::AmbientOcclusion::Params& params, float cameraDistance, Graphics::ExtAoFrame& out);
 
 // ---------------------------------------------------------------------------
 // The fog alignment (the user's look 2026-10-14: AO drawn over the fog). The
@@ -110,3 +112,5 @@ constexpr float kFogFadeCeiling = 500.0f;   // FadeOutTo stays below the far pla
 bool FadeFromFog(float fogParamX, float fogParamY, Graphics::ExtAoFrame& frame);
 
 }  // namespace AoMath
+}  // namespace AmbientOcclusion
+}  // namespace Ext

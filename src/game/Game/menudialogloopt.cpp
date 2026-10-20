@@ -700,9 +700,9 @@ void MenuDialogLoopT::DrawScene_PhaseA(float alpha, Video::Context* context) {
     // camera-to-target `distance` the radius scales with (CalcTransform: eye = target -
     // dir * distance), so Arm takes it unchanged. Row off: Enabled() is one load, the
     // seam stays null, retail's Draw.
-    const bool aoArmed = AmbientOcclusion::Enabled() && AmbientOcclusion::Arm(*transform);
+    const bool aoArmed = Ext::AmbientOcclusion::Enabled() && Ext::AmbientOcclusion::Arm(*transform);
     renderer->Draw(*context, alpha, *gScene, camera);
-    if (aoArmed) AmbientOcclusion::Disarm();
+    if (aoArmed) Ext::AmbientOcclusion::Disarm();
 }
 
 // ============================================================

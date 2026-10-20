@@ -365,7 +365,7 @@ void EditTool::Update(const System::Time*, char) {
     // behind the camera and projects to no rect, which retail reads as
     // "off the display" and closes the panel (and with it the FollowDialog).
     // The panel stays where it is; nothing else of the tick changes.
-    if (!gotRect && Ext::Ext().eye_camera && EyeCamera::FollowedEntity() == entityObj)
+    if (!gotRect && Ext::Ext().eye_camera && Ext::EyeCamera::FollowedEntity() == entityObj)
         return;
 
     if (!gotRect) {

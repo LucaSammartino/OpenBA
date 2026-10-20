@@ -35,6 +35,7 @@
 #include "ui/DialogInstance.h"
 #include "ui/UserInterface.h"
 
+namespace Ext {
 namespace EyeCamera {
 
 namespace {
@@ -317,3 +318,4 @@ void DrawScene(Graphics::Renderer& renderer, Video::Context& context, float alph
 }
 
 }  // namespace EyeCamera
+}  // namespace Ext

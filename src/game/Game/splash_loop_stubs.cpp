@@ -56,7 +56,7 @@
 #include "system/Timer.h"   // ENDGAME B.3.9 SS2: System::Timer::_ticksPerSecond
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
 #include "ext/registry.h"                     // EXT SEAM: Ext::Ext().quick_screens (NOT RETAIL)
-#include "ext/quick_screens/quick_screens.h"  // EXT SEAM: QuickScreens::SplashWorkDone (NOT RETAIL)
+#include "ext/quick_screens/quick_screens.h"  // EXT SEAM: Ext::QuickScreens::SplashWorkDone (NOT RETAIL)
 
 // Defined in src/game/Game/gameupdateloop_load.cpp. Returns true once the
 // new-game world build for `loop` (a GameUpdateLoop) has fully completed.
@@ -148,7 +148,7 @@ bool g_quickScreen = false;
 // Out of line so Update's faithful arm keeps its own frame and registers (the
 // object proof in SPLASH.md: the residue there is the one latched-bool test).
 [[gnu::noinline]] bool QuickScreenWorkDone(const void* self, const UI::UserInterface* ui) {
-    return QuickScreens::SplashWorkDone(
+    return Ext::QuickScreens::SplashWorkDone(
         g_fadeOutInitiatedFor == self,
         ChunkedSceneLoader::IsArmed() || ChunkedSceneLoader::IsBusy(),
         UIFade::GetCurrentAlpha(ui));

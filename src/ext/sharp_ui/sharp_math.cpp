@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstring>
 
+namespace Ext {
 namespace SharpUI {
 
 int32_t LayoutExtent(int32_t backBufferExtent, float uiScale) {
@@ -134,3 +135,4 @@ bool WantTwin2x(float pxPerUnitX, float pxPerUnitY) {
 }
 
 }  // namespace SharpUI
+}  // namespace Ext

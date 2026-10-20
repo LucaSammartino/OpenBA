@@ -38,6 +38,7 @@
 #include "ext/draw_gather/gather_side.h"
 #include "ext/gather_threads/gather_threads.h"
 
+namespace Ext {
 namespace DrawGather {
 
 namespace {
@@ -544,3 +545,4 @@ ParPassResult ParGather(ParWalk& p, const Scene* self, const Frame& f, SideArray
 
 }  // namespace
 }  // namespace DrawGather
+}  // namespace Ext

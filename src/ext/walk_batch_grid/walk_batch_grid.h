@@ -14,12 +14,12 @@
 namespace Ext {
 namespace WalkBatchGrid {
 
-// The batched tick without Place (WalkBatch::TickGrid): true when the tick was taken here.
-inline bool Tick(CharacterComponent* self, const System::Time* time) { return WalkBatch::TickGrid(self, time); }
+// The batched tick without Place (Ext::WalkBatch::TickGrid): true when the tick was taken here.
+inline bool Tick(CharacterComponent* self, const System::Time* time) { return Ext::WalkBatch::TickGrid(self, time); }
 
-// The grid walk's slot-8 tick of a CharacterComponent (WalkBatch::TickCharacterGrid).
+// The grid walk's slot-8 tick of a CharacterComponent (Ext::WalkBatch::TickCharacterGrid).
 inline void TickCharacter(CharacterComponent* self, const System::Time* time) {
-    WalkBatch::TickCharacterGrid(self, time);
+    Ext::WalkBatch::TickCharacterGrid(self, time);
 }
 
 }  // namespace WalkBatchGrid

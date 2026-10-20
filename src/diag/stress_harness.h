@@ -61,7 +61,7 @@ void StressHarness_DrawEnd();
 // RENDERPIPE-1: PipePacket* / PipeEmit* run on the emitting thread (the render
 // thread when it is up): atomics, folded at the CSV row. Two more appended
 // columns, pipe_wait_us (hand-off waits per draw frame) and pipe_latency_us
-// (hand-off -> Present done, mean), from RenderPipe::TakeWindow.
+// (hand-off -> Present done, mean), from Ext::RenderPipe::TakeWindow.
 // StressHarness_Verify is callable from any thread (a lock).
 void StressHarness_PipeMainEnd();
 void StressHarness_PipePacketBegin();

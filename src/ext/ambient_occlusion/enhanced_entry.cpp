@@ -22,7 +22,7 @@ UI::SliderElement* g_opacity = nullptr;
 void Open(UI::Element* page) {
     g_quality = FindElement<UI::ComboElement>(page, "comboAoQuality");
     g_opacity = FindElement<UI::SliderElement>(page, "sliderAoOpacity");
-    const AO::Params& now = AO::Current();
+    const AmbientOcclusion::Params& now = AmbientOcclusion::Current();
     if (g_quality != nullptr) g_quality->SetCurrentItem(now.quality);
     if (g_opacity != nullptr) {
         g_opacity->_minimum = 0.0f;      // like the UI scale slider (OptionsDialog::OnOpened)
@@ -34,11 +34,11 @@ void Open(UI::Element* page) {
 }
 
 void Apply() {
-    AO::Params p = AO::Current();
+    AmbientOcclusion::Params p = AmbientOcclusion::Current();
     if (g_quality != nullptr) p.quality = g_quality->_currentItem;
     if (g_opacity != nullptr) p.opacity = static_cast<int>(g_opacity->_value + 0.5f);
-    AO::Set(p);
-    const AO::Params& now = AO::Current();
+    AmbientOcclusion::Set(p);
+    const AmbientOcclusion::Params& now = AmbientOcclusion::Current();
     std::fprintf(stderr, "[AoMenu] Apply: quality=%d opacity=%d\n", now.quality, now.opacity);
 }
 

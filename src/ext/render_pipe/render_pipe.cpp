@@ -100,6 +100,7 @@
 #include "scene_watch.h"
 #include "stress_harness.h"   // g_verifyOn / StressHarness_Verify, the pipe draw brackets
 
+namespace Ext {
 namespace RenderPipe {
 namespace {
 
@@ -289,7 +290,7 @@ void MainHalf(::Engine::MainLoop& loop, GameUpdateLoop& g, Graphics::Renderer& r
     // Step 12: which UI draw.
     p.sharpUi = Ext::Ext().sharp_ui;
     // Step 7's ext.ambient_occlusion arm (GameUpdateLoop::Draw), as a value for pass 2.
-    p.aoOn = AmbientOcclusion::Enabled() && AmbientOcclusion::BuildFrame(*g.m_playerController, p.ao);
+    p.aoOn = Ext::AmbientOcclusion::Enabled() && Ext::AmbientOcclusion::BuildFrame(*g.m_playerController, p.ao);
 
     StressHarness_PipeMainEnd();   // [STRESS] draw main ms
 }
@@ -382,7 +383,7 @@ struct EngineOps {
                                  (static_cast<long long>(r._frameIndex) << 32) |
                                      static_cast<long long>(static_cast<uint32_t>(ctx->_frameIndex)));
         }
-        RenderPipe::Pass2(*p.renderer, *ctx, p.aoOn ? &p.ao : nullptr);
+        Ext::RenderPipe::Pass2(*p.renderer, *ctx, p.aoOn ? &p.ao : nullptr);
     }
     void SaveLoadDraw(const Packet& p) {
         if (p.saveLoad != nullptr)
@@ -402,7 +403,7 @@ struct EngineOps {
     }
     void UIDraw(const Packet& p) {
         if (p.sharpUi)
-            SharpUI::Draw(*p.game->m_userInterface, *ctx);
+            Ext::SharpUI::Draw(*p.game->m_userInterface, *ctx);
         else
             p.game->m_userInterface->Draw(*ctx);
     }
@@ -451,7 +452,7 @@ struct EngineHost {
         next.renderer        = r;
         next.frameTime       = time;
         next.frameStartTicks = loop->_frameStartTicks;   // this Frame's start (threaded FrameUpdateTime)
-        RenderPipe::MainHalf(*loop, g, *r, alpha, plan.renderIdle, verify, next);
+        Ext::RenderPipe::MainHalf(*loop, g, *r, alpha, plan.renderIdle, verify, next);
         if (verify) {
             next.hash   = HashFrame(*r, g.m_sunLight);
             next.hashed = true;
@@ -471,7 +472,7 @@ struct EngineHost {
 
         StressHarness_PipeEmitBegin();
         EngineOps ops{ *loop, ctx, threaded, start };
-        RenderPipe::Emit(ops, p);
+        Ext::RenderPipe::Emit(ops, p);
         StressHarness_PipeEmitEnd();
 
         res.failed = ops.failed;
@@ -505,7 +506,7 @@ struct EngineHost {
         if (verify) IdemCamera(*next.game->m_playerController);
     }
 
-    void FaithfulTail() { RenderPipe::FaithfulTail(*loop, alpha, time); }
+    void FaithfulTail() { Ext::RenderPipe::FaithfulTail(*loop, alpha, time); }
 };
 
 EngineHost          g_host;
@@ -536,10 +537,10 @@ TailInputs Inputs(::Engine::MainLoop& loop, GameUpdateLoop* g) {
         in.paintTerrain = g->m_imageCapture->terrainImage == nullptr;
         in.screenshot   = g->m_quickSavePressed != 0 || g->m_quickLoadPressed != 0;
     }
-    // EyeCamera::Active() reads the game loop's tool manager and UI: only inside the built
+    // Ext::EyeCamera::Active() reads the game loop's tool manager and UI: only inside the built
     // game (2026-10-14: called from the menu loop at boot, it crashed every
     // eye_camera + render_pipe run; the menu loop is never pipelined anyway).
-    in.eyeCamera = in.gameLoop && Ext::Ext().eye_camera && EyeCamera::Active();
+    in.eyeCamera = in.gameLoop && Ext::Ext().eye_camera && Ext::EyeCamera::Active();
     const char* cap = Opt().captureIngame;   // BANISHED_CAPTURE_INGAME counts sequential frames
     in.diagnostic = cap != nullptr && cap[0] != '\0';
     return in;
@@ -618,3 +619,4 @@ bool Threaded() { return g_handoff != nullptr; }
 Counters TakeWindow() { return g_driver.TakeWindow(); }
 
 }  // namespace RenderPipe
+}  // namespace Ext

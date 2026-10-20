@@ -34,6 +34,7 @@
 #include <deque>
 #include <mutex>
 
+namespace Ext {
 namespace PathWorkers {
 
 constexpr int kMaxWorkers = 4;
@@ -140,3 +141,4 @@ inline void DispatchCommand(Pool& pool, Host& host, const Command& cmd) {
 }
 
 }  // namespace PathWorkers
+}  // namespace Ext
