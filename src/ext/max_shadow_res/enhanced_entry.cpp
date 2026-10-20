@@ -30,7 +30,7 @@ void Open(UI::Element* page) {
     const int32_t choice = MaxShadowResChoice();
     const int item = choice == 8192 ? 2 : (choice == 4096 ? 1 : 0);
     if (g_combo != nullptr) g_combo->SetCurrentItem(item);
-    std::fprintf(stderr, "[ShadowResMenu] combo=%p item=%d (choice %d)\n", static_cast<void*>(g_combo), item,
+    std::fprintf(stderr, "[MaxShadowRes] combo=%p item=%d (choice %d)\n", static_cast<void*>(g_combo), item,
                  choice);
 }
 
@@ -38,7 +38,7 @@ void Apply() {
     if (g_combo == nullptr) return;
     const int item = g_combo->_currentItem;
     const int32_t choice = SetMaxShadowResAndRecord(item >= 0 && item <= 2 ? kItemSize[item] : 0);
-    std::fprintf(stderr, "[ShadowResMenu] Apply: item=%d choice=%d\n", item, choice);
+    std::fprintf(stderr, "[MaxShadowRes] Apply: item=%d choice=%d\n", item, choice);
 }
 
 void Close() { g_combo = nullptr; }

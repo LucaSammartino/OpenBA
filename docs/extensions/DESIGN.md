@@ -318,7 +318,7 @@ underscores dropped (`MYLIST`).
 | sprites | `src/ext/ui/Dialog/Sprite/Extensions/Entry_<id>.png` (the dialog row's icon), `Page_<id>.png` (the toolbar page's tab), `Toolbar_extensions.png` (the one shared button); baked by `tools/ext_sprites_bake.py` |
 | per-object flag | never a new field in a retail class (every `sizeof` is asserted): a side table in the extension keyed by the object's id, or a documented spare bit; engine-side seams are `_ext<What>` static data pointers (`Graphics::SunLight::_extShadowFitView`) |
 | seam comment | `// EXT SEAM (NOT RETAIL, docs/extensions/handins/<ID>.md): <one line of what and when>` at every faithful site, including dialog arms |
-| log prefix | `[<Id>]` on stderr (`[ExtSave]`, `[ShadowResMenu]`); never stdout |
+| log prefix | `[<Id>]` on stderr (`[ExtSave]`, `[AmbientOcclusion]`); never stdout |
 | hand-in / block | `docs/extensions/handins/<ID>.md`; a follow-up block `<ID>2`, `<ID>-<PART>` (`FAA-SHADOW2`) |
 | unit tests | `tests/unit/ext_<id>_test.cpp`, cases `ext_<id>_<what_it_proves>` |
 | list / status rows | `docs/extensions/LIST.MD` (`Ext C | <display name> | ...`), `docs/runtime_port/STATUS.md` |

@@ -29,7 +29,7 @@ void Open(UI::Element* page) {
         g_opacity->_maximum = 30.0f;     // ext.ao_opacity's range (registry.cpp kValueKeys; the user's ruling 2026-10-14)
         g_opacity->_value = static_cast<float>(now.opacity);
     }
-    std::fprintf(stderr, "[AoMenu] combo=%p slider=%p quality=%d opacity=%d\n",
+    std::fprintf(stderr, "[AmbientOcclusion] combo=%p slider=%p quality=%d opacity=%d\n",
                  static_cast<void*>(g_quality), static_cast<void*>(g_opacity), now.quality, now.opacity);
 }
 
@@ -39,7 +39,7 @@ void Apply() {
     if (g_opacity != nullptr) p.opacity = static_cast<int>(g_opacity->_value + 0.5f);
     AmbientOcclusion::Set(p);
     const AmbientOcclusion::Params& now = AmbientOcclusion::Current();
-    std::fprintf(stderr, "[AoMenu] Apply: quality=%d opacity=%d\n", now.quality, now.opacity);
+    std::fprintf(stderr, "[AmbientOcclusion] Apply: quality=%d opacity=%d\n", now.quality, now.opacity);
 }
 
 void Close() { g_quality = nullptr; g_opacity = nullptr; }

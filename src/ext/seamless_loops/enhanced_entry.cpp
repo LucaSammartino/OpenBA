@@ -24,7 +24,7 @@ void Open(UI::Element* page) {
     const Entry* row = FindEntry("seamless_loops");
     const int item = row != nullptr && Requested(*row) ? 1 : 0;
     if (g_combo != nullptr) g_combo->SetCurrentItem(item);
-    std::fprintf(stderr, "[SeamlessLoopsMenu] combo=%p item=%d\n", static_cast<void*>(g_combo), item);
+    std::fprintf(stderr, "[SeamlessLoops] combo=%p item=%d\n", static_cast<void*>(g_combo), item);
 }
 
 void Apply() {
@@ -33,7 +33,7 @@ void Apply() {
     if (row == nullptr) return;
     const bool on = g_combo->_currentItem == 1;
     if (on != Requested(*row)) SetAndRecord(*row, on);
-    std::fprintf(stderr, "[SeamlessLoopsMenu] Apply: item=%d requested=%d (takes effect at the next start)\n",
+    std::fprintf(stderr, "[SeamlessLoops] Apply: item=%d requested=%d (takes effect at the next start)\n",
                  g_combo->_currentItem, Requested(*row) ? 1 : 0);
 }
 
