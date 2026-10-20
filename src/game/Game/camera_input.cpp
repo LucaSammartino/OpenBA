@@ -186,13 +186,14 @@ void PlayerToolManager::UpdateCamera(int inputFlag, int64_t timeTicks) {
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/BETTERCAM.md): ext.better_camera's zoom range and steady
     // tilt, the toggle read once per frame. Off = retail's own constants (the values below are the same floats).
     const bool betterCam = Ext::Ext().better_camera;
-    static bool s_betterCamPrev = false;
     const float zMin  = betterCam ? BetterCamera::kZoomMin  : kZoomMin;
     const float zMax  = betterCam ? BetterCamera::kZoomMax  : kZoomMax;
     const float zSpan = betterCam ? BetterCamera::kZoomSpan : kZoomSpan;
-    if (s_betterCamPrev && !betterCam)                       // the row was turned off: back inside retail's range now
-        field_0x3C = BetterCamera::ClampOnToggleOff(field_0x3C);
-    s_betterCamPrev = betterCam;
+    // Row off: a zoom target outside retail's range (a save, or a camera preset, written with the row on) goes back into
+    // 20 .. 130 before anything reads it. A no-op for every value retail itself can hold; retail's own seeding of a zero
+    // target from the distance (above) has already run.
+    if (!betterCam)
+        field_0x3C = BetterCamera::ClampToRetailRange(field_0x3C);
 
     // ── apply zoom step to the zoom target, clamp 20..130 ──
     if (zoomDir != 0) {

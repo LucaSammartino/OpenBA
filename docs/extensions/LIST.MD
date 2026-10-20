@@ -6,7 +6,7 @@
 | Fix | Grounded starting buildings | Lower starter barn to actually sit h terrain |
 | Fix | Steady dialogs on UI rescale | Open dialogs no longer flash to a corner, instead stay centered. |
 | Ext A | Eye-level camera | Follow a citizen at eye level (replaces overhead follow). |
-| Ext A | Better camera | Zoom in much closer and out much farther (1 to 200 instead of 20 to 130) and keep the camera tilt when zoomed out instead of flattening to top-down. Off by default. |
+| Ext B | Better camera | Zoom in much closer and out much farther (1 to 200 instead of 20 to 130) and keep the camera tilt when zoomed out instead of flattening to top-down. Off by default; locked for the game and recorded in saves. |
 | Ext A | Sharp UI | Scale text with UI so it remains sharp. Note this requires the release TTF files be installed |
 | Ext A | Skip unseen work | Skip offscreen animations, particles to save cycles. |
 | Ext A | Faster scene gathering | Skips animations/pathing of gathering offscreen objects. |

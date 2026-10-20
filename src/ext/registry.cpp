@@ -56,12 +56,13 @@ const Entry kEntries[] = {
       0, [](State& s) -> bool& { return s.ext.eye_camera; } },
 
     // BETTERCAM (docs/extensions/handins/BETTERCAM.md): the two camera fixes of Banished Game Tweaks, in source.
-    // Class A but OFF by default: it changes how the world looks until the player turns it on.
-    { "better_camera", Tier::Extension, Class::A, false,
+    // Class B (PR review): with the row on, the zoom target and the camera distance, which retail serializes,
+    // can hold values outside retail's range, so a save records the extension.
+    { "better_camera", Tier::Extension, Class::B, false,
       "Better camera",
       "Zoom in much closer and out much farther, and keep the camera's tilt when zoomed out "
-      "instead of flattening to top-down.",
-      0, [](State& s) -> bool& { return s.ext.better_camera; } },
+      "instead of flattening to top-down. Saved games record it.",
+      1, [](State& s) -> bool& { return s.ext.better_camera; } },
 
     { "sharp_ui", Tier::Extension, Class::A, true,
       "Sharp UI",

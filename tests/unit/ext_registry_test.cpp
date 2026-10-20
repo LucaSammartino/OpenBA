@@ -64,10 +64,8 @@ UNIT_TEST(ext_registry_table_shape) {
         // Class A ships ON, class B / C OFF (DESIGN.md section 2, ruled 2026-10-18).
         // The unit_* test rows keep OFF: the lock tests below start from nothing on.
         // eye_camera is class A but changes how the game is played: the player's call, OFF.
-        // better_camera is class A but changes how the world looks (zoom range, tilt): also the player's call, OFF.
         if (e.tier == Ext::Tier::Extension && std::strncmp(e.id, "unit_", 5) != 0)
-            CHECK(e.defaultOn == (e.cls == Ext::Class::A && std::strcmp(e.id, "eye_camera") != 0 &&
-                                  std::strcmp(e.id, "better_camera") != 0));
+            CHECK(e.defaultOn == (e.cls == Ext::Class::A && std::strcmp(e.id, "eye_camera") != 0));
     }
     CHECK(!Ext::ValidId("a.b"));
     CHECK(!Ext::ValidId("Abc"));

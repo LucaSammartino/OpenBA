@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/ext/better_camera/better_camera.h -- ext.better_camera (class A, default OFF)
+// src/ext/better_camera/better_camera.h -- ext.better_camera (class B, default OFF)
 // ============================================================================
 // NOT RETAIL. docs/extensions/handins/BETTERCAM.md. Two changes to retail's camera, one toggle:
 //
@@ -23,10 +23,14 @@
 // the top; with the row off every value is retail's own constant and the pitch expression is retail's, in
 // retail's operation order, so the faithful camera is bit-identical.
 //
-// SAVES: no new state. The zoom target (PlayerToolManager +0x3C) is already serialized; with the row on it can
-// hold values outside retail's 20 .. 130. A retail game loads such a save fine and clamps the target back into
-// its range at the first zoom action. Turning the row off mid-game clamps the target back at once
-// (ClampOnToggleOff), so the faithful camera never runs with an out-of-range target.
+// SAVES: class B. No new state, but with the row on two fields retail serializes, the zoom target (PlayerToolManager
+// +0x3C) and the camera distance (PlayerController::distance, which follows it), can hold values outside retail's
+// 20 .. 130, so the save records the extension (the pseudo-mod ext:better_camera, DESIGN.md section 2) and the row is
+// locked for the game. The faithful route clamps the zoom target into retail's range EVERY frame the row is off
+// (ClampToRetailRange): a save written with the row on, and a camera preset stored with it on (ApplyCameraView writes
+// the stored distance straight back), hand the camera a target outside retail's range with no toggle edge in between.
+// At 200 retail's normZ is (200 - 20) / 110 = 1.64 and the pitch blend extrapolates to about -101 degrees (retail's
+// ceiling is -85), which flips the view. The clamp is a no-op for every value retail itself can hold.
 // ============================================================================
 
 namespace BetterCamera {
@@ -53,9 +57,9 @@ inline float PitchTarget(float manual, float normZ, float farMan, float farFlat,
            (manual * nearMan - (1.0f - manual) * nearFlat) * (1.0f - normZ);
 }
 
-// The frame the row turns OFF: a zoom target left outside retail's range is brought back into it.
-inline float ClampOnToggleOff(float zoomTarget) {
-    if (zoomTarget == 0.0f) return zoomTarget;           // not seeded yet (retail seeds it from the distance)
+// The zoom target brought back into retail's range, applied every frame the row is off. The identity for 20 .. 130.
+// (Retail's own "a zero target is seeded from the distance" step runs before the seam, so a zero does not reach it.)
+inline float ClampToRetailRange(float zoomTarget) {
     if (zoomTarget < kRetailZoomMin) return kRetailZoomMin;
     if (zoomTarget > kRetailZoomMax) return kRetailZoomMax;
     return zoomTarget;
