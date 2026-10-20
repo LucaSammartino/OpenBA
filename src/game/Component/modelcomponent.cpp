@@ -28,7 +28,8 @@
 #include "math/Math.h"
 #include "Component/ModelDescription.h"   // ENDGAME B.3.9 CB: 0x1401c7a88 cell class
 #include "Entity/ComponentEntity.h"
-#include "ext/perfx/perfx.h"
+#include "ext/render_culling/render_culling.h"
+#include "ext/anim_batch/anim_batch.h"   // EXT SEAM: ext.anim_batch (On / Decide)
 #include "io/Serializer.h"   // ENDGAME B.3.4 caller batch A
 #include <cstdio>
 #include <cstdlib>
@@ -303,14 +304,14 @@ void ModelComponent::Tick(const System::Time* time) {
     // the old null-slot test of its table is gone with the by-name call.
     Graphics::MeshInstance* mesh = &meshInstance;
     {
-        // EXT SEAM ext.render_culling (class A, NOT RETAIL, src/ext/perfx/perfx.h): on the
+        // EXT SEAM ext.render_culling (class A, NOT RETAIL, src/ext/render_culling/render_culling.h): on the
         // last speed-iteration retail poses every animated mesh (AnimationState::
         // UpdateNodes). A mesh outside the camera frustum is never drawn, so its pose is
         // left root-only (the animation clock and the root-motion offset still advance
         // exactly as retail's intermediate iterations do); PerfX flushes the pose with a
         // zero-time update if the sim pauses, and the first visible tick recomputes it
         // from the animation time.
-        // EXT SEAM ext.anim_batch (class B, NOT RETAIL): at speed N retail runs N root-only
+        // EXT SEAM ext.anim_batch (class B, NOT RETAIL, src/ext/anim_batch/anim_batch.h): at speed N retail runs N root-only
         // updates per frame per model only to sample the root-motion offset every tick.
         // For a model whose offset comes from the AnimationManager pool (instanced
         // animation, ticked every iteration anyway) or is zero (no root motion) the
@@ -319,10 +320,10 @@ void ModelComponent::Tick(const System::Time* time) {
         // reads (IsAnimating): class B (docs/extensions/handins/PERFXEXT.md §1).
         // Both off (the faithful profile): one load + branch each, retail's Update(*time).
         int64_t batchedTime = time->_ticks;
-        if (PerfX::g_flags.animBatch && PerfX::AnimBatchDecide(this, time, &batchedTime)) return;
+        if (Ext::AnimBatch::On() && Ext::AnimBatch::Decide(this, time, &batchedTime)) return;
         const System::Time t{batchedTime};
-        if (PerfX::AnimCullSkip(this)) {
-            bool* flag = PerfX::RootOnlyFlag();
+        if (Ext::RenderCulling::AnimCullSkip(this)) {
+            bool* flag = Ext::RenderCulling::RootOnlyFlag();
             *flag = 1;
             mesh->Update(t);
             *flag = 0;

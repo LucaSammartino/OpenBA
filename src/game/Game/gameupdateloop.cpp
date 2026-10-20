@@ -61,7 +61,7 @@
 #include "system/String.h"
 #include "system/Filename.h"
 #include "stress_harness.h"   // BANISHED_STRESS Update/Draw brackets (standalone/)
-#include "ext/perfx/perfx.h" // EXT SEAM: ext.render_culling / ext.anim_batch (PerfX, NOT RETAIL)
+#include "ext/render_culling/render_culling.h" // EXT SEAM: ext.render_culling / ext.anim_batch (PerfX, NOT RETAIL)
 #include "ext/walk_batch/walk_batch.h" // EXT SEAM: ext.walk_batch (NOT RETAIL)
 #include "ext/spread_warmth/spread_warmth.h"   // EXT SEAM ext.spread_warmth (class B): SpreadWarmth::BeginFrame
 #include "ext/drain_split/drain_split.h"       // EXT SEAM ext.drain_split (class B): DrainSplit::BeginFrame
@@ -575,7 +575,7 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
     struct SamplerTagReset { ~SamplerTagReset() { g_samplerTag = 0; } } samplerTagReset;
     ApplyForceSpeed(m_toolManager);
     StressHarness_UpdateBegin(s_frameNum);   // [STRESS] no-op unless BANISHED_STRESS
-    PerfX::BeginFrame(m_renderer);      // EXT SEAM: ext.render_culling / ext.anim_batch read once per frame (frustum, pause flush)
+    Ext::RenderCulling::BeginFrame(m_renderer);      // EXT SEAM: ext.render_culling / ext.anim_batch read once per frame (frustum, pause flush)
     WalkBatch::BeginFrame();            // EXT SEAM: ext.walk_batch (A) / ext.walk_batch_grid (B) read once per frame
     SpreadWarmth::BeginFrame();         // EXT SEAM: ext.spread_warmth (B) read once per frame, its budget reset
     DrainSplit::BeginFrame();           // EXT SEAM: ext.drain_split (B) read once per frame, the owed half's frame count
@@ -798,7 +798,7 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
 
                 // 3b. AnimationManager::Update
                 bool rootOnly = (iteration < speedMultiplier - 1);
-                PerfX::SetIteration(iteration, speedMultiplier);   // [PerfX] ANIM_BATCH needs the iteration index
+                Ext::RenderCulling::SetIteration(iteration, speedMultiplier);   // [PerfX] ANIM_BATCH needs the iteration index
                 ::Graphics::MeshInstance::_rootOnlyUpdates = rootOnly;
                 TRACE("[GameUpdateLoop::Update] calling AnimationManager::Update (rootOnly=%d)...\n", (int)rootOnly);
                 { PhaseTimer pt(kPhAnimation);
@@ -1873,7 +1873,7 @@ void GameUpdateLoop::Shutdown() {
     // destructor, and the teardown below frees the world a save worker may still be reading (a
     // window close pumped during the frozen frames). Wait for it and finish that save first.
     BackgroundSave::Join(true);
-    PerfX::Reset();   // [PerfX] drop cached model pointers before the world is freed
+    Ext::RenderCulling::Reset();   // [PerfX] drop cached model pointers before the world is freed
     TerrainSidecar::Report();       // [terrain sidecar] the COMPPROF=4 shadow's totals
     AmbientEnvironmentComponent::ReportMemo();   // [AMBMEMO] hit / miss / shadow totals
     TerrainSidecar::Invalidate();   // [terrain sidecar] the grid is about to be freed

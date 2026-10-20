@@ -176,5 +176,5 @@ static_assert(sizeof(EntityList) == 0xE8, "EntityList is 0xE8 bytes (MemAlloc(0x
 // post-ctor writer of a component's flag low word reaches. No retail counterpart.
 void EntityList_TickListInvalidate(const ComponentEntity* entity);
 // [PerfX TREE_SNAPSHOT] the walk snapshot is rebuilt at the next walk (the two mutation
-// sites in entitylist.cpp; PerfX::BeginFrame when the PERFXTBL side table gains a user).
+// sites in entitylist.cpp; Ext::RenderCulling::BeginFrame when the PERFXTBL side table gains a user).
 extern "C" void EntityList_MarkUpdateTreeDirty();

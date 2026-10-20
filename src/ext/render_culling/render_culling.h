@@ -1,4 +1,6 @@
-// src/ext/perfx/perfx.h (was src/app/perf_experimental.h)
+// src/ext/render_culling/render_culling.h (was src/app/perf_experimental.h)
+// The machinery is shared: ext.anim_batch's own header, src/ext/anim_batch/anim_batch.h, is its seam's
+// view of AnimBatchDecide and the per-frame flags below; the bodies of both rows stay here.
 // ============================================================================
 // NOT RETAIL. "PerfX": the machinery of two extensions (docs/extensions/handins/PERFXEXT.md),
 // both default OFF like every extension:
@@ -25,13 +27,13 @@
 //
 // NOT part of either extension, faithful perf work (same results by proof, unconditional):
 // the TREE_SNAPSHOT walk (Entity/entitylist.cpp), WALKCACHE (Entity/tick_list.h) and the
-// terrain-type sidecar (Game/terrain_sidecar.h). PERFXTBL's side table (perfx_table.h) is
+// terrain-type sidecar (Game/terrain_sidecar.h). PERFXTBL's side table (side_table.h) is
 // built only while one of the two extensions is on.
 // ============================================================================
 #pragma once
 #include <cstddef>
 #include <cstdint>
-#include "ext/perfx/perfx_rules.h"   // Knobs / Flags / FlagsFor and the particle and clock rules
+#include "ext/render_culling/render_culling_rules.h"   // Knobs / Flags / FlagsFor and the particle and clock rules
 
 class ComponentEntity;                   // Entity/ComponentEntity.h (PERFXTBL side table key)
 class ModelComponent;                    // Component/ModelComponent.h
@@ -41,11 +43,12 @@ namespace Graphics { class Renderer; }   // src/engine/graphics/Camera.h
 namespace Math { class Transform; }      // src/engine/math/Math.h
 namespace Picking { class Scene; }       // src/engine/picking/Scene.h
 
-namespace PerfX {
+namespace Ext {
+namespace RenderCulling {
 
-// Knobs, kRenderCulling, kCullMargin and Flags are in perfx_rules.h.
+// Knobs, kRenderCulling, kCullMargin and Flags are in render_culling_rules.h.
 extern Flags g_flags;
-// PERFXTBL (perfx_table.h): the TREE_SNAPSHOT walk stores the index of the entity it is
+// PERFXTBL (side_table.h): the TREE_SNAPSHOT walk stores the index of the entity it is
 // ticking here (-1 outside the walk), so a tick reaches its side-table slot with one
 // compare. A wrong or -1 index only costs a binary search. One unconditional store per
 // entity (Entity/entitylist.cpp).
@@ -121,4 +124,5 @@ bool ParticleCullSkip(const float* pos, const ComponentEntity* entity);
 // extension that uses it is on, and stays empty otherwise.
 void OnWalkSnapshot(ComponentEntity* const* snap, size_t n, bool sorted);
 
-} // namespace PerfX
+} // namespace RenderCulling
+}  // namespace Ext

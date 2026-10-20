@@ -41,7 +41,7 @@
 #include "volume/Volume.h"        // RtVolume_Frustum_MulTransform3
 #include "volume/frustum_cull.h"  // CULLROUTE: the prepared table (Contains, retail 0x1800f8e80)
 #include "Game/exe_constants.h"   // kRdata_*
-#include "ext/perfx/perfx.h"
+#include "ext/render_culling/render_culling.h"
 #include "Object/exe_type.h"   // DEFINE_EXE_VTABLE
 #include "object/Internal.h"   // Object::detail::InternalMemFree
 #include <atomic>
@@ -199,7 +199,7 @@ void WorldGeometry::AddDrawItems(const Graphics::Scene& /*scene*/,
     ::Frustum localFrustum = {};
     // worldFrustum = cameraFrustum * cameraTransform3
     RtVolume_Frustum_MulTransform3(&cameraFrustum, &worldFrustum, &cameraTransform3);
-    PerfX::SetWorldFrustum(&worldFrustum);   // [PerfX] the sim-side off-screen test uses this frame's planes
+    Ext::RenderCulling::SetWorldFrustum(&worldFrustum);   // [PerfX] the sim-side off-screen test uses this frame's planes
     // localFrustum = worldFrustum * geometryInverseTransform3
     RtVolume_Frustum_MulTransform3(&worldFrustum, &localFrustum, &selfInvTransform3);
 

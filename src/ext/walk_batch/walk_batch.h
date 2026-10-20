@@ -55,7 +55,7 @@ extern long long g_batchedTicks;
 extern long long g_profTicks;
 extern long long g_profCalls;
 
-// GameUpdateLoop::Update, once per frame beside PerfX::BeginFrame: g_frameWalk = the walk the
+// GameUpdateLoop::Update, once per frame beside Ext::RenderCulling::BeginFrame: g_frameWalk = the walk the
 // frame's intermediate iterations take. kWalkNoPlace when ext.walk_batch_grid is on (its
 // per-game value under the class B lock; it implies the batch whether or not ext.walk_batch is
 // on), else kWalkPlace when ext.walk_batch is on (live, class A), else kWalkFaithful; always

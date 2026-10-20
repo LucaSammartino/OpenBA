@@ -23,7 +23,7 @@
 
 #include "ui/UserInterface.h"
 #include "options.h"
-#include "ext/perfx/perfx.h"   // [PerfX] TREE_SNAPSHOT walk
+#include "ext/render_culling/render_culling.h"   // [PerfX] TREE_SNAPSHOT walk
 #include "sampler.h"
 #include <vector>
 #include "Entity/EntityList.h"
@@ -420,7 +420,7 @@ template <bool kReserve>
     s_walkOwner = self;
     s_walkCountAtBuild = self->updateTree._count;
     EntityTreeNode* treeRoot = self->updateTree._root;
-    if (!treeRoot) { s_walkDirty = false; PerfX::OnWalkSnapshot(nullptr, 0, true); return true; }
+    if (!treeRoot) { s_walkDirty = false; Ext::RenderCulling::OnWalkSnapshot(nullptr, 0, true); return true; }
     g_treeCorrupt = false;
     EntityTreeNode* node = TreeMinimum(treeRoot);
     EntityTreeNode* prev = nullptr;
@@ -435,15 +435,15 @@ template <bool kReserve>
     }
     if (g_treeCorrupt) {
         ReportTreeCorrupt("Snapshot", self, prev); s_walkSnap.clear();
-        PerfX::OnWalkSnapshot(nullptr, 0, false);   // PERFXTBL: no side table on the tree walk
+        Ext::RenderCulling::OnWalkSnapshot(nullptr, 0, false);   // PERFXTBL: no side table on the tree walk
         return false;
     }
     s_tickList.assign(s_walkSnap.size(), TickList::Entry{nullptr, 0, TickList::kStale, 0, {0, 0, 0, 0}});
     s_tickSorted = TickList::StrictlyAscending(s_walkSnap.data(), s_walkSnap.size());
-    // [PerfX PERFXTBL] the per-entity PerfX side table (app/perfx_table.h) follows the
+    // [PerfX PERFXTBL] the per-entity PerfX side table (ext/render_culling/side_table.h) follows the
     // snapshot: live per-frame state moves with its entity, the rest goes back to
     // PerfX's hash table.
-    PerfX::OnWalkSnapshot(s_walkSnap.data(), s_walkSnap.size(), s_tickSorted);
+    Ext::RenderCulling::OnWalkSnapshot(s_walkSnap.data(), s_walkSnap.size(), s_tickSorted);
     s_walkDirty = false;
     return true;
 }
@@ -716,7 +716,7 @@ static bool WalkUpdateTreeSnapshot(EntityList* self, const System::Time* time, b
         }
         }   // kWalkPrefetch == 1
         ComponentEntity* entity = arr[i];
-        PerfX::g_walkIndex = static_cast<int64_t>(i);   // [PerfX PERFXTBL] the ticks' side-table slot
+        Ext::RenderCulling::g_walkIndex = static_cast<int64_t>(i);   // [PerfX PERFXTBL] the ticks' side-table slot
         if (!((entity->_entityFlags >> 10) & 1)) {
             if (!cached)      entity->TickComponents(time);
             else if (verify)  TickList::Cached<true>(entity, tl[i], tick, report);
@@ -724,7 +724,7 @@ static bool WalkUpdateTreeSnapshot(EntityList* self, const System::Time* time, b
         }
         if (prof) ++g_elProfTreeNodes;
     }
-    PerfX::g_walkIndex = -1;   // [PerfX PERFXTBL] outside the walk: binary search
+    Ext::RenderCulling::g_walkIndex = -1;   // [PerfX PERFXTBL] outside the walk: binary search
     return true;
 }
 

@@ -1,9 +1,9 @@
 #pragma once
 // ============================================================================
-// src/ext/perfx/perfx_table.h -- [PerfX PERFXTBL -- NON-RETAIL side table, IDENTICAL decisions]
+// src/ext/render_culling/side_table.h -- [PerfX PERFXTBL -- NON-RETAIL side table, IDENTICAL decisions]
 // docs/extensions/handins/PERFXTBL.md
 //
-// PerfX (perfx.cpp) decides per model per speed iteration whether the
+// PerfX (render_culling.cpp) decides per model per speed iteration whether the
 // intermediate root-only MeshInstance::Update may be folded into the last one
 // (ANIM_BATCH), and per particle system per iteration whether it is off-screen
 // (PARTICLE_CULL). Both decisions used to start with a probe of an open-addressing
@@ -35,7 +35,7 @@
 // can differ (an old-table eviction followed by a moved position).
 //
 // Header-only and keyed on `const void*` so the host unit tests drive it with
-// plain pointers (tests/unit/perfx_table_test.cpp).
+// plain pointers (tests/unit/ext_render_culling_test.cpp).
 // ============================================================================
 
 #include <cstddef>
@@ -43,9 +43,11 @@
 #include <functional>   // std::less: the pointer order of the update tree
 #include <vector>
 
-namespace PerfXTbl {
+namespace Ext {
+namespace RenderCulling {
+namespace SideTable {
 
-// ---- the old per-frame batch table (perfx.cpp BatchEntry, moved) ----
+// ---- the old per-frame batch table (render_culling.cpp BatchEntry, moved) ----
 struct BatchSlot { const void* key; unsigned serial; unsigned skipped; };
 
 template <unsigned N>   // a power of two
@@ -94,7 +96,7 @@ struct Slot {
     uint8_t     vis;           // visibility: the verdict
     uint8_t     pad[3];
 };
-static_assert(sizeof(Slot) == 40, "PerfXTbl::Slot is 40 bytes");
+static_assert(sizeof(Slot) == 40, "SideTable::Slot is 40 bytes");
 
 template <class Hash>
 class Side {
@@ -185,4 +187,6 @@ private:
     bool              m_usable = false;
 };
 
-}  // namespace PerfXTbl
+}  // namespace SideTable
+}  // namespace RenderCulling
+}  // namespace Ext

@@ -1,6 +1,6 @@
-// src/ext/perfx/perfx.cpp -- see perfx.h. NOT RETAIL: ext.render_culling (class A) and
+// src/ext/render_culling/render_culling.cpp -- see render_culling.h. NOT RETAIL: ext.render_culling (class A) and
 // ext.anim_batch (class B), docs/extensions/handins/PERFXEXT.md.
-#include "perfx.h"
+#include "render_culling.h"
 #include "graphics/Mesh.h"   // ENDGAME B.3.9 SS2: MeshInstance::_rootOnlyUpdates
 // ENDGAME B.3.5: Graphics::Camera / Renderer / Geometry, ahead of the
 // <windows.h> that "resolve.h" pulls in — <wingdi.h> declares a FUNCTION named
@@ -22,10 +22,11 @@
 #include "Entity/ComponentEntity.h"     // PERFXTBL: model->_entity.Get() (the side table's key)
 #include "Entity/EntityList.h"          // EntityList_MarkUpdateTreeDirty (the side table's first build)
 #include "ext/registry.h"               // Ext::Ext(): the two toggles, read once per frame
-#include "perfx_table.h"                // PERFXTBL: BatchHash + the per-entity side table
+#include "side_table.h"                // PERFXTBL: BatchHash + the per-entity side table
 #include "stress_harness.h"             // g_verifyOn / StressHarness_Verify (COMPPROF=4 shadows)
 
-namespace PerfX {
+namespace Ext {
+namespace RenderCulling {
 
 Flags g_flags = {};
 int64_t g_walkIndex = -1;   // PERFXTBL: the snapshot index of the entity being ticked
@@ -186,15 +187,15 @@ void NoteSimRan() {
 // NaturalResourceComponent::Tick, AnimateNaturalResource::Execute, the tornado's
 // knock-down); and the last iteration's (skipped+1) x tick lands on the NEW clip after a
 // mid-frame PlayAnimation. The COMPPROF=4 shadow `AnimBatchSim` counts both.
-// The per-frame skip count lives in the PERFXTBL side table (perfx_table.h,
+// The per-frame skip count lives in the PERFXTBL side table (side_table.h,
 // docs/extensions/handins/PERFXTBL.md), reached by the walk's current index; the hash
 // below is the count's home only for models whose entity has no live slot.
 // s_batchShadow runs the old per-call BatchEntry alone, for the COMPPROF=4 shadow.
-using BatchSlot = PerfXTbl::BatchSlot;
-using BatchHash = PerfXTbl::BatchHash<32768>;
+using BatchSlot = SideTable::BatchSlot;
+using BatchHash = SideTable::BatchHash<32768>;
 BatchHash s_batchTbl;
 BatchHash s_batchShadow;
-PerfXTbl::Side<BatchHash> s_side(s_batchTbl);
+SideTable::Side<BatchHash> s_side(s_batchTbl);
 struct RootMotionSlot { const void* key; bool has; };
 RootMotionSlot s_rootMotionTbl[4096];
 unsigned s_batchSerial = 0;
@@ -388,12 +389,12 @@ void SetIteration(int index, int count) {
     if (index == 0) ++s_batchSerial;   // new sim frame: every per-model skip count is stale
 }
 
-// ---- PERFXTBL: the per-entity side table (perfx_table.h) -----------------------------
+// ---- PERFXTBL: the per-entity side table (side_table.h) -----------------------------
 // The visibility verdict of `p` for this Update frame from the entity's slot; a miss is
 // the old CachedVisible (probe, verdict, store), kept in the slot. COMPPROF=4: the old
 // CachedVisible is asked on every call too and must agree (`kind` names the caller).
-static bool SlotVisible(PerfXTbl::Slot* slot, const float* p, float m, int kind) {
-    const bool v = PerfXTbl::Side<BatchHash>::Visible(slot, p, s_frameSerial,
+static bool SlotVisible(SideTable::Slot* slot, const float* p, float m, int kind) {
+    const bool v = SideTable::Side<BatchHash>::Visible(slot, p, s_frameSerial,
                                                       [p, m] { return CachedVisible(p, m); });
     if (g_verifyOn) {
         const bool old = CachedVisible(p, m);
@@ -419,8 +420,8 @@ bool AnimBatchDecide(ModelComponent* model, const System::Time* time, int64_t* t
     if (s_iterCount <= 1) return false;                       // speed 1: nothing to batch
     const bool last = (s_iterIndex >= s_iterCount - 1);
     // PERFXTBL: the entity's side-table slot (one compare inside the walk). The count
-    // lives in the slot (perfx_table.h banner: one authoritative home per model and frame).
-    PerfXTbl::Slot* slot = s_side.SlotFor(model->_entity.Get(), g_walkIndex);
+    // lives in the slot (side_table.h banner: one authoritative home per model and frame).
+    SideTable::Slot* slot = s_side.SlotFor(model->_entity.Get(), g_walkIndex);
     unsigned* skipped = s_side.Batch(slot, model, s_batchSerial);
     BatchSlot* shadow = nullptr;
     if (g_verifyOn) {
@@ -463,8 +464,9 @@ void NoteDeferred(StatusIconComponent* obj, void (*replay)(StatusIconComponent*)
 // The verdict kept in the owner entity's side-table slot for the Update frame (PERFXTBL).
 bool ParticleCullSkip(const float* pos, const ComponentEntity* entity) {
     if (!g_flags.particleCull || !s_haveFrustum) return false;
-    PerfXTbl::Slot* slot = s_side.SlotFor(entity, g_walkIndex);
+    SideTable::Slot* slot = s_side.SlotFor(entity, g_walkIndex);
     return !SlotVisible(slot, pos, kParticleMargin, 2);
 }
 
-} // namespace PerfX
+} // namespace RenderCulling
+}  // namespace Ext

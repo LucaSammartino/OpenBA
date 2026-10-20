@@ -60,7 +60,7 @@
 #include "Action/PlayAnimation.h"
 #include "Action/PerformWork.h"
 #include "Action/AnimateNaturalResource.h"
-#include "ext/perfx/perfx.h"                // OFFSCREEN: DiagPointVisible, RootOnlyNow
+#include "ext/render_culling/render_culling.h"                // OFFSCREEN: DiagPointVisible, RootOnlyNow
 #include "char_prof.h"                      // OFFSCREEN: the /char window (header-only, unit-tested)
 #include "Component/still_path.h"   // STILLPATH: StillPath::g_fastTicks (the /char stillpath rows)
 #include "Component/sm_memo.h"      // SMMEMO: SmMemo::g_skipped / ProfWindow (the /sm row)
@@ -580,7 +580,7 @@ void CharProfClassify(CharacterComponent* ch, const ComponentEntity* ent) {
     v.cls = CharProf::Classify(chain);
     v.nodeType = decider;
     const ModelComponent* model = ch->modelComponent.Get();
-    v.vis = (model && !PerfX::DiagPointVisible(&model->transform.translation.x))
+    v.vis = (model && !Ext::RenderCulling::DiagPointVisible(&model->transform.translation.x))
                 ? CharProf::kOff : CharProf::kOn;
 }
 
@@ -1785,7 +1785,7 @@ extern "C" int CharProf_Begin(Object::Base* comp, int slot) {
         if (p.model) { p.rot = p.model->transform.rotation; p.pos = p.model->transform.translation; p.yaw = p.model->yaw; }
         p.current = ch->actionStack.current;
         p.head = p.current >= 0 ? ch->actionStack.actions[p.current].Get() : nullptr;
-        p.last = !PerfX::RootOnlyNow();
+        p.last = !Ext::RenderCulling::RootOnlyNow();
         p.fast0 = StillPath::g_fastTicks;
         p.tzQ0 = StillTerrain::g_queries; p.tzH0 = StillTerrain::g_hits;
         return 1;

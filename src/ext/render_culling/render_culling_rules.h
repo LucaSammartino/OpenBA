@@ -1,13 +1,14 @@
 #pragma once
 // ============================================================================
-// src/ext/perfx/perfx_rules.h -- NOT RETAIL. The pure decisions of ext.render_culling and
-// ext.anim_batch (perfx.h), header-only and standard C++ so the host unit tests
-// (tests/unit/ext_perfx_test.cpp) check them on their own.
+// src/ext/render_culling/render_culling_rules.h -- NOT RETAIL. The pure decisions of ext.render_culling and
+// ext.anim_batch (render_culling.h), header-only and standard C++ so the host unit tests
+// (tests/unit/ext_render_culling_test.cpp) check them on their own.
 // docs/extensions/handins/PERFXEXT.md
 // ============================================================================
 #include <cstdint>
 
-namespace PerfX {
+namespace Ext {
+namespace RenderCulling {
 
 // ext.render_culling's knobs (all on: the set the perf build shipped default-on).
 struct Knobs {
@@ -78,4 +79,5 @@ inline bool IsAnimatingAt(bool hasLayer, bool looping, int64_t time, int64_t dur
     return time + extraTicks < duration;
 }
 
-}  // namespace PerfX
+}  // namespace RenderCulling
+}  // namespace Ext
