@@ -42,6 +42,7 @@
 #include "graphics/ParticleInstance.h"     // [PREFETCHCOV] the emitter instance lines (kPrefetchCovParticle)
 #include "stress_harness.h"               // g_compProfOn / CompProf_AddVtbl (BANISHED_STRESS)
 #include "ext/walk_batch/walk_batch.h"    // EXT SEAM ext.walk_batch (A) / ext.walk_batch_grid (B): the batched walk instantiations
+#include "ext/walk_batch_grid/walk_batch_grid.h"   // EXT SEAM ext.walk_batch_grid (B): the grid walk's character tick
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -634,7 +635,7 @@ static inline auto MakeWalkTick(const System::Time* time) {
     if constexpr (kWalk != WalkBatch::kWalkFaithful) {
         // [EXT SEAM ext.walk_batch (class A) / ext.walk_batch_grid (class B) -- NON-RETAIL] a
         // CharacterComponent (told by its vptr, as the walk prefetch does) gets
-        // WalkBatch::TickCharacter (kWalkPlace) or TickCharacterGrid (kWalkNoPlace), which
+        // WalkBatch::TickCharacter (kWalkPlace) or Ext::WalkBatchGrid::TickCharacter (kWalkNoPlace), which
         // take MoveTo::Execute's walking branch with a short step and run
         // CharacterComponent::Tick for everything else (src/ext/walk_batch/walk_batch.h); every
         // other component gets the faithful tick. Out of line on purpose: this TU's faithful
@@ -643,7 +644,7 @@ static inline auto MakeWalkTick(const System::Time* time) {
         return [time, charVt](Component* c) {
             if (*reinterpret_cast<const void* const*>(c) == charVt) {  // CAST-OK: vslot (the vptr names the class)
                 if constexpr (kWalk == WalkBatch::kWalkNoPlace)
-                    WalkBatch::TickCharacterGrid(static_cast<CharacterComponent*>(c), time);
+                    Ext::WalkBatchGrid::TickCharacter(static_cast<CharacterComponent*>(c), time);
                 else
                     WalkBatch::TickCharacter(static_cast<CharacterComponent*>(c), time);
             } else {
@@ -976,7 +977,7 @@ void EntityList::UpdateWalkBatch(const System::Time* time) {
     UpdateImpl<WalkBatch::kWalkPlace>(time);
 }
 
-// [EXT SEAM ext.walk_batch_grid -- NON-RETAIL, class B] src/ext/walk_batch/walk_batch.h.
+// [EXT SEAM ext.walk_batch_grid -- NON-RETAIL, class B] src/ext/walk_batch_grid/walk_batch_grid.h.
 void EntityList::UpdateWalkBatchGrid(const System::Time* time) {
     UpdateImpl<WalkBatch::kWalkNoPlace>(time);
 }

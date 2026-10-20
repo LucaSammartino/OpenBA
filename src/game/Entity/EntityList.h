@@ -136,7 +136,7 @@ struct EntityList {
     // batched snapshot walk, run by GameUpdateLoop::Update on an intermediate sim iteration
     // while the extension is on.
     void UpdateWalkBatch(const System::Time* time);
-    // NOT RETAIL, ext.walk_batch_grid (class B; walk_batch.h): the same with the batched tick
+    // NOT RETAIL, ext.walk_batch_grid (class B; src/ext/walk_batch_grid/walk_batch_grid.h): the same with the batched tick
     // that skips CharacterGrid::Place.
     void UpdateWalkBatchGrid(const System::Time* time);
     void PreUpdate();                                 // 0x1400c3bd0

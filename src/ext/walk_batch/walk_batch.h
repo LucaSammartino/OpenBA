@@ -3,7 +3,8 @@
 // src/ext/walk_batch/walk_batch.h -- NOT RETAIL. Two extension rows share this body:
 //   ext.walk_batch       class A, a live toggle, no save impact (WALKBATCH.md)
 //   ext.walk_batch_grid  class B, locked for the game, pseudo-mod ext:walk_batch_grid
-//                        (WALKGRID.md)
+//                        (WALKGRID.md); its own header, src/ext/walk_batch_grid/walk_batch_grid.h,
+//                        is the seam's view of the TickGrid / TickCharacterGrid bodies below
 // OFFSCREEN design D2, the walk batch at speed N.
 // docs/extensions/handins/WALKBATCH.md is the design and the proof; WALKGRID.md the class B row.
 //
