@@ -1,9 +1,9 @@
 // ============================================================================
-// src/ext/cpu/roster.cpp -- the thread-count rules and the `sys.cpu_limit` mask
+// src/platform/common/cpu/roster.cpp -- the thread-count rules and the `sys.cpu_limit` mask
 // ============================================================================
 // NOT RETAIL. roster.h has the contract and the table.
 // ============================================================================
-#include "ext/cpu/roster.h"
+#include "platform/common/cpu/roster.h"
 
 namespace Cpu {
 

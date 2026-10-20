@@ -1,8 +1,8 @@
 // ============================================================================
-// src/ext/cpu/roster.h -- the thread-count rules and the `sys.cpu_limit` mask (CPULIMIT)
+// src/platform/common/cpu/roster.h -- the thread-count rules and the `sys.cpu_limit` mask (CPULIMIT)
 // ============================================================================
 // NOT RETAIL. Standard C++ only, no OS call: the unit tests link roster.cpp alone
-// (tests/unit/ext_cpu_roster_test.cpp).
+// (tests/unit/cpu_roster_test.cpp).
 //
 // THE ROSTER (docs/extensions/handins/THREADRESEARCH.md §7.4, THREADPLAN.md §1 rows
 // 4-6). Every thread count of the extensions comes from these three functions of

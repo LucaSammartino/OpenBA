@@ -16,7 +16,7 @@
 // ============================================================================
 #include "system/parallel_for.h"
 
-#include "ext/cpu/topology.h"   // Cpu::Get().physical, Cpu::ParallelWorkers (roster.h)
+#include "platform/common/cpu/topology.h"   // Cpu::Get().physical, Cpu::ParallelWorkers (roster.h)
 #include "diag/diag_threads.h"  // DiagThreads::Register (role 'J')
 #include "platform/common/platform_thread.h"
 

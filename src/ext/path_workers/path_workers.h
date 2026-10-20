@@ -45,7 +45,7 @@ inline bool Engaged() { return g_mode.load(std::memory_order_relaxed) != 0; }
 
 // Reads Ext::Ext().path_workers (final once the class B lock is) into bit 0
 // and fixes the worker count for the game (Cpu::PathWorkers of the physical
-// cores inside the affinity mask, src/ext/cpu/roster.h). One stderr line when selected:
+// cores inside the affinity mask, src/platform/common/cpu/roster.h). One stderr line when selected:
 //   [PathWorkers] selected for this game: workers=<N>
 void SelectForGame();
 

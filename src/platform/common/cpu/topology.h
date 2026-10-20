@@ -1,5 +1,5 @@
 // ============================================================================
-// src/ext/cpu/topology.h -- the process's CPUs, and the `sys.cpu_limit` boot step (CPULIMIT)
+// src/platform/common/cpu/topology.h -- the process's CPUs, and the `sys.cpu_limit` boot step (CPULIMIT)
 // ============================================================================
 // NOT RETAIL. docs/extensions/handins/CPULIMIT.md is the hand-in; roster.h has the
 // thread-count rules that read this struct and the key's grammar.
@@ -21,7 +21,7 @@
 // ============================================================================
 #pragma once
 
-#include "ext/cpu/roster.h"
+#include "platform/common/cpu/roster.h"
 
 #include <cstdint>
 

@@ -1,10 +1,10 @@
 // ============================================================================
-// src/ext/cpu/topology.cpp -- the process's CPUs, and the `sys.cpu_limit` boot step
+// src/platform/common/cpu/topology.cpp -- the process's CPUs, and the `sys.cpu_limit` boot step
 // ============================================================================
 // NOT RETAIL. topology.h has the contract; the OS calls are Platform::Cpu*
 // (src/platform/common/platform_cpu.h).
 // ============================================================================
-#include "ext/cpu/topology.h"
+#include "platform/common/cpu/topology.h"
 
 #include "io/settings_store.h"   // the one-key pre-read of settings.cfg (allocator-free, pre-Startup)
 #include "platform_cpu.h"

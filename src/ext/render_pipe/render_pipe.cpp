@@ -90,8 +90,8 @@
 #include "Component/EnvironmentDescription.h"
 #include "Player/Tool.h"
 #include "ext/registry.h"
-#include "ext/cpu/roster.h"      // Cpu::RenderThread (block CPULIMIT)
-#include "ext/cpu/topology.h"    // Cpu::Get().physical
+#include "platform/common/cpu/roster.h"      // Cpu::RenderThread (block CPULIMIT)
+#include "platform/common/cpu/topology.h"    // Cpu::Get().physical
 #include "ext/eye_camera/eye_camera.h"
 #include "ext/sharp_ui/sharp_ui.h"
 #include "ext/ambient_occlusion/ambient_occlusion.h"   // AOCORE: the AO arm, recorded into the packet

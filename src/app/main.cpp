@@ -32,7 +32,7 @@
 #include "alloc_cutover_arm.h"            // RtAllocSwapArmCutover
 #include "system/MemoryAllocator.h"   // RtSystemAllocatorSetCutoverArmer
 #include "Game/game_main.h"
-#include "ext/cpu/topology.h"     // block CPULIMIT: Cpu::Boot (sys.cpu_limit, before any thread)
+#include "platform/common/cpu/topology.h"     // block CPULIMIT: Cpu::Boot (sys.cpu_limit, before any thread)
 #include "Object/factory_registration.h"
 #include "Goal/StatGoal.h"             // ENDGAME B.3.9 EXA: StatGoal::Vtable() for the self-test
 #include "object/TypeInfo.h"           // ENDGAME B.3.9 RF: BaseTypeInfo::_firstTypeInfo for the self-test
@@ -1002,9 +1002,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int) {
     setvbuf(stderr, NULL, _IONBF, 0);
     LoadTime::Stamp("main");   // NOT RETAIL: print-only (the logs are open)
 
-    // Block CPULIMIT (NOT RETAIL; src/ext/cpu/topology.h): settings.cfg's `sys.cpu_limit`
+    // Block CPULIMIT (NOT RETAIL; src/platform/common/cpu/topology.h): settings.cfg's `sys.cpu_limit`
     // -> the process affinity mask, then the core topology every thread-count rule reads
-    // (src/ext/cpu/roster.h). FIRST, before any thread of ours exists -- the crash
+    // (src/platform/common/cpu/roster.h). FIRST, before any thread of ours exists -- the crash
     // handler's, the sampler, the boot-state watchdog, SDL's, the loader, audio, the
     // pathfinder, the path workers -- and after the freopen so its [Cpu] line is logged.
     Cpu::Boot();

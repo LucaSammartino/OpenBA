@@ -114,7 +114,7 @@ const Entry kEntries[] = {
       0, [](State& s) -> bool& { return s.ext.render_pipe; } },
 
     // CULLPAR (docs/extensions/handins/CULLPAR.md): the draw gather's walk split over helper
-    // threads; the helper count is Cpu::CullHelpers (src/ext/cpu/roster.h), 0 on 4 cores.
+    // threads; the helper count is Cpu::CullHelpers (src/platform/common/cpu/roster.h), 0 on 4 cores.
     { "gather_threads", Tier::Extension, Class::A, true,
       "Parallel culling",
       "Faster scene gathering split over threads (5+ cores).",

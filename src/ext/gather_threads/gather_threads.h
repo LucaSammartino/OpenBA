@@ -33,7 +33,7 @@
 #include <cstdint>
 #include <mutex>
 
-#include "ext/cpu/roster.h"
+#include "platform/common/cpu/roster.h"
 #include "platform/common/platform_thread.h"
 
 namespace Ext {

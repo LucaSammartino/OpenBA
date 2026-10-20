@@ -75,7 +75,7 @@
 #include "graphics/skin_memo.h"    // SKINMEMO: the bone memo counters (/skin row) and its COMPPROF=4 shadow hook
 #include "ext/draw_gather/draw_gather.h"   // DRAWGATHER: the [Stress::gather] counters
 #include "ext/render_pipe/render_pipe.h"   // RENDERPIPE: the [Stress::pipe] counters
-#include "ext/cpu/topology.h"             // CPULIMIT: the '# cpu' meta line
+#include "platform/common/cpu/topology.h"             // CPULIMIT: the '# cpu' meta line
 #include "ext/walk_batch/walk_batch.h"   // WALKBATCH: the /char walkbatch row's counters
 #include "ext/spread_warmth/spread_warmth.h"   // HITCH_PFBURST: the [Stress::warmth] counters
 #include "ext/drain_split/drain_split.h"       // HITCH_DRAINSPLIT: the [Stress::drainsplit] counters

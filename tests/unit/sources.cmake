@@ -68,7 +68,7 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/game/Action/action_pf_region_search.cpp
   ${CMAKE_SOURCE_DIR}/src/game/Game/worldgen_f390_erosion.cpp   # worldgen_erosion_test.cpp (block EROSION)
   ${CMAKE_SOURCE_DIR}/src/ext/path_workers/pool.cpp
-  ${CMAKE_SOURCE_DIR}/src/ext/cpu/roster.cpp
+  ${CMAKE_SOURCE_DIR}/src/platform/common/cpu/roster.cpp
   ${CMAKE_SOURCE_DIR}/src/ext/draw_gather/gather_side.cpp
   ${CMAKE_SOURCE_DIR}/src/ext/gather_threads/gather_threads.cpp
   ${CMAKE_SOURCE_DIR}/src/diag/diag_threads.cpp   # gather_threads.cpp registers its helpers (block LOADSTAMP)
@@ -82,7 +82,7 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/engine/audio/xwma_decode.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/audio/load_decode_batch.cpp   # block SNDPAR: the load's decode batch
   ${CMAKE_SOURCE_DIR}/src/engine/system/parallel_for.cpp   # block WGPAR: the fork-join pool
-  ${CMAKE_SOURCE_DIR}/src/ext/cpu/topology.cpp             # parallel_for.cpp sizes its pool from Cpu::Get()
+  ${CMAKE_SOURCE_DIR}/src/platform/common/cpu/topology.cpp             # parallel_for.cpp sizes its pool from Cpu::Get()
   ${CMAKE_SOURCE_DIR}/src/platform/win/cpu_win.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/utility/perlin.cpp
   ${CMAKE_SOURCE_DIR}/src/game/Game/worldgen_cells.cpp     # the e5d0 / cf440 cell loops

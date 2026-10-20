@@ -45,8 +45,8 @@
 #include "graphics/scene_ext.h"
 #include "graphics/scene_grid.h"   // rtgfxgrid::GridReindex, Clean's re-index
 #include "ext/registry.h"
-#include "ext/cpu/roster.h"      // CULLPAR: Cpu::CullHelpers
-#include "ext/cpu/topology.h"    // CULLPAR: Cpu::Get().physical
+#include "platform/common/cpu/roster.h"      // CULLPAR: Cpu::CullHelpers
+#include "platform/common/cpu/topology.h"    // CULLPAR: Cpu::Get().physical
 #include "stress_harness.h"        // g_verifyOn / StressHarness_Verify (COMPPROF=4 shadows)
 
 namespace Ext {

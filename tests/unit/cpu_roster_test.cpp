@@ -1,5 +1,5 @@
 // ============================================================================
-// tests/unit/ext_cpu_roster_test.cpp -- src/ext/cpu/roster: the thread-count rules
+// tests/unit/cpu_roster_test.cpp -- src/platform/common/cpu/roster: the thread-count rules
 // and the `sys.cpu_limit` mask (block CPULIMIT)
 // ============================================================================
 // (i)   the three roster rules at n = 1..16, with and without the render pipe,
@@ -9,7 +9,7 @@
 // (iii) the clamp to a system mask (DecideLimit)
 // ============================================================================
 #include "unit.h"
-#include "ext/cpu/roster.h"
+#include "platform/common/cpu/roster.h"
 
 #include <cstdint>
 #include <string>
@@ -20,7 +20,7 @@ int ClampRef(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
 }  // namespace
 
-UNIT_TEST(ext_cpu_roster_rules_1_to_16) {
+UNIT_TEST(cpu_roster_rules_1_to_16) {
     for (int n = 1; n <= 16; ++n) {
         CHECK_EQ(Cpu::RenderThread(n), n >= 3);
         CHECK_EQ(Cpu::PathWorkers(n, false), ClampRef(n - 2, 1, 4));
@@ -42,7 +42,7 @@ UNIT_TEST(ext_cpu_roster_rules_1_to_16) {
     CHECK_EQ(Cpu::CullHelpers(0, false), 0);
 }
 
-UNIT_TEST(ext_cpu_roster_threadresearch_table) {
+UNIT_TEST(cpu_roster_threadresearch_table) {
     // THREADRESEARCH §7.4: | row | n = 4 | n = 6 | n = 8 |
     // ext.render_pipe: 1 | 1 | 1
     CHECK_EQ(Cpu::RenderThread(4), true);
@@ -65,7 +65,7 @@ UNIT_TEST(ext_cpu_roster_threadresearch_table) {
     CHECK_EQ(Cpu::CullHelpers(8, false), 2);
 }
 
-UNIT_TEST(ext_cpu_mask_parse) {
+UNIT_TEST(cpu_mask_parse) {
     uint64_t m = 0xdead;
     CHECK(Cpu::ParseMask("0x55", &m));
     CHECK_EQ(m, uint64_t{0x55});
@@ -104,7 +104,7 @@ UNIT_TEST(ext_cpu_mask_parse) {
     CHECK_EQ(Cpu::MaskPopcount(UINT64_MAX), 64);
 }
 
-UNIT_TEST(ext_cpu_limit_clamp) {
+UNIT_TEST(cpu_limit_clamp) {
     const uint64_t sys16 = 0xffff;   // a 16-CPU system
 
     Cpu::LimitDecision d = Cpu::DecideLimit(false, "", sys16);   // absent

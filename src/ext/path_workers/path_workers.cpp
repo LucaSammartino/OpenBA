@@ -31,8 +31,8 @@
 #include "ext/fast_paths/fast_paths.h"
 #include "ext/fast_paths/fast_search.h"
 #include "ext/registry.h"
-#include "ext/cpu/roster.h"     // Cpu::PathWorkers (block CPULIMIT)
-#include "ext/cpu/topology.h"   // Cpu::Get().physical
+#include "platform/common/cpu/roster.h"     // Cpu::PathWorkers (block CPULIMIT)
+#include "platform/common/cpu/topology.h"   // Cpu::Get().physical
 
 #include "Game/PathfinderThread.h"
 #include "Action/PathSearch.h"
