@@ -31,6 +31,5 @@ BinPackParameters: true
 SpacesBeforeTrailingComments: 2
 MaxEmptyLinesToKeep: 2
 KeepEmptyLinesAtTheStartOfBlocks: true
-PenaltyBreakBeforeFirstCallParameter: 200
 FixNamespaceComments: true
 Cpp11BracedListStyle: false
