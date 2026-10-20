@@ -111,7 +111,7 @@ OpenBA is not designed for profit, the project is designed as an engineering exe
 If you are the rights holder and have a concern, please open an issue or reach out to me.  
 
 **License:** OpenBA is free software under the **GNU General Public License v3.0**   
-([LICENSE](LICENSE)). The vendored third-party code keeps its own licence: SDL3 (zlib),  
+([LICENSE](LICENSE); full list: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). The vendored third-party code keeps its own licence: SDL3 (zlib),  
 Dear ImGui (MIT), ASSAO (MIT), the FFmpeg WMA v2 decoder (LGPL 2.1+) and FreeType 2.13.3 (the  
 FreeType License; portions copyright (c) The FreeType Project, www.freetype.org), all GPL-compatible.  
 

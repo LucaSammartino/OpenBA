@@ -1,0 +1,36 @@
+# Reference style for new and contributed code (.claude/rules/style.md). Derived from the
+# existing tree; existing files are NOT reformatted wholesale. Format only the lines you touch:
+#   git clang-format  (or clang-format --lines=<a>:<b> -i file)
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+IndentWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+UseTab: Never
+ColumnLimit: 110
+BreakBeforeBraces: Attach
+NamespaceIndentation: None
+PointerAlignment: Left
+DerivePointerAlignment: false
+# Includes carry retail-address comments and their order matters.
+SortIncludes: Never
+ReflowComments: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: None
+AlignTrailingComments:
+  Kind: Leave
+AlignAfterOpenBracket: Align
+BinPackArguments: true
+BinPackParameters: true
+SpacesBeforeTrailingComments: 2
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+PenaltyBreakBeforeFirstCallParameter: 200
+FixNamespaceComments: true
+Cpp11BracedListStyle: false

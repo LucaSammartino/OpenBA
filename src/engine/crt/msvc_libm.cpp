@@ -20,6 +20,10 @@
 #error "msvc_libm.cpp must not be compiled with FMA enabled: a contracted multiply-add rounds once where retail rounds twice."
 #endif
 
+#if defined(__aarch64__) && (defined(__FP_FAST_FMA) || defined(__FP_FAST_FMAF))
+#error "msvc_libm.cpp must be compiled with -ffp-contract=off: GCC contracts a*b+c into fmadd on aarch64, which rounds once where retail rounds twice."
+#endif
+
 namespace MsvcLibm {
 
 // ---------------------------------------------------------------------------
