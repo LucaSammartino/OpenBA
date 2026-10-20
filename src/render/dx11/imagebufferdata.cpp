@@ -656,7 +656,7 @@ void ImageBufferData::Bind(void* context, unsigned slot) {
     (void)context;   // never read by the original either
 
     ID3D11DeviceContext* const ctx = Dx11Context();
-    // EXT SEAM (ext.sharp_ui, NOT RETAIL): ::Video::ImageBufferData::
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/SHARPUI.md): ext.sharp_ui -- ::Video::ImageBufferData::
     // _extPointSampling is false by default and in the faithful profile, which
     // takes retail's two lines below untouched. Set only inside a UI pass drawn
     // at an integer ratio >= 2 (Ext::SharpUI::Draw); a comparison (shadow) image
