@@ -1,5 +1,5 @@
-// src/render/dx11/foliage_aa/dxbc.cpp -- see dxbc.h.
-#include "foliage_aa/dxbc.h"
+// src/render/dx11/better_trees/dxbc.cpp -- see dxbc.h.
+#include "better_trees/dxbc.h"
 
 #include <cstdio>
 #include <cstring>

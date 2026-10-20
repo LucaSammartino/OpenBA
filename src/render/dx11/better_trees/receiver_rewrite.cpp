@@ -1,9 +1,9 @@
 // ============================================================================
-// src/render/dx11/billboard_shadow/receiver_rewrite.cpp -- receiver_rewrite.h
+// src/render/dx11/better_trees/receiver_rewrite.cpp -- receiver_rewrite.h
 // ============================================================================
 // NOT RETAIL (ext.billboard_shadow). Standard C++ only: the unit tests link it.
 // ============================================================================
-#include "billboard_shadow/receiver_rewrite.h"
+#include "better_trees/receiver_rewrite.h"
 
 #include <cstdio>
 #include <cstring>

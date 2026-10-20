@@ -60,10 +60,10 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/ext/seamless_loops/seamless_loops.cpp   # ext_seamless_loops_test.cpp (block SEAMLESS)
   ${CMAKE_SOURCE_DIR}/src/ext/spread_warmth/spread_warmth.cpp     # ext_spread_warmth_test.cpp (HITCH_PFBURST)
   ${CMAKE_SOURCE_DIR}/src/ext/drain_split/drain_split.cpp         # ext_drain_split_test.cpp (HITCH_DRAINSPLIT)
-  ${CMAKE_SOURCE_DIR}/src/render/dx11/foliage_aa/dxbc.cpp            # ext_foliage_aa_test.cpp (block FAA-CORE)
-  ${CMAKE_SOURCE_DIR}/src/render/dx11/foliage_aa/cutout_rewrite.cpp
-  ${CMAKE_SOURCE_DIR}/src/render/dx11/billboard_shadow/receiver_rewrite.cpp   # ext_billboard_shadow_test.cpp (block TS-CORE)
-  ${CMAKE_SOURCE_DIR}/src/render/dx11/billboard_shadow/edge_dither.cpp        # ext_billboard_shadow_test.cpp (BETTER-TREES)
+  ${CMAKE_SOURCE_DIR}/src/render/dx11/better_trees/dxbc.cpp            # ext_better_trees_test.cpp (block FAA-CORE)
+  ${CMAKE_SOURCE_DIR}/src/render/dx11/better_trees/cutout_rewrite.cpp
+  ${CMAKE_SOURCE_DIR}/src/render/dx11/better_trees/receiver_rewrite.cpp   # ext_better_trees_test.cpp (block TS-CORE)
+  ${CMAKE_SOURCE_DIR}/src/render/dx11/better_trees/edge_dither.cpp        # ext_better_trees_test.cpp (BETTER-TREES)
   ${CMAKE_SOURCE_DIR}/src/ext/fast_paths/fast_search.cpp
   ${CMAKE_SOURCE_DIR}/src/game/Action/action_pf_region_search.cpp
   ${CMAKE_SOURCE_DIR}/src/game/Game/worldgen_f390_erosion.cpp   # worldgen_erosion_test.cpp (block EROSION)

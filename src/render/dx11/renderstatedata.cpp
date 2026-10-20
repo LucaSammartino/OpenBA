@@ -77,7 +77,7 @@
 //  * The original does not bounds-check any of the six enum lookups. Neither do
 //    we: clamping would silently diverge on malformed .rsc data.
 
-#include "foliage_aa/foliage_aa_stage.h"   // EXT SEAM (NOT RETAIL): ext.foliage_aa, VideoDX11::g_extFoliageAA
+#include "better_trees/foliage_aa_stage.h"   // EXT SEAM (NOT RETAIL): ext.foliage_aa, VideoDX11::g_extFoliageAA
 #include <cstring>
 #include <cstdint>
 #include <cstddef>

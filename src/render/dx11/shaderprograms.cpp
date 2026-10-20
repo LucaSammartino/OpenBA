@@ -59,8 +59,8 @@
 // (src/render/dx11/VideoDX11Data.h), so the compiler chains their destructors and
 // builds their vtables.
 #include "video/CompanionData.h"
-#include "foliage_aa/foliage_aa_stage.h"   // EXT SEAM (NOT RETAIL): ext.foliage_aa, VideoDX11::g_extFoliageAA
-#include "billboard_shadow/billboard_shadow_stage.h"   // EXT SEAM (NOT RETAIL): ext.billboard_shadow, VideoDX11::g_extBillboardShadow
+#include "better_trees/foliage_aa_stage.h"   // EXT SEAM (NOT RETAIL): ext.foliage_aa, VideoDX11::g_extFoliageAA
+#include "better_trees/billboard_shadow_stage.h"   // EXT SEAM (NOT RETAIL): ext.billboard_shadow, VideoDX11::g_extBillboardShadow
 
 namespace VideoDX11 {
 

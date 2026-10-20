@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/foliage_aa/cutout_rewrite.h -- the cutout pattern match and the in-memory rewrite
+// src/render/dx11/better_trees/cutout_rewrite.h -- the cutout pattern match and the in-memory rewrite
 // of an alpha-tested ps_4_x blob (ext.foliage_aa, docs/extensions/FOLIAGE_AA.md §3 as amended by §6).
 // ============================================================================
 // NOT RETAIL. Pure: no D3D, no retail bytes. It transforms the blob it is handed (the user's
@@ -36,7 +36,7 @@
 // Then the container fix-ups (instruction lengths, dcl_temps, chunk sizes, the checksum) and a
 // self-check: the result must re-parse and round-trip byte-identical with a valid checksum.
 // ============================================================================
-#include "foliage_aa/dxbc.h"
+#include "better_trees/dxbc.h"
 
 #include <cstddef>
 #include <cstdint>

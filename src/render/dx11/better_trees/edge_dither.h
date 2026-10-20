@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/billboard_shadow/edge_dither.h -- ext.better_trees' billboard PIXEL-shader rewrite:
+// src/render/dx11/better_trees/edge_dither.h -- ext.better_trees' billboard PIXEL-shader rewrite:
 // per-texel noise on the shadow compare depth (docs/extensions/handins/BETTER-TREES.md)
 // ============================================================================
 // NOT RETAIL. Pure: no D3D, no retail bytes (the unit tests build synthetic ps_4_0 blobs). It reads
@@ -37,8 +37,8 @@
 // -w is in (0, kExtentLimit): the extent is r x the depth per world unit (0.004..0.02 at the retail fit),
 // so a w that carries anything else (retail's +1, a packed fog or season term) gives 0.
 // ============================================================================
-#include "billboard_shadow/receiver_rewrite.h"   // BbsRewrite::Params
-#include "foliage_aa/dxbc.h"
+#include "better_trees/receiver_rewrite.h"   // BbsRewrite::Params
+#include "better_trees/dxbc.h"
 
 #include <cstddef>
 #include <cstdint>

@@ -21,7 +21,7 @@
 
 #include "ext/ambient_occlusion/ao_math.h"
 #include "ext/better_trees/better_trees.h"
-#include "billboard_shadow/receiver_rewrite.h"   // src/render/dx11: BbsRewrite::kDefaultParams (pure, no D3D)
+#include "better_trees/receiver_rewrite.h"   // src/render/dx11: BbsRewrite::kDefaultParams (pure, no D3D)
 
 namespace Ext {
 namespace Tweak {

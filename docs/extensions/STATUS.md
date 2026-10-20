@@ -49,7 +49,7 @@
   are what retail already does; Unity carries the same receiver artefact as Won't Fix. **`ext.billboard_shadow`**
   "Stable tree shading": a load-time DXBC rewrite of the user's installed billboard vertex shader (45 instructions
   cloned, the shadow lookup from the card rebuilt sun-facing where its caster was; `receiver_rewrite.{h,cpp}`,
-  the stage in `src/render/dx11/billboard_shadow/`, seam `VideoDX11::g_extBillboardShadow`); the sun camera's
+  the stage in `src/render/dx11/better_trees/`, seam `VideoDX11::g_extBillboardShadow`); the sun camera's
   worldToCamera rides in the unused light constant `textureProjection` (cb2 rows 6..9), written by
   `SunLight::DrawLight` through `SunLight::_extBillboardShadow` (null by default; bit-identical to the shadow
   pass's matrix; a mod shader reading that constant would see it, row on only). Evidence: the two-heading
