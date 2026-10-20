@@ -113,6 +113,7 @@ extern "C" void MapComponent_ReportDc20Evictions(const char* tag);  // keystone_
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include "Game/cell_stamp.h"   // AMBMEMO: CellStamp::NoteWrite after a cell store
 
 // ============================================================================
 // Economy Brick M-D — live town storage (BANISHED_LIVE_STORAGE, default OFF).
@@ -4452,6 +4453,7 @@ extern "C" void StartTown_UnmarkResourceCellGrid(Map* game, ComponentEntity* own
                 game->SetTerrainType(cellIdx, t);   // 0x14009f2f0
             }
             cell->occupant = nullptr;        // dee0: null the cell entity-link, ALWAYS
+            CellStamp::NoteWrite(cell);   // [AMBMEMO] cell write clock
         }
     }
 }

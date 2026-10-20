@@ -12,6 +12,7 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/engine/rt_libm.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/volume/frustum.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/graphics/draw_sort.cpp
+  ${CMAKE_SOURCE_DIR}/src/game/Game/cell_stamp.cpp   # cell_stamp_test.cpp (block AMBMEMO)
   ${CMAKE_SOURCE_DIR}/src/engine/crt/msvc_libm.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/crt/msvc_qsort.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/system/string.cpp

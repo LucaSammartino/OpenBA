@@ -126,6 +126,8 @@ extern "C" void BuildingGoal_Probe(const char* templateName);  // src/game/Goal/
 #include "ext/sharp_ui/sharp_ui.h"       // EXT SEAM: ext.sharp_ui, Draw step 12 (NOT RETAIL)
 #include "ext/ambient_occlusion/ao.h"     // EXT SEAM: ext.ambient_occlusion, Draw step 7 (NOT RETAIL)
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
+#include "Game/cell_stamp.h"   // AMBMEMO: CellStamp::Invalidate at teardown
+#include "Component/AmbientEnvironmentComponent.h"   // AMBMEMO: ReportMemo at teardown
 
 
 // ============================================================
@@ -1873,7 +1875,9 @@ void GameUpdateLoop::Shutdown() {
     BackgroundSave::Join(true);
     PerfX::Reset();   // [PerfX] drop cached model pointers before the world is freed
     TerrainSidecar::Report();       // [terrain sidecar] the COMPPROF=4 shadow's totals
+    AmbientEnvironmentComponent::ReportMemo();   // [AMBMEMO] hit / miss / shadow totals
     TerrainSidecar::Invalidate();   // [terrain sidecar] the grid is about to be freed
+    CellStamp::Invalidate();        // [AMBMEMO] the grid is about to be freed
     StillTerrain::Bump();           // [STILLTERRAIN] the map and the heightmap are about to be freed
     RedzoneAlloc_ArmTeardownCheck();   // no-op unless BANISHED_REDZONE=watch + BANISHED_TEARDOWN_HEAPCHECK=1
 
