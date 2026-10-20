@@ -29,6 +29,7 @@
 #include "Game/GameUpdateLoop.h"   // B3R STORAGE: GameUpdateLoop::_singleton
 #include "ext/registry.h"            // Ext::Fix().start_barn_height
 #include "system/MemoryAllocator.h"   // System::MemoryAllocator::MemAlloc / MemFree
+#include "Game/worldgen_cells.h"     // [PERLINPRE] WgCells_PerlinTable (row-parallel scatter noise)
 #include "math/Math.h"
 #include "system/Filename.h"
 #include "system/String.h"
@@ -4653,6 +4654,11 @@ static int StartTown_SpawnResources(MapGenerator* startConfig, GameUpdateLoop* w
         }
     }
 
+    // [PERLINPRE] one dim x dim scratch for every pool's scatter noise (dim is fixed for
+    // the call). std::vector, not MemAlloc: it is not a retail allocation, so it stays
+    // off the engine heap the scatter's entity allocations come from.
+    std::vector<float> noiseTable((size_t)dim * (size_t)dim);
+
     int spawned = 0;
     for (int e = 0; e < count; ++e) {
         MapGenerator::ExternalRef* entry = &pool[e];
@@ -4724,9 +4730,17 @@ static int StartTown_SpawnResources(MapGenerator* startConfig, GameUpdateLoop* w
         int poolSpawned = 0;
         int zoneSkips   = 0;   // cells refused by the ZONE-raster test below
         bool capped = false;
+        // [PERLINPRE] The scatter noise of every cell, computed up front in parallel rows
+        // (Game/worldgen_cells.cpp). EXACT: the same Generate call on the same const object
+        // with the same float arguments, (float)x * scale and (float)y * scale; Generate keeps
+        // no state and draws no RNG, so taking it out of the loop moves no RandFloat / Rand
+        // draw and no value. The loop below is unchanged and reads the table in its order
+        // (a `capped` exit only leaves values unread; poolCap is INT_MAX today).
+        float* noise = noiseTable.data();
+        WgCells_PerlinTable(noise, dim, &perlin, scale);
         for (int y = 0; y < dim && !capped; ++y) {
             for (int x = 0; x < dim; ++x) {
-                float p = RtUtility_PerlinNoise_Generate(&perlin, (float)x * scale, (float)y * scale);
+                float p = noise[dim * y + x];   // was RtUtility_PerlinNoise_Generate(&perlin, (float)x * scale, (float)y * scale)
                 if (threshold > p * 0.5f + 0.5f) continue;
                 if (rng->RandFloat() > density) continue;
 
