@@ -69,7 +69,7 @@ struct Fixes {
 // whose defaultOn (class A ON) is what a fresh settings.cfg gets.
 struct Extensions {
     bool eye_camera = false;   // class A: src/ext/eye_camera/ (docs/extensions/handins/EYECAM.md)
-    bool better_camera = false; // class B: src/ext/better_camera/ (docs/extensions/handins/BETTERCAM.md): zoom range 1 .. 200 + steady tilt
+    bool better_camera = false; // class B: src/ext/better_camera/ (docs/extensions/handins/BETTERCAM.md): zoom range 6 .. 200 + steady tilt
     bool sharp_ui   = false;   // class A: src/ext/sharp_ui/ (docs/extensions/handins/SHARPUI.md)
     bool fast_paths = false;   // class B: src/ext/fast_paths/ (docs/extensions/handins/FASTPATHS.md)
     bool path_workers = false; // class B: src/ext/path_workers/ (docs/extensions/handins/PATHWORKERS.md)

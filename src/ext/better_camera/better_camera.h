@@ -5,8 +5,10 @@
 // NOT RETAIL. docs/extensions/handins/BETTERCAM.md. Two changes to retail's camera, one toggle:
 //
 //   * A WIDER ZOOM RANGE. Retail clamps the zoom target (the distance the camera settles at) to 20 .. 130
-//     (.rdata 0x1401721c4 / 0x140172218, span 110 at 0x14017220c). With the row on the range is 1 .. 200, the
-//     range Banished Game Tweaks' exe fix has used since 2026-09 (live-confirmed in the game). The span that
+//     (.rdata 0x1401721c4 / 0x140172218, span 110 at 0x14017220c). With the row on the range is 6 .. 200. The top
+//     is the range Banished Game Tweaks' exe fix has used since 2026-09 (live-confirmed in the game); the floor is 6, not that
+//     fix's 1: at the shallow tilt (25 degrees) the eye sits only distance * sin(25 deg) above the focus point, 0.4
+//     units at 1, and the camera clips the terrain (PR review); at 6 it is about 2.5 units. The span that
 //     normalises the zoom for the pitch blend and the pan speed is recomputed from the new limits (max - min),
 //     as the exe fix does, so those two keep their near-to-far shape across the new range.
 //
@@ -41,7 +43,7 @@ constexpr float kRetailZoomMax = 130.0f;
 constexpr float kRetailZoomSpan = 110.0f;
 
 // ext.better_camera on.
-constexpr float kZoomMin = 1.0f;
+constexpr float kZoomMin = 6.0f;
 constexpr float kZoomMax = 200.0f;
 constexpr float kZoomSpan = kZoomMax - kZoomMin;
 

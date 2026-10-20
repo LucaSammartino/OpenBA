@@ -92,7 +92,9 @@ UNIT_TEST(ext_better_camera_steady_tilt_is_the_same_at_every_zoom) {
 UNIT_TEST(ext_better_camera_zoom_limits) {
     CHECK(BetterCamera::kRetailZoomMin == 20.0f && BetterCamera::kRetailZoomMax == 130.0f && BetterCamera::kRetailZoomSpan == 110.0f);
     CHECK(BetterCamera::kRetailZoomSpan == BetterCamera::kRetailZoomMax - BetterCamera::kRetailZoomMin);
-    CHECK(BetterCamera::kZoomMin == 1.0f && BetterCamera::kZoomMax == 200.0f);
+    CHECK(BetterCamera::kZoomMin == 6.0f && BetterCamera::kZoomMax == 200.0f);
+    // the floor keeps the eye clear of the terrain at the shallow tilt (25 degrees): distance * sin(25 deg) above the focus point
+    CHECK(BetterCamera::kZoomMin * std::sin(25.0f * 3.14159265f / 180.0f) > 2.0f);
     CHECK(BetterCamera::kZoomSpan == BetterCamera::kZoomMax - BetterCamera::kZoomMin);       // recomputed, as the exe fix does
     CHECK(BetterCamera::kZoomMin < BetterCamera::kRetailZoomMin && BetterCamera::kZoomMax > BetterCamera::kRetailZoomMax);
     // normalised zoom runs 0 .. 1 across the wider range, so the pan speed and (retail) pitch blend keep their shape

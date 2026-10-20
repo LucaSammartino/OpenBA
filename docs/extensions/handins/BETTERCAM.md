@@ -8,8 +8,8 @@ Retail's camera (`PlayerToolManager::UpdateCamera`, `src/game/Game/camera_input.
 
 | | retail | `ext.better_camera` on |
 |---|---|---|
-| zoom range (the zoom target `+0x3C`) | clamped to 20 .. 130 (`.rdata` 0x1401721c4 / 0x140172218) | 1 .. 200 (the range the Game Tweaks exe fix has used since 2026-09, live-confirmed) |
-| zoom normalisation (`normZ`, drives the pitch blend and the pan speed) | `(zoom - 20) / 110` (span at 0x14017220c) | `(zoom - 1) / 199`: the span is recomputed as max - min, as the exe fix does, so both keep their near-to-far shape across the wider range |
+| zoom range (the zoom target `+0x3C`) | clamped to 20 .. 130 (`.rdata` 0x1401721c4 / 0x140172218) | 6 .. 200 (the top is the range the Game Tweaks exe fix has used since 2026-09, live-confirmed; the floor is 6, not that fix's 1: at the shallow tilt the eye is distance * sin 25 degrees above the focus point, 0.4 units at 1, and the camera clips the terrain (found in the PR review); at 6 it is about 2.5) |
+| zoom normalisation (`normZ`, drives the pitch blend and the pan speed) | `(zoom - 20) / 110` (span at 0x14017220c) | `(zoom - 6) / 194`: the span is recomputed as max - min, as the exe fix does, so both keep their near-to-far shape across the wider range |
 | pitch target | a blend of a NEAR slope pair (-25 / 60) and a weaker FAR pair (-65 / 85) by `normZ`: the view flattens toward top-down as you zoom out | the near pair at every zoom: the same tilt at every distance |
 
 The pitch's own ceiling is deliberately NOT touched. `Vector3::FromYawPitch` is a fitted approximation that is only valid up to about 1.0 rad; the exe-fix research found that raising the

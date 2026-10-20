@@ -61,7 +61,7 @@ const Entry kEntries[] = {
     { "better_camera", Tier::Extension, Class::B, false,
       "Better camera",
       "Zoom in much closer and out much farther, and keep the camera's tilt when zoomed out "
-      "instead of flattening to top-down. Saved games record it.",
+      "instead of flattening to top-down.",
       1, [](State& s) -> bool& { return s.ext.better_camera; } },
 
     { "sharp_ui", Tier::Extension, Class::A, true,
