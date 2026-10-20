@@ -2,7 +2,7 @@
 // tests/unit/ext_gather_threads_test.cpp -- CULLPAR: ext.gather_threads (class A)
 // ============================================================================
 // The parallel walk (src/ext/draw_gather/gather_walk.h) and its helper pool
-// (gather_threads.{h,cpp}), on the REAL walk code over random quadtrees:
+// (src/ext/gather_threads/gather_threads.{h,cpp}), on the REAL walk code over random quadtrees:
 //   * the pool: the count is clamped to Cpu::kMaxCullHelpers, every published task
 //     runs exactly once per pass whoever claims it, across wake / park cycles;
 //   * the walk: random grids (levels, cells, chains, pruned / stale cell counts,
@@ -29,7 +29,7 @@
 namespace {
 
 using DrawGather::SideArray;
-using DrawGather::HelperPool;
+using Ext::GatherThreads::HelperPool;
 
 // ---------------------------------------------------------------------------
 // The pool on its own.

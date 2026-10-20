@@ -1,8 +1,11 @@
 // ============================================================================
-// src/ext/draw_gather/gather_threads.h -- ext.gather_threads (class A): the helper pool
+// src/ext/gather_threads/gather_threads.h -- ext.gather_threads (class A): the helper pool
 // ============================================================================
 // NOT RETAIL. docs/extensions/handins/CULLPAR.md. Standard C++ plus the platform
 // thread / time seams (src/platform/common); the unit tests link gather_threads.cpp.
+// The row shares its walk with ext.draw_gather: the parallel walk that drives this pool is in
+// src/ext/draw_gather/gather_walk.h (ParWalk / ParallelGather) and the pool's lifetime in
+// draw_gather.cpp (SyncThreads), beside the sequential walk they mirror.
 //
 // The frame helpers of the parallel cull (THREADRESEARCH §2.3-§2.5). NOT the path
 // workers' pool (§2.4: one FIFO of millisecond jobs and a Barrier that waits for all
@@ -33,7 +36,8 @@
 #include "ext/cpu/roster.h"
 #include "platform/common/platform_thread.h"
 
-namespace DrawGather {
+namespace Ext {
+namespace GatherThreads {
 
 class HelperPool {
 public:
@@ -98,4 +102,5 @@ private:
     Helper   _h[Cpu::kMaxCullHelpers];
 };
 
-}  // namespace DrawGather
+}  // namespace GatherThreads
+}  // namespace Ext

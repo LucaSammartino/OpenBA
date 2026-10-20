@@ -1,14 +1,15 @@
 // ============================================================================
-// src/ext/draw_gather/gather_threads.cpp -- ext.gather_threads: the helper pool
+// src/ext/gather_threads/gather_threads.cpp -- ext.gather_threads: the helper pool
 // ============================================================================
 // NOT RETAIL. gather_threads.h has the model and the contract.
 // ============================================================================
-#include "ext/draw_gather/gather_threads.h"
+#include "ext/gather_threads/gather_threads.h"
 
 #include "platform/common/platform_time.h"
 #include "diag/diag_threads.h"   // DiagThreads::Register (block LOADSTAMP)
 
-namespace DrawGather {
+namespace Ext {
+namespace GatherThreads {
 
 namespace {
 
@@ -140,4 +141,5 @@ HelperPool::PassResult HelperPool::Finish() {
     return r;
 }
 
-}  // namespace DrawGather
+}  // namespace GatherThreads
+}  // namespace Ext

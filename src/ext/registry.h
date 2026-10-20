@@ -79,7 +79,7 @@ struct Extensions {
     bool walk_batch     = false; // class A: src/ext/walk_batch/ (docs/extensions/handins/WALKBATCH.md)
     bool walk_batch_grid = false; // class B: src/ext/walk_batch/ (docs/extensions/handins/WALKGRID.md)
     bool render_pipe    = false; // class A: src/ext/render_pipe/ (docs/extensions/handins/RENDERPIPE0.md)
-    bool gather_threads = false; // class A: src/ext/draw_gather/ (docs/extensions/handins/CULLPAR.md); needs draw_gather
+    bool gather_threads = false; // class A: src/ext/gather_threads/ (docs/extensions/handins/CULLPAR.md); needs draw_gather
     bool quick_screens  = false; // class A: src/ext/quick_screens/ (docs/extensions/handins/SPLASH.md)
     bool ambient_occlusion = false; // class A: src/ext/ambient_occlusion/ (docs/extensions/AO.md)
     bool max_shadow_res = false; // class A: src/ext/max_shadow_res/ (the Enhanced tab row) + the Graphics::SunLight seam (docs/extensions/handins/FAA-SHADOW.md)

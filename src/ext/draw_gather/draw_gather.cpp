@@ -194,12 +194,12 @@ int32_t                             g_depth = 0;
 
 // ===========================================================================
 // CULLPAR -- ext.gather_threads (class A, needs ext.draw_gather): the parallel
-// walk (gather_walk.h) on persistent helpers (gather_threads.h).
+// walk (gather_walk.h) on persistent helpers (src/ext/gather_threads/gather_threads.h).
 // ===========================================================================
 // The pool: created by SyncThreads when the row turns on, deleted when it turns
 // off; never freed at exit (a static destructor would join threads during process
 // teardown). Main thread only.
-HelperPool* g_pool = nullptr;
+Ext::GatherThreads::HelperPool* g_pool = nullptr;
 ParWalk     g_par;
 // > 0: the gather walks in parallel. Written by SyncThreads only (boot and every
 // class A toggle: the only points where the row or the count can change), read once
@@ -262,7 +262,7 @@ void SyncThreads() {
         g_pool     = nullptr;
         g_par.pool = nullptr;
         if (helpers > 0) {
-            g_pool = new HelperPool(helpers);
+            g_pool = new Ext::GatherThreads::HelperPool(helpers);
             if (g_pool->Helpers() == 0) {
                 delete g_pool;
                 g_pool = nullptr;

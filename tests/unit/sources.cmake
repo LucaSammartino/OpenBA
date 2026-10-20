@@ -70,7 +70,7 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/ext/path_workers/pool.cpp
   ${CMAKE_SOURCE_DIR}/src/ext/cpu/roster.cpp
   ${CMAKE_SOURCE_DIR}/src/ext/draw_gather/gather_side.cpp
-  ${CMAKE_SOURCE_DIR}/src/ext/draw_gather/gather_threads.cpp
+  ${CMAKE_SOURCE_DIR}/src/ext/gather_threads/gather_threads.cpp
   ${CMAKE_SOURCE_DIR}/src/diag/diag_threads.cpp   # gather_threads.cpp registers its helpers (block LOADSTAMP)
   ${CMAKE_SOURCE_DIR}/src/platform/win/settings_win.cpp
   ${CMAKE_SOURCE_DIR}/src/engine/system/widestring.cpp
