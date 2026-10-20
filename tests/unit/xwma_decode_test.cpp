@@ -22,6 +22,8 @@
 // ============================================================================
 #include "unit.h"
 #include "audio/xwma_decode.h"
+#include "audio/load_decode_batch.h"   // block SNDPAR: the batch test at the end
+#include "system/parallel_for.h"
 
 #include <algorithm>
 #include <cmath>
@@ -418,4 +420,58 @@ UNIT_TEST(xwma_open_refuses_what_it_cannot_decode) {
     dec.Close();
     CHECK(!dec.IsOpen());
     CHECK_EQ(dec.TotalSamples(), uint64_t(0));
+}
+
+// Block SNDPAR: the real WMA v2 decode through Audio::LoadDecode's batch (the path a load's
+// SoundBuffers take, src/engine/audio/load_decode_batch.h) on 4 pool threads, 24 jobs over
+// the fixture at once: every job's PCM is the inline decode's, byte for byte, and the
+// finishes run in Defer order. tests/unit/load_decode_batch_test.cpp pins the batch itself
+// without an install.
+namespace {
+struct BatchJob {
+    const Fixture* fx = nullptr;
+    std::vector<int16_t> pcm;      // decode's output
+    std::vector<int16_t> published;
+    int order = -1;
+};
+int g_batchFinishes = 0;           // finishes run on the scope's thread only
+void BatchDecode(void* item, void*) {
+    BatchJob* j = static_cast<BatchJob*>(item);
+    Audio::XwmaDecoder dec;
+    if (j->fx->Open(dec)) j->pcm = DecodeWhole(dec);
+}
+void BatchFinish(void* item, void*) {
+    BatchJob* j = static_cast<BatchJob*>(item);
+    j->published.swap(j->pcm);
+    j->order = g_batchFinishes++;
+}
+}  // namespace
+
+UNIT_TEST(xwma_decode_through_the_load_batch_is_byte_identical) {
+    XWMA_FIXTURE_OR_SKIP(fx);
+    Audio::XwmaDecoder dec;
+    CHECK(fx.Open(dec));
+    const std::vector<int16_t> one = DecodeWhole(dec);
+    CHECK_EQ(one.size(), kTotal);
+
+    System::Parallel::SetWorkers(4);
+    std::vector<BatchJob> jobs(24);
+    g_batchFinishes = 0;
+    {
+        Audio::LoadDecode::Scope batch;
+        for (BatchJob& j : jobs) {
+            j.fx = &fx;
+            CHECK(Audio::LoadDecode::Defer(&j, nullptr, fx.bytes, &BatchDecode, &BatchFinish));
+        }
+    }
+    int same = 0, inOrder = 0;
+    for (size_t i = 0; i < jobs.size(); ++i) {
+        if (jobs[i].published == one) ++same;
+        if (jobs[i].order == int(i)) ++inOrder;
+    }
+    std::printf("  load batch: %d/24 byte-identical to the inline decode, %d in Defer order\n",
+                same, inOrder);
+    CHECK_EQ(same, 24);
+    CHECK_EQ(inOrder, 24);
+    System::Parallel::Shutdown();
 }
