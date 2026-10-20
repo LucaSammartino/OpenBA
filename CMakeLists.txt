@@ -144,6 +144,17 @@ else()
   file(GLOB_RECURSE PLATFORM_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/platform/posix/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/common/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/sdl/*.cpp)
+  if(APPLE)
+    # src/platform/darwin/README.md: a darwin/<name>_darwin.cpp replaces posix/<name>_posix.cpp
+    # whole-file; a darwin file with no posix twin is simply added.
+    file(GLOB PLATFORM_DARWIN_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/platform/darwin/*.cpp)
+    foreach(darwin_src ${PLATFORM_DARWIN_SRCS})
+      get_filename_component(darwin_name ${darwin_src} NAME)
+      string(REGEX REPLACE "_darwin\\.cpp$" "_posix.cpp" posix_name ${darwin_name})
+      list(REMOVE_ITEM PLATFORM_SRCS ${CMAKE_SOURCE_DIR}/src/platform/posix/${posix_name})
+    endforeach()
+    list(APPEND PLATFORM_SRCS ${PLATFORM_DARWIN_SRCS})
+  endif()
 endif()
 # The renderer backend: src/render/${BANISHED_RENDER_BACKEND}/backend.cmake sets RENDER_SRCS (its own
 # sources), RENDER_BACKEND_INCLUDES and RENDER_BACKEND_READY, and its per-source properties
@@ -326,6 +337,21 @@ if(NOT WIN32)
   list(APPEND UNIT_TREE_SRCS ${CMAKE_SOURCE_DIR}/src/platform/posix/os_posix.cpp)
   # os_posix.cpp's ReleaseModule / ExecutableImageBase (dlclose, dl_iterate_phdr).
   set(UNIT_POSIX_LIBS ${CMAKE_DL_LIBS})
+  if(APPLE)
+    # On Apple a src/platform/darwin twin, when one exists, replaces its posix twin (the
+    # same whole-file rule as PLATFORM_SRCS above; src/platform/darwin/README.md).
+    set(UNIT_TREE_SRCS_DARWIN)
+    foreach(unit_src ${UNIT_TREE_SRCS})
+      if(unit_src MATCHES "/src/platform/posix/([a-z_]+)_posix\\.cpp$")
+        set(darwin_twin ${CMAKE_SOURCE_DIR}/src/platform/darwin/${CMAKE_MATCH_1}_darwin.cpp)
+        if(EXISTS ${darwin_twin})
+          set(unit_src ${darwin_twin})
+        endif()
+      endif()
+      list(APPEND UNIT_TREE_SRCS_DARWIN ${unit_src})
+    endforeach()
+    set(UNIT_TREE_SRCS ${UNIT_TREE_SRCS_DARWIN})
+  endif()
 endif()
 file(GLOB UNIT_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/tests/unit/*.cpp)
 add_executable(unit EXCLUDE_FROM_ALL ${UNIT_SRCS} ${UNIT_TREE_SRCS})

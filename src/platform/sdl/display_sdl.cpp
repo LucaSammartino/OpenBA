@@ -248,5 +248,11 @@ int32_t GetCurrentDisplayRefreshHz() {
     return static_cast<int32_t>(mode->refresh_rate + 0.5f);
 }
 
+// window_sdl_internal.h. Identity on every host today (no high-density window exists).
+float PixelDensity(SDL_Window* window) {
+    (void)window;
+    return 1.0f;
+}
+
 }  // namespace Window
 }  // namespace Platform
