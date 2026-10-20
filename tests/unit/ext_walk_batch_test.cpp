@@ -5,9 +5,7 @@
 // src/ext/walk_batch/walk_batch_rules.h holds the arithmetic and the decline rule the batched
 // tick runs (walk_batch.cpp composes them around the game types). These tests check:
 //   * the registry rows: walk_batch (class A, formatVersion 0, default off, live under a game's
-//     lock, never a pseudo-mod); walk_batch_grid (class B, formatVersion 1, default off, locked
-//     for the game, the pseudo-mod ext:walk_batch_grid, a manifest naming it accepted, refused
-//     on load when the player has it off);
+//     lock, never a pseudo-mod); walk_batch_grid's row (class B) is ext_walk_batch_grid_test.cpp;
 //   * each rule against a literal copy of its retail body (terrain speed, the cell, the decline
 //     rule's truth table);
 //   * two copies of one scripted world at speeds 1..20: the REFERENCE runs every tick in full
@@ -407,68 +405,6 @@ RunResult RunTwoWorlds(uint64_t seed, int speed, int frames, bool placeEveryTick
 }
 
 }  // namespace
-
-UNIT_TEST(ext_walk_batch_grid_registry_row) {
-    const Ext::Entry& e = E("walk_batch_grid");
-    CHECK(e.tier == Ext::Tier::Extension);
-    CHECK(e.cls == Ext::Class::B);          // the grid lags inside the frame (WALKGRID.md)
-    CHECK(!e.defaultOn);
-    CHECK(e.formatVersion == 1);            // pseudo-mod ModInfo +0x18, the save manifest
-    CHECK(e.displayName != nullptr && e.description != nullptr);
-    CHECK(std::strstr(e.description, "iverges from the original") != nullptr);
-    CHECK(std::strstr(e.description, "a frame late") != nullptr);
-    CHECK(Ext::SettingsKey(e) == "ext.walk_batch_grid");
-    const Ext::Entry& a = E("walk_batch");
-
-    Ext::State s{};
-    CHECK(!s.ext.walk_batch_grid);
-    // Requested on, the class A row off: the B row alone is the batch (walk_batch.h).
-    Ext::State on{};
-    e.slot(on) = true;
-    Ext::Install(on, Ext::Profile::PerEntry, false);
-    CHECK(Ext::Ext().walk_batch_grid && !Ext::Ext().walk_batch);
-    int owner = 0;
-    Ext::LockForGame(&owner);
-    CHECK(Ext::EntryLocked(e) && !Ext::EntryLocked(a));
-    CHECK(!Ext::SetRequested(e, false));     // locked: the game keeps it
-    CHECK(Ext::Ext().walk_batch_grid);
-    CHECK(!Ext::Requested(e));
-    // The save carries it as the pseudo-mod ext:walk_batch_grid (formatVersion 1, +0x14),
-    // never the class A row.
-    std::vector<Ext::PseudoMod> mods((size_t)Ext::EntryCount());
-    const int n = Ext::PseudoModsForSave(mods.data(), (int)mods.size());
-    int sawGrid = 0, sawA = 0;
-    for (int k = 0; k < n && k < (int)mods.size(); ++k) {
-        if (mods[(size_t)k].path == "ext:walk_batch_grid") {
-            ++sawGrid;
-            CHECK(mods[(size_t)k].formatVersion == 1);
-            CHECK(mods[(size_t)k].field14 == Ext::kPseudoModField14);
-            CHECK(mods[(size_t)k].field10 == 0);
-            CHECK(mods[(size_t)k].name == e.displayName);
-        }
-        if (mods[(size_t)k].path == "ext:walk_batch") ++sawA;
-    }
-    CHECK_EQ(sawGrid, 1);
-    CHECK_EQ(sawA, 0);
-    // The load notice: the player has it off (requested false) -> modsMissing (1).
-    CHECK(Ext::PseudoModLoadStatus("ext:walk_batch_grid", 1) == 1);
-    Ext::UnlockForGame(&owner);
-    CHECK(!Ext::Ext().walk_batch_grid);      // back at the menu: the request (off)
-    CHECK(Ext::SetRequested(e, true));       // unlocked: takes effect now
-    CHECK(Ext::PseudoModLoadStatus("ext:walk_batch_grid", 1) == 0);
-    CHECK(Ext::PseudoModLoadStatus("ext:walk_batch_grid", 2) == 1);   // a newer format
-    // A manifest naming it locks exactly it on, whatever is requested.
-    CHECK(Ext::SetRequested(e, false));
-    std::vector<std::string> ids = { "walk_batch_grid" };
-    CHECK(Ext::LockForGameWithSet(&owner, ids));
-    CHECK(Ext::Ext().walk_batch_grid);
-    Ext::UnlockForGame(&owner);
-    CHECK(!Ext::Ext().walk_batch_grid);
-    // The faithful profile turns it off, and its absence writes no pseudo-mod.
-    Ext::Install(Ext::State{}, Ext::Profile::Faithful, false);
-    CHECK(Ext::PseudoModsForSave(nullptr, 0) == 0);
-    Ext::Install(Ext::State{}, Ext::Profile::PerEntry, false);
-}
 
 UNIT_TEST(ext_walk_batch_registry_row) {
     const Ext::Entry& e = E("walk_batch");
