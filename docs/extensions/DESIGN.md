@@ -165,6 +165,135 @@ Extensions dialog shows the row; the toolbar page appears when the row is locked
 extension of the same kind adds its own row, its own record and its own page; it shares the button,
 the window shell and the state contract.
 
+**The format to follow (code).** Every name below that does not exist yet (`StateCodec`,
+`Toolbar::Contribution`) is built by the first extension that needs it, in the shape shown, and the
+next extension reuses it. Existing names are the real ones.
+
+*1. The registry row.* `src/ext/registry.h` gets the bool, `registry.cpp` the row, exactly like
+every row today (class C, `formatVersion` 1, default OFF):
+```cpp
+// registry.h, struct Extensions
+bool my_list = false;   // class C: src/ext/my_list/ (docs/extensions/handins/MYLIST.md)
+
+// registry.cpp, kEntries (after the last extension row)
+// MYLIST (docs/extensions/handins/MYLIST.md): a per-town list the player edits in game.
+{ "my_list", Tier::Extension, Class::C, false,
+  "My list",
+  "Lets the player keep a per-town list of things. Play diverges; recorded in the save.",
+  1, [](State& s) -> bool& { return s.ext.my_list; } },
+```
+
+*2. The state contract.* A codec per class C extension, registered beside the Entry by id. The
+serializer calls it through the registry and never includes the extension's header:
+```cpp
+// registry.h (new, shared): what a class C extension gives the save tail
+struct StateCodec {
+    const char* id;                                       // the Entry id
+    void (*encode)(std::vector<uint8_t>& payload);        // the save arm: append this town's state
+    bool (*decode)(const uint8_t* bytes, size_t size, int32_t savedFormatVersion);
+                                                          // the load arm: false = malformed (fatal)
+    void (*reset)();                                      // a new game, or the game ends: empty state
+};
+int StateCodecCount();
+const StateCodec& StateCodecAt(int i);
+const StateCodec* FindStateCodec(const char* id);         // null: a class B row, no state
+
+// src/ext/my_list/save_state.cpp: the codec and its registration
+namespace Ext { namespace MyList {
+namespace {
+// Wire format v1 (little-endian): u32 count, count x { u32 len, u8 name[len] }.
+// Names are template paths, never indices (mods change load order between sessions).
+void Encode(std::vector<uint8_t>& out) {
+    PutU32(out, static_cast<uint32_t>(g_names.size()));
+    for (const std::string& n : g_names) { PutU32(out, uint32_t(n.size())); PutBytes(out, n); }
+}
+bool Decode(const uint8_t* p, size_t size, int32_t savedVersion) {
+    if (savedVersion != 1) return false;   // Validate already refused a NEWER version; older = migrate here
+    ByteReader r(p, size); uint32_t count = 0;
+    if (!r.U32(count)) return false;
+    g_names.clear();
+    for (uint32_t i = 0; i < count; ++i) { std::string n; if (!r.String(n)) return false; g_names.push_back(n); }
+    return r.AtEnd();
+}
+void Reset() { g_names.clear(); }
+}  // namespace
+const StateCodec& Codec() { static const StateCodec c = { "my_list", Encode, Decode, Reset }; return c; }
+}}  // namespace Ext::MyList
+
+// registry.cpp, kStateCodecs: one line per class C extension
+const StateCodec kStateCodecs[] = { MyList::Codec(), };
+```
+The two serializer arms (`gameupdateloop_serialize.cpp`, `ExtSave_WriteTail` / `ExtSave_ReadTail`)
+grow by one loop each and stay the only place the tail is touched:
+```cpp
+// SAVE: savetail.cpp ActiveRecords(), after r.formatVersion = e.formatVersion
+if (const StateCodec* c = FindStateCodec(e.id)) c->encode(r.payload);   // class B: no codec, empty payload
+
+// LOAD: ExtSave_ReadTail, after LockForGameWithSet succeeded
+for (const Ext::SaveTail::Record& r : records)
+    if (const Ext::StateCodec* c = Ext::FindStateCodec(r.id.c_str()))
+        if (!c->decode(r.payload.data(), r.payload.size(), r.formatVersion))
+            ExtSave_Fatal("This save's ext:" + r.id + " state is damaged.");
+```
+`reset` runs for every codec at new game and in `Ext::UnlockForGame`, so a town never inherits the
+previous town's list. With the row inactive for the town the codec is never called: the state is
+empty and the next save carries no record.
+
+*3. The toolbar page.* The same shape as `EnhancedTab::Contribution`, one host, one page per active
+extension. The host is `src/ext/toolbar/toolbar.{h,cpp}` and the page's objects are the extension's
+own text `.rsc`:
+```cpp
+// src/ext/toolbar/toolbar.h (new, shared)
+namespace Ext { namespace Toolbar {
+struct Contribution {
+    const char* id;                              // the Entry id; the page is offered only while Active(entry)
+    const char* page;                            // "Dialog/MyListPage.rsc:pageMyList", our text .rsc
+    void (*open)(UI::Element* page);             // find the elements by name, fill them from the state
+    void (*changed)(UI::Element* page);          // a control changed: write the state (live, no Apply)
+    void (*close)();                             // forget the element pointers
+};
+bool Offered();                                  // any active contributor, and not the forced faithful profile
+bool AddButton(UI::Element* toolbar);            // the host's one button; false = nothing added (retail toolbar)
+}}
+
+// src/ext/my_list/toolbar_page.cpp
+namespace Ext { namespace MyList {
+namespace {
+UI::TableElement* g_table = nullptr;
+void Open(UI::Element* page) { g_table = Toolbar::FindIn<UI::TableElement>(page, "tableMyList"); /* fill rows */ }
+void Changed(UI::Element* page) { /* read the checks into g_names; mark the object flags (section 4) */ }
+void Close() { g_table = nullptr; }
+}  // namespace
+const Toolbar::Contribution& Page() {
+    static const Toolbar::Contribution c = { "my_list", "Dialog/MyListPage.rsc:pageMyList", Open, Changed, Close };
+    return c;
+}
+}}
+```
+The host's `// EXT SEAM` is the one line in the toolbar's build (`src/game/...`) that calls
+`Ext::Toolbar::AddButton`; the page table in `toolbar.cpp` lists `MyList::Page()` the way
+`enhanced_tab.cpp` lists its entries.
+
+*4. The sim seam.* The decision is made once when the list changes and stored on the object; the
+per-entity loop tests a flag and never a container or the toggle (hook rule 4):
+```cpp
+// src/ext/my_list/my_list.h
+namespace Ext { namespace MyList {
+bool Listed(const Game::Thing* t);     // the flag the page's Changed() set on the object
+}}
+
+// the faithful site, src/game/<Module>/<file>.cpp -- the ONE seam, cites the hand-in
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/MYLIST.md): with ext.my_list active for this town,
+// a listed thing is skipped here; retail's loop is otherwise untouched.
+if (Ext::MyList::Listed(thing)) continue;
+```
+`Listed` is a flag read; with the row inactive every flag is clear, so the faithful path pays one
+predictable branch and the resave gate stays byte-identical.
+
+*5. The tests.* `tests/unit/ext_my_list_test.cpp`: the codec round-trips (encode then decode gives
+the same list), decode refuses a truncated payload, `reset` empties the state, and the sim seam's
+helper returns false for every object while the row is off.
+
 **Rules that carry over unchanged.** No doors (`tools/acceptance/acceptance.sh` at target: nothing
 registers or resolves a body by retail name or address). No null guard on a faithful crash. Every
 fix cites the retail address and quotes the lever from `retail_bugs.md`. No `getenv`. No new
