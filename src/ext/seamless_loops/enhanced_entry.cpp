@@ -20,7 +20,7 @@ namespace {
 UI::ComboElement* g_combo = nullptr;
 
 void Open(UI::Element* page) {
-    g_combo = FindIn<UI::ComboElement>(page, "comboSeamlessLoops");
+    g_combo = FindElement<UI::ComboElement>(page, "comboSeamlessLoops");
     const Entry* row = FindEntry("seamless_loops");
     const int item = row != nullptr && Requested(*row) ? 1 : 0;
     if (g_combo != nullptr) g_combo->SetCurrentItem(item);

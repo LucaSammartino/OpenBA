@@ -26,7 +26,7 @@ UI::ComboElement* g_combo = nullptr;
 constexpr int32_t kItemSize[] = { 0, 4096, 8192 };
 
 void Open(UI::Element* page) {
-    g_combo = FindIn<UI::ComboElement>(page, "comboMaxShadowRes");
+    g_combo = FindElement<UI::ComboElement>(page, "comboMaxShadowRes");
     const int32_t choice = MaxShadowResChoice();
     const int item = choice == 8192 ? 2 : (choice == 4096 ? 1 : 0);
     if (g_combo != nullptr) g_combo->SetCurrentItem(item);

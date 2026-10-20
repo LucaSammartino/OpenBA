@@ -20,8 +20,8 @@ UI::ComboElement*  g_quality = nullptr;
 UI::SliderElement* g_opacity = nullptr;
 
 void Open(UI::Element* page) {
-    g_quality = FindIn<UI::ComboElement>(page, "comboAoQuality");
-    g_opacity = FindIn<UI::SliderElement>(page, "sliderAoOpacity");
+    g_quality = FindElement<UI::ComboElement>(page, "comboAoQuality");
+    g_opacity = FindElement<UI::SliderElement>(page, "sliderAoOpacity");
     const AO::Params& now = AO::Current();
     if (g_quality != nullptr) g_quality->SetCurrentItem(now.quality);
     if (g_opacity != nullptr) {
