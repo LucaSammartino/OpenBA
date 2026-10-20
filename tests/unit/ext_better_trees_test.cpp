@@ -2,8 +2,8 @@
 // tests/unit/ext_better_trees_test.cpp -- ext.better_trees' pure parts
 // ============================================================================
 // Two halves, each in its own namespace so the helpers (Comp4, Dst, Shape, Program, Blob, Analyse,
-// ...) keep their names: `bbs` = the billboard shadow side (was ext_billboard_shadow_test.cpp),
-// `faa` = the foliage cutout side (was ext_foliage_aa_test.cpp); merged 2026-10-20.
+// ...) keep their names: `bbs` = the billboard shadow side (receiver_rewrite, edge_dither),
+// `faa` = the foliage cutout side (dxbc, cutout_rewrite); the two files merged 2026-10-20.
 //
 // bbs:
 // src/render/dx11/better_trees/receiver_rewrite.{h,cpp} (the margin lookup of handins/TS-CORE.md
