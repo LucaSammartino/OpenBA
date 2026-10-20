@@ -38,7 +38,7 @@ namespace {
 
 // --------------------------------------------------------------- the install
 constexpr const char* kPackage      = "/WinData/data0.pkg";
-constexpr long        kKnownOffset  = 0x2d802;
+constexpr int32_t     kKnownOffset  = 0x2d802;
 constexpr size_t      kRunBytes     = 13452;
 constexpr const char* kRunSha256    = "30da65356d18a1e0c9c0c92a208da2bfd03fc60c61946003de3d8980496fea4c";
 
@@ -93,7 +93,7 @@ std::string Sha256Hex(const uint8_t* data, size_t len) {
     return std::string(hex, 64);
 }
 
-std::vector<uint8_t> ReadRange(FILE* f, long offset, size_t bytes) {
+std::vector<uint8_t> ReadRange(FILE* f, int32_t offset, size_t bytes) {
     std::vector<uint8_t> out;
     if (std::fseek(f, offset, SEEK_SET) != 0) return out;
     out.resize(bytes);
@@ -128,13 +128,13 @@ bool LooksLikeTheSound(const uint8_t* d, size_t n) {
 
 // The scan data/README.md describes: a 0x0161 format window whose two counts sit in
 // front of a strictly rising table. Returns the run's offset or -1.
-long ScanForTheSound(const std::vector<uint8_t>& pkg) {
+std::ptrdiff_t ScanForTheSound(const std::vector<uint8_t>& pkg) {
     const uint8_t* d = pkg.data();
     const size_t n = pkg.size();
     for (size_t i = 32; i + 0x28 <= n; ++i) {
         if (d[i] != 0x61 || d[i + 1] != 0x01) continue;
         const size_t start = i - 32;   // 8 bytes of counts + a 24-byte table
-        if (LooksLikeTheSound(d + start, n - start)) return long(start);
+        if (LooksLikeTheSound(d + start, n - start)) return std::ptrdiff_t(start);
     }
     return -1;
 }
@@ -178,11 +178,11 @@ private:
         } else {
             raw.clear();
             const std::vector<uint8_t> pkg = ReadWhole(f);
-            const long at = ScanForTheSound(pkg);
+            const std::ptrdiff_t at = ScanForTheSound(pkg);
             if (at >= 0) {
                 raw.assign(pkg.begin() + at, pkg.begin() + at + std::ptrdiff_t(kRunBytes));
                 char where[64];
-                std::snprintf(where, sizeof(where), " @0x%lx (found by scan)", at);
+                std::snprintf(where, sizeof(where), " @0x%tx (found by scan)", at);
                 source = path + where;
             }
         }
