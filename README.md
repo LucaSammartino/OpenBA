@@ -34,6 +34,25 @@ With AO and MSAA enabled on 10x, OpenBA  (left) performs 100fps better than reta
 - **Verification:** OpenBA has a full unit test suite verified against the retail games behavior.
 - **Platforms:** Windows x64 10/11 and Linux x64 using cmake and GCC13.1. DX11 render with DXVK support.
 
+## Versioning
+
+The main menu's build line shows retail's version on the left and OpenBA's on the right, e.g.
+`1.0.7` / `17Se10  OpenBA v1.0.0 2424a9093 2026-10-19`:
+
+- **`1.0.7` and `17Se10`** are retail's and never change. `1.0.7` is the game version OpenBA targets
+  (`System::Configuration::CurrentVersion`); `17Se10` is retail's build stamp, generated the way the original
+  engine does it from the DLL's compile date "Sep 10 2017" (two digits of year, two letters of month, day).
+  They are kept so saves, mods and the mod dialogs see exactly what retail shows.
+- **`OpenBA v1.0.0`** is this project's release version: the `VERSION` in `CMakeLists.txt`
+  (`project(banished_reimpl VERSION 1.0.0 ...)`), compiled in as `OPENBA_VERSION`. Releases are tagged
+  `v<version>` in git (`v1.0.0`) and the zip on the releases page matches the tag.
+- **`2424a9093 2026-10-19`** is the git commit the exe was built from and the build date (UTC). They are
+  regenerated on every build by `cmake/build_info.cmake` into `gen/openba_build_info.h`, so any exe can
+  be traced to its commit. A trailing `+` on the hash (`2424a9093+`) means tracked files were modified
+  when it was built; `nogit` means the tree was built outside a git checkout.
+
+To cut a release: bump the CMake `VERSION`, build, tag `v<version>`, and attach the deploy output to the release.
+
 ## Extensions
 
 Extensions can be enabled in the new **Extensions** button in the main menu.

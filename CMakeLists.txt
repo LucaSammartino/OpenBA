@@ -26,7 +26,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(banished_reimpl VERSION 1.0.0 LANGUAGES CXX)
 # OpenBA version shown beside the retail version in the main / pause menu's BuildId
-# overlay (src/game/Dialog/mainmenudialog.cpp). Fixed at 1.0.0 until the repo is public.
+# overlay (src/game/Dialog/mainmenudialog.cpp). Bump here to cut a release (README "Versioning").
 add_compile_definitions(OPENBA_VERSION="${PROJECT_VERSION}")
 if(WIN32)
   enable_language(RC)   # src/app/icon.rc
@@ -125,6 +125,14 @@ add_custom_command(OUTPUT ${EXT_RSC_GEN}
   DEPENDS ${CMAKE_SOURCE_DIR}/tools/ext_rsc_embed.py ${EXT_RSC_SOURCES}
   COMMENT "ext_rsc_embed: src/ext/ui/*.rsc -> gen/ext_rsc_text.h")
 add_custom_target(ext-rsc-text DEPENDS ${EXT_RSC_GEN})
+# gen/openba_build_info.h: the git commit + build date shown beside OPENBA_VERSION in the
+# main menu's build line (README "Versioning"). Regenerated on every build, relinks only
+# when the commit changes (cmake/build_info.cmake).
+add_custom_target(openba-build-info
+  COMMAND ${CMAKE_COMMAND} -DOUT=${EXT_RSC_GEN_DIR}/openba_build_info.h -DSRC=${CMAKE_SOURCE_DIR}
+          -P ${CMAKE_SOURCE_DIR}/cmake/build_info.cmake
+  BYPRODUCTS ${EXT_RSC_GEN_DIR}/openba_build_info.h
+  COMMENT "build_info: git commit -> gen/openba_build_info.h")
 if(WIN32)
   file(GLOB_RECURSE PLATFORM_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/platform/win/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/common/*.cpp
@@ -321,7 +329,7 @@ endif()
 file(GLOB UNIT_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/tests/unit/*.cpp)
 add_executable(unit EXCLUDE_FROM_ALL ${UNIT_SRCS} ${UNIT_TREE_SRCS})
 set_target_properties(unit PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-add_dependencies(OpenBA ext-rsc-text)
+add_dependencies(OpenBA ext-rsc-text openba-build-info)
 add_dependencies(unit ext-rsc-text)
 target_include_directories(unit PRIVATE ${BANISHED_INCLUDES} ${CMAKE_SOURCE_DIR}/tests/unit)
 target_compile_options(unit PRIVATE
