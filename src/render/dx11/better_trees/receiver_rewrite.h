@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/billboard_shadow/receiver_rewrite.h -- ext.billboard_shadow's vertex-shader
+// src/render/dx11/better_trees/receiver_rewrite.h -- ext.billboard_shadow's vertex-shader
 // rewriter (docs/extensions/TREE_SHADOW.md, handins/TS-CORE.md "TS-FIX2")
 // ============================================================================
 // NOT RETAIL. Pure: no D3D, no retail bytes (the unit tests build synthetic vs_4_0 blobs). It reads
@@ -48,7 +48,7 @@
 // pixel shader reads nothing from that w in retail (dcl_input_ps v3.xyz, every variant); the dither
 // rewrite declares it. Four more instructions, in the same temps.
 // ============================================================================
-#include "foliage_aa/dxbc.h"
+#include "better_trees/dxbc.h"
 
 #include <cstddef>
 #include <cstdint>

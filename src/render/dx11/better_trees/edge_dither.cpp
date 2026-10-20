@@ -1,9 +1,9 @@
 // ============================================================================
-// src/render/dx11/billboard_shadow/edge_dither.cpp -- edge_dither.h
+// src/render/dx11/better_trees/edge_dither.cpp -- edge_dither.h
 // ============================================================================
 // NOT RETAIL (ext.better_trees). Standard C++ only: the unit tests link it.
 // ============================================================================
-#include "billboard_shadow/edge_dither.h"
+#include "better_trees/edge_dither.h"
 
 #include <cstring>
 

@@ -1,14 +1,14 @@
 // ============================================================================
-// src/render/dx11/billboard_shadow/billboard_shadow_stage.cpp -- billboard_shadow_stage.h,
+// src/render/dx11/better_trees/billboard_shadow_stage.cpp -- billboard_shadow_stage.h,
 // billboard_shadow_backend.h
 // ============================================================================
 // NOT RETAIL (ext.billboard_shadow). Log lines: `[BillboardShadow] ...` on stderr
 // (standalone_error.log).
 // ============================================================================
-#include "billboard_shadow/billboard_shadow_stage.h"
+#include "better_trees/billboard_shadow_stage.h"
 
-#include "billboard_shadow/billboard_shadow_backend.h"
-#include "billboard_shadow/receiver_rewrite.h"
+#include "better_trees/billboard_shadow_backend.h"
+#include "better_trees/receiver_rewrite.h"
 
 #include "dx11_backend_access.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/foliage_aa/foliage_aa_stage.h -- ext.foliage_aa's D3D side: the transformed
+// src/render/dx11/better_trees/foliage_aa_stage.h -- ext.foliage_aa's D3D side: the transformed
 // cutout programs and the alpha-to-coverage blend clones (docs/extensions/FOLIAGE_AA.md §3 / §6,
 // handins/FAA-CORE.md)
 // ============================================================================

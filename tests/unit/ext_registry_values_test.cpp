@@ -42,7 +42,7 @@ const Ext::ValueKey& K(const char* id) {
 }  // namespace
 
 UNIT_TEST(ext_values_table_shape) {
-    CHECK_EQ(Ext::ValueKeyCount(), 4);   // ao_quality, ao_opacity, foliage_aa_mode (ext_foliage_aa_test.cpp), max_shadow_size (below)
+    CHECK_EQ(Ext::ValueKeyCount(), 4);   // ao_quality, ao_opacity, foliage_aa_mode (ext_better_trees_test.cpp), max_shadow_size (below)
     const Ext::ValueKey& q = K("ao_quality");
     const Ext::ValueKey& o = K("ao_opacity");
     CHECK_EQ(q.minValue, 1); CHECK_EQ(q.maxValue, 3); CHECK_EQ(q.defaultValue, 2);

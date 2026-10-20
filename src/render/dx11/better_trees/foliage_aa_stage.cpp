@@ -1,13 +1,13 @@
 // ============================================================================
-// src/render/dx11/foliage_aa/foliage_aa_stage.cpp -- foliage_aa_stage.h, foliage_aa_backend.h
+// src/render/dx11/better_trees/foliage_aa_stage.cpp -- foliage_aa_stage.h, foliage_aa_backend.h
 // ============================================================================
 // NOT RETAIL (ext.foliage_aa). Log lines: `[FoliageAA] ...` on stderr (standalone_error.log).
 // ============================================================================
-#include "foliage_aa/foliage_aa_stage.h"
+#include "better_trees/foliage_aa_stage.h"
 
-#include "billboard_shadow/edge_dither.h"   // BETTER-TREES: the per-texel shadow dither, after the cutout
-#include "foliage_aa/cutout_rewrite.h"
-#include "foliage_aa/foliage_aa_backend.h"
+#include "better_trees/edge_dither.h"   // BETTER-TREES: the per-texel shadow dither, after the cutout
+#include "better_trees/cutout_rewrite.h"
+#include "better_trees/foliage_aa_backend.h"
 
 #include "dx11_backend_access.h"
 #include "video/CompanionData.h"

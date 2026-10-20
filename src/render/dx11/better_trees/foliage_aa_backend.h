@@ -1,13 +1,13 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/foliage_aa/foliage_aa_backend.h -- ext.foliage_aa's render side, as the
+// src/render/dx11/better_trees/foliage_aa_backend.h -- ext.foliage_aa's render side, as the
 // extension sees it (docs/extensions/FOLIAGE_AA.md, handins/FAA-CORE.md)
 // ============================================================================
-// NOT RETAIL. No D3D types: src/ext/foliage_aa/foliage_aa.cpp includes it (the AO precedent,
+// NOT RETAIL. No D3D types: src/ext/better_trees/better_trees.cpp includes it (the AO precedent,
 // ao/ao_backend.h). Everything D3D is foliage_aa_stage.{h,cpp}.
 // ============================================================================
 
-#include "billboard_shadow/receiver_rewrite.h"   // BbsRewrite::Params (pure, no D3D)
+#include "better_trees/receiver_rewrite.h"   // BbsRewrite::Params (pure, no D3D)
 
 namespace FaaBackend {
 

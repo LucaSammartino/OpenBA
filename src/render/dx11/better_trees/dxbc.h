@@ -1,11 +1,11 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/foliage_aa/dxbc.h -- a minimal DXBC container + SM4 token
+// src/render/dx11/better_trees/dxbc.h -- a minimal DXBC container + SM4 token
 // reader / writer (ext.foliage_aa; FAA-SPIKE wrote it, FAA-CORE ships it).
 //
 // NOT RETAIL. No D3D dependency and no retail bytes: it parses whatever blob it
 // is handed (the user's installed shaders, at run time) and re-emits it. The
-// unit tests (tests/unit/ext_foliage_aa_test.cpp) build their own SM4 blobs.
+// unit tests (tests/unit/ext_better_trees_test.cpp) build their own SM4 blobs.
 //
 // Container (little-endian):
 //   +0  'DXBC'   +4  16-byte checksum (DXBC's MD5 variant over bytes 20..end)
