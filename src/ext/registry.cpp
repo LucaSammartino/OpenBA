@@ -55,6 +55,15 @@ const Entry kEntries[] = {
       "Follow a citizen at eye level, looking where they look.",
       0, [](State& s) -> bool& { return s.ext.eye_camera; } },
 
+    // BETTERCAM (docs/extensions/handins/BETTERCAM.md): the two camera fixes of Banished Game Tweaks, in source.
+    // Class B (PR review): with the row on, the zoom target and the camera distance, which retail serializes,
+    // can hold values outside retail's range, so a save records the extension.
+    { "better_camera", Tier::Extension, Class::B, false,
+      "Better camera",
+      "Zoom in much closer and out much farther, and keep the camera's tilt when zoomed out "
+      "instead of flattening to top-down.",
+      1, [](State& s) -> bool& { return s.ext.better_camera; } },
+
     { "sharp_ui", Tier::Extension, Class::A, true,
       "Sharp UI",
       "Crisp text and sprites at any UI scale. Layout is unchanged.",

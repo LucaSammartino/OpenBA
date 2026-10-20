@@ -49,6 +49,7 @@
 #include "Player/Tool.h"            // UpdateHotkeys: the current tool's OnKey / OnCancel
 #include "ext/registry.h"             // EXT SEAM: Ext::Ext() (NOT RETAIL)
 #include "ext/eye_camera/eye_camera.h"   // EXT SEAM: ext.eye_camera's zoom (NOT RETAIL)
+#include "ext/better_camera/better_camera.h"   // EXT SEAM: ext.better_camera's zoom range + steady tilt (NOT RETAIL)
 
 extern "C" bool StartTown_GetSpawnTile(int* x, int* y);   // starttown.cpp (BANISHED_CAMERA_PIN=town)
 
@@ -182,18 +183,28 @@ void PlayerToolManager::UpdateCamera(int inputFlag, int64_t timeTicks) {
         field_0x44 -= kPitchStep;
     field_0x44 = clampf(field_0x44, 0.0f, 1.0f);
 
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/BETTERCAM.md): ext.better_camera's zoom range and steady
+    // tilt, the toggle read once per frame. Off = retail's own constants (the values below are the same floats).
+    const bool betterCam = Ext::Ext().better_camera;
+    const float zMin  = betterCam ? BetterCamera::kZoomMin  : kZoomMin;
+    const float zMax  = betterCam ? BetterCamera::kZoomMax  : kZoomMax;
+    const float zSpan = betterCam ? BetterCamera::kZoomSpan : kZoomSpan;
+    // Row off: a zoom target outside retail's range (a save, or a camera preset, written with the row on) goes back into
+    // 20 .. 130 before anything reads it. A no-op for every value retail itself can hold; retail's own seeding of a zero
+    // target from the distance (above) has already run.
+    if (!betterCam)
+        field_0x3C = BetterCamera::ClampToRetailRange(field_0x3C);
+
     // ── apply zoom step to the zoom target, clamp 20..130 ──
     if (zoomDir != 0) {
         float z = field_0x3C + (zoomDir < 1 ? kZoomStep : -kZoomStep);
-        field_0x3C = clampf(z, kZoomMin, kZoomMax);
+        field_0x3C = clampf(z, zMin, zMax);
     }
 
     // ── pitch/distance coupling ──
     const float manual  = field_0x44;                        // 0..1
-    const float normZ   = (field_0x3C - kZoomMin) / kZoomSpan; // 0..1
-    const float pitchTarget =
-        (manual * kPitchFarMan  - (1.0f - manual) * kPitchFarFlat) * normZ +
-        (manual * kPitchNearMan - (1.0f - manual) * kPitchNearFlt) * (1.0f - normZ);
+    const float normZ   = (field_0x3C - zMin) / zSpan;       // 0..1
+    const float pitchTarget = BetterCamera::PitchTarget(manual, normZ, kPitchFarMan, kPitchFarFlat, kPitchNearMan, kPitchNearFlt, betterCam);
     field_0x40 = pitchTarget;                                // +0x40
 
     // pan speed scales with zoom (near=12, far=70)
