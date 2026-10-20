@@ -1,5 +1,10 @@
 # Banished x64 — Progressive Reimplementation
 
+@AGENTS.md
+
+The file above is the contributor-facing rule sheet (read by every coding agent); this file is the
+maintainer workflow. A rule that applies to outside PRs belongs in AGENTS.md, not here.
+
 Keep this file under ~120 lines: rules and pointers only. No status, counts, dates or
 history here — those go in `docs/runtime_port/STATUS.md`. Procedures go in
 `.claude/skills/`, area-specific rules in `.claude/rules/`, facts in `docs/reference/`.
