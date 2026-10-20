@@ -62,8 +62,11 @@ endif()
 #   -fno-strict-aliasing : ported bodies pun raw offsets through two lvalue types
 #   -fno-lifetime-dse    : retail dtors null the fields they free and callers rely on it
 #   -fexceptions         : spelled out (ENDGAME B.1 decision 7); no object may be built without it
+# And one for portability: -ffp-contract=off. Retail is MSVC x64 without FMA contraction; GCC in
+# gnu++17 mode defaults to -ffp-contract=fast and emits fmadd on aarch64 (and on x86 with
+# -march=native / FMA), which would change worldgen rounding ([WorldHash] byte-identical worlds).
 set(BANISHED_CXX_FLAGS
-  -fexceptions -fno-strict-aliasing -fno-lifetime-dse
+  -fexceptions -fno-strict-aliasing -fno-lifetime-dse -ffp-contract=off
   -Wall -Wextra -Wno-cast-function-type -Wno-invalid-offsetof)
 # Off Windows, two flags pin what MinGW gives for free (plans/ABI.md C.7): `char` is signed
 # (abi.h asserts it; ARM64 Linux defaults to unsigned) and bit-fields lay out MSVC-style
@@ -333,7 +336,7 @@ add_dependencies(OpenBA ext-rsc-text openba-build-info)
 add_dependencies(unit ext-rsc-text)
 target_include_directories(unit PRIVATE ${BANISHED_INCLUDES} ${CMAKE_SOURCE_DIR}/tests/unit)
 target_compile_options(unit PRIVATE
-  -fexceptions -fno-strict-aliasing -fno-lifetime-dse -Wall -Wextra -Wno-invalid-offsetof
+  -fexceptions -fno-strict-aliasing -fno-lifetime-dse -ffp-contract=off -Wall -Wextra -Wno-invalid-offsetof
   -g -O0 -D_DEBUG -DBANISHED_UNIT_TEST ${BANISHED_PORTABLE_FLAGS} ${BANISHED_ONE_WRITE_STDIO})
 if(WIN32)
   target_link_options(unit PRIVATE -static -static-libgcc -static-libstdc++)
