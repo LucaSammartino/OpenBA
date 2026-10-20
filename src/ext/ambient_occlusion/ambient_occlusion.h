@@ -1,5 +1,5 @@
 // ============================================================================
-// src/ext/ambient_occlusion/ao.h -- ext.ambient_occlusion (class A, default OFF)
+// src/ext/ambient_occlusion/ambient_occlusion.h -- ext.ambient_occlusion (class A, default OFF)
 // ============================================================================
 // NOT RETAIL. docs/extensions/AO.md (the plan), docs/extensions/handins/AOCORE.md.
 //

@@ -15,7 +15,7 @@
 #include "ext/draw_gather/draw_gather.h"   // ext.draw_gather: its engine seams follow the toggle
 #include "ext/background_save/background_save.h"   // ext.background_save: the Save::SaveLoad seam follows the toggle
 #include "ext/render_pipe/render_pipe.h"   // ext.render_pipe: the MainLoop::_extFrame seam follows the toggle
-#include "ext/ambient_occlusion/ao.h"      // ext.ambient_occlusion: the readable depth + the arm follow the toggle
+#include "ext/ambient_occlusion/ambient_occlusion.h"      // ext.ambient_occlusion: the readable depth + the arm follow the toggle
 #include "ext/better_trees/better_trees.h"   // ext.better_trees: the render-side seams follow the toggle
 #include "ext/seamless_loops/seamless_loops.h"   // ext.seamless_loops: the SoundBuffer decode seam
 #include "ext/resources/text_provider.h"        // the Extensions dialog / Enhanced tab resources from the exe's text (KITFREE)

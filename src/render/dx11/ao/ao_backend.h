@@ -2,7 +2,7 @@
 // src/render/dx11/ao/ao_backend.h -- what the AO extension asks of the D3D backend
 // ============================================================================
 // NOT RETAIL. ext.ambient_occlusion (docs/extensions/AO.md §6.1, §6.4;
-// handins/AOCORE.md). No D3D types: src/ext/ambient_occlusion/ao.cpp includes it
+// handins/AOCORE.md). No D3D types: src/ext/ambient_occlusion/ambient_occlusion.cpp includes it
 // (on Linux only the dx11 TUs see dxvk-native's headers). Bodies: ao_pass.cpp.
 // ============================================================================
 #pragma once

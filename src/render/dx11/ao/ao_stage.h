@@ -41,7 +41,7 @@ public:
 };
 
 // The ASSAO stage (ao_stage_assao.cpp). Null when ASSAO could not create its
-// shaders / states on `device` (the [AO] log says why).
+// shaders / states on `device` (the [AmbientOcclusion] log says why).
 Stage* CreateAssao(ID3D11Device* device);
 
 }  // namespace AoStage

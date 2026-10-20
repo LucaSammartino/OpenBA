@@ -1,5 +1,5 @@
 // ============================================================================
-// tests/unit/ext_ao_test.cpp -- ext.ambient_occlusion's pure parts
+// tests/unit/ext_ambient_occlusion_test.cpp -- ext.ambient_occlusion's pure parts
 // ============================================================================
 // src/ext/ambient_occlusion/ao_math.{h,cpp}: the tier table, the zoom curve,
 // the projection handed to ASSAO and the linearisation constants it implies
@@ -30,7 +30,7 @@ void GameProjection(float n, float f, float sx, float sy, float m[16]) {
 
 }  // namespace
 
-UNIT_TEST(ext_ao_tier_table) {
+UNIT_TEST(ext_ambient_occlusion_tier_table) {
     Ext::AmbientOcclusion::AoMath::Tier t{};
     CHECK(!Ext::AmbientOcclusion::AoMath::TierFor(0, false, t));
     CHECK(!Ext::AmbientOcclusion::AoMath::TierFor(4, false, t));
@@ -44,7 +44,7 @@ UNIT_TEST(ext_ao_tier_table) {
           Ext::AmbientOcclusion::AoMath::kAssaoHigh == 2);
 }
 
-UNIT_TEST(ext_ao_zoom_curve) {
+UNIT_TEST(ext_ambient_occlusion_zoom_curve) {
     const Ext::AmbientOcclusion::AoMath::Zoom street = Ext::AmbientOcclusion::AoMath::ZoomFor(Ext::AmbientOcclusion::AoMath::kZoomMin);
     const Ext::AmbientOcclusion::AoMath::Zoom over   = Ext::AmbientOcclusion::AoMath::ZoomFor(Ext::AmbientOcclusion::AoMath::kZoomMax);
     CHECK(Near(street.t, 0.0f) && Near(street.radius, Ext::AmbientOcclusion::AoMath::kRadiusStreet));
@@ -66,7 +66,7 @@ UNIT_TEST(ext_ao_zoom_curve) {
     CHECK(Near(mid.radius, 0.5f * (Ext::AmbientOcclusion::AoMath::kRadiusStreet + Ext::AmbientOcclusion::AoMath::kRadiusOverview)));
 }
 
-UNIT_TEST(ext_ao_linearisation_constants) {
+UNIT_TEST(ext_ambient_occlusion_linearisation_constants) {
     // AOSPIKE S4's matrix: [1.60033 0 0 0 | 0 0 1.00392 1 | 0 2.74748 0 0 | 0 0 -2.00784 0]
     float game[16];
     GameProjection(2.0f, 512.0f, 1.60033f, 2.74748f, game);
@@ -107,7 +107,7 @@ UNIT_TEST(ext_ao_linearisation_constants) {
     CHECK(!Ext::AmbientOcclusion::AoMath::LinearizeConsts(ortho, mul, add));
 }
 
-UNIT_TEST(ext_ao_frame_record) {
+UNIT_TEST(ext_ambient_occlusion_frame_record) {
     Ext::AmbientOcclusion::Params p;   // the contract's defaults: Medium, 20 percent
     CHECK(p.quality == 2 && p.opacity == 20);
     const float kDefault = 0.20f * Ext::AmbientOcclusion::AoMath::kShadowMultiplier;
@@ -134,7 +134,7 @@ UNIT_TEST(ext_ao_frame_record) {
     CHECK(Ext::AmbientOcclusion::AoMath::FrameFor(p, 50.0f, f) && f.qualityLevel == Ext::AmbientOcclusion::AoMath::kAssaoHigh);
 }
 
-UNIT_TEST(ext_ao_fade_follows_fog) {
+UNIT_TEST(ext_ambient_occlusion_fade_follows_fog) {
     // Context::SetFog(near, far, c) stores { -near, 1 / (far - near) }; the fade takes
     // exactly that range (the materials' fog is linear in view depth over it).
     Graphics::ExtAoFrame f{};

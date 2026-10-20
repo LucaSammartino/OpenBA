@@ -1,9 +1,9 @@
 // ============================================================================
-// src/ext/ambient_occlusion/ao.cpp -- ao.h
+// src/ext/ambient_occlusion/ambient_occlusion.cpp -- ambient_occlusion.h
 // ============================================================================
 // NOT RETAIL. ext.ambient_occlusion (docs/extensions/handins/AOCORE.md).
 // ============================================================================
-#include "ext/ambient_occlusion/ao.h"
+#include "ext/ambient_occlusion/ambient_occlusion.h"
 
 #include "ext/ambient_occlusion/ao_math.h"
 #include "ext/ambient_occlusion/params.h"
@@ -37,12 +37,12 @@ void Sync() {
         static bool told = false;
         if (!told) {
             told = true;
-            std::fprintf(stderr, "[AO] ext.ambient_occlusion is on but the device is below feature "
+            std::fprintf(stderr, "[AmbientOcclusion] ext.ambient_occlusion is on but the device is below feature "
                                  "level 11_0 (ASSAO's shaders are ps_5_0): the row stays inactive\n");
         }
     }
     if (was != detail::g_enabled)
-        std::fprintf(stderr, "[AO] ext.ambient_occlusion %s\n", detail::g_enabled ? "ON" : "OFF");
+        std::fprintf(stderr, "[AmbientOcclusion] ext.ambient_occlusion %s\n", detail::g_enabled ? "ON" : "OFF");
     if (!detail::g_enabled) Graphics::Renderer::_extAo = nullptr;
 }
 

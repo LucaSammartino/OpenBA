@@ -56,7 +56,7 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/ext/resources/font_tables.cpp         # ext_font_raster_test.cpp (block RSCFONT)
   ${CMAKE_SOURCE_DIR}/src/platform/win/font_raster_win.cpp      #   the GDI rasteriser (the posix twin is FreeType over the next file)
   ${CMAKE_SOURCE_DIR}/src/platform/common/font_raster_freetype.cpp   #   the FreeType rasteriser (block FREETYPE; GDI comparison on Windows)
-  ${CMAKE_SOURCE_DIR}/src/ext/ambient_occlusion/ao_math.cpp   # ext_ao_test.cpp (block AOCORE)
+  ${CMAKE_SOURCE_DIR}/src/ext/ambient_occlusion/ao_math.cpp   # ext_ambient_occlusion_test.cpp (block AOCORE)
   ${CMAKE_SOURCE_DIR}/src/ext/seamless_loops/seamless_loops.cpp   # ext_seamless_loops_test.cpp (block SEAMLESS)
   ${CMAKE_SOURCE_DIR}/src/ext/spread_warmth/spread_warmth.cpp     # ext_spread_warmth_test.cpp (HITCH_PFBURST)
   ${CMAKE_SOURCE_DIR}/src/ext/drain_split/drain_split.cpp         # ext_drain_split_test.cpp (HITCH_DRAINSPLIT)

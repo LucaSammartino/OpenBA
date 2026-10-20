@@ -94,7 +94,7 @@
 #include "ext/cpu/topology.h"    // Cpu::Get().physical
 #include "ext/eye_camera/eye_camera.h"
 #include "ext/sharp_ui/sharp_ui.h"
-#include "ext/ambient_occlusion/ao.h"   // AOCORE: the AO arm, recorded into the packet
+#include "ext/ambient_occlusion/ambient_occlusion.h"   // AOCORE: the AO arm, recorded into the packet
 #include "options.h"
 #include "renderdoc_integration.h"
 #include "scene_watch.h"

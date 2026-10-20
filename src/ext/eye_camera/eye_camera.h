@@ -30,7 +30,7 @@
 // nothing else does while a FollowDialog targets it: an idle citizen keeps its
 // last heading, a hidden one (model out of the scene: inside a building) keeps
 // the last eye transform (or, engaged while inside, the door it went in by).
-// Every engage and hand-back prints one "[EyeCam] ..." line on stderr.
+// Every engage and hand-back prints one "[EyeCamera] ..." line on stderr.
 // ============================================================================
 #pragma once
 

@@ -23,7 +23,7 @@
 // ============================================================================
 #include "tweak_overlay.h"
 
-#include "ext/ambient_occlusion/ao.h"
+#include "ext/ambient_occlusion/ambient_occlusion.h"
 #include "ext/better_trees/better_trees.h"
 #include "ext/registry.h"
 #include "ext/tweak/ext_tweaks.h"
