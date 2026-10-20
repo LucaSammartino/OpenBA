@@ -11,5 +11,6 @@ Applies to new and contributed code. The reference is `.clang-format` at the rep
   ones tidy.
 - Format only the lines you touch (`git clang-format`, or `clang-format --lines=a:b`). Existing files
   are not reformatted wholesale; a formatting-only diff buries the change in review.
-- The config is a close fit, not an exact one (about 10-30% of lines in the sampled files differ,
-  almost all hand alignment and trailing comments). Trust the surrounding file over the tool.
+- The config is a close fit, not an exact one: on ten sampled files it would touch about 7% of lines,
+  almost all hand-aligned assignment blocks, `if (x)   stmt` columns and trailing comments, which no
+  option reproduces. Trust the surrounding file over the tool.
