@@ -1,4 +1,4 @@
-// src/render/dx11/better_trees/dxbc.cpp -- see dxbc.h.
+// src/render/common/better_trees/dxbc.cpp -- see dxbc.h.
 #include "better_trees/dxbc.h"
 
 #include <cstdio>

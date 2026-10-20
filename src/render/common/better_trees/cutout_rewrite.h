@@ -1,6 +1,6 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/better_trees/cutout_rewrite.h -- the cutout pattern match and the in-memory rewrite
+// src/render/common/better_trees/cutout_rewrite.h -- the cutout pattern match and the in-memory rewrite
 // of an alpha-tested ps_4_x blob (ext.foliage_aa, docs/extensions/FOLIAGE_AA.md §3 as amended by §6).
 // ============================================================================
 // NOT RETAIL. Pure: no D3D, no retail bytes. It transforms the blob it is handed (the user's

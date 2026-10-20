@@ -145,7 +145,18 @@ else()
                                                     ${CMAKE_SOURCE_DIR}/src/platform/common/*.cpp
                                                     ${CMAKE_SOURCE_DIR}/src/platform/sdl/*.cpp)
 endif()
-file(GLOB_RECURSE RENDER_SRCS   CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/dx11/*.cpp)
+# The renderer backend: src/render/${BANISHED_RENDER_BACKEND}/backend.cmake sets RENDER_SRCS (its own
+# sources), RENDER_BACKEND_INCLUDES and RENDER_BACKEND_READY, and its per-source properties
+# (src/render/common/README.md). dx11 everywhere for now (on APPLE it may later default to metal).
+# src/render/common is globbed here, not in the fragment: every backend links it, and the unit
+# tests and the extensions include it whichever backend is picked.
+set(BANISHED_RENDER_BACKEND dx11 CACHE STRING "Renderer backend: src/render/<name>/backend.cmake")
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/src/render/${BANISHED_RENDER_BACKEND}/backend.cmake)
+  message(FATAL_ERROR "BANISHED_RENDER_BACKEND=${BANISHED_RENDER_BACKEND}: no src/render/${BANISHED_RENDER_BACKEND}/backend.cmake")
+endif()
+include(${CMAKE_SOURCE_DIR}/src/render/${BANISHED_RENDER_BACKEND}/backend.cmake)
+file(GLOB_RECURSE RENDER_COMMON_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/render/common/*.cpp)
+list(APPEND RENDER_SRCS ${RENDER_COMMON_SRCS})
 file(GLOB         APP_SRCS      CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/app/*.cpp)
 file(GLOB         DIAG_SRCS     CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/diag/*.cpp)
 # src/diag/win: the Windows-only diagnostics (crash / hang handlers, watchdog, sampler,
@@ -165,7 +176,8 @@ list(REMOVE_ITEM GAME_SRCS ${TWEAK_SRCS})
 set(BANISHED_INCLUDES
   ${CMAKE_SOURCE_DIR}/src/game
   ${CMAKE_SOURCE_DIR}/src/engine
-  ${CMAKE_SOURCE_DIR}/src/render/dx11
+  ${CMAKE_SOURCE_DIR}/src/render/common
+  ${RENDER_BACKEND_INCLUDES}  # src/render/<backend>/backend.cmake (dx11: src/render/dx11)
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/src/diag
   ${CMAKE_SOURCE_DIR}/src/platform/common
@@ -227,13 +239,8 @@ add_executable(OpenBA WIN32
 set_target_properties(OpenBA PROPERTIES OUTPUT_NAME OpenBA RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 target_include_directories(OpenBA PRIVATE ${BANISHED_INCLUDES})
 target_compile_options(OpenBA PRIVATE ${BANISHED_CXX_FLAGS} ${BANISHED_ONE_WRITE_STDIO} ${FLAVOUR_FLAGS})
-# The verbatim upstream ASSAO copy (GameTechDev/ASSAO, MIT; src/render/dx11/ao/assao/README.md) is not
-# ours to tidy: its standing -Wsign-compare / unused warnings are silenced per file so the warning
-# gate measures only our code (gate FAA, 2026-10-16: five perf-build warnings, all in this file).
-set_source_files_properties(${CMAKE_SOURCE_DIR}/src/render/dx11/ao/assao/ASSAODX11.cpp PROPERTIES
-                            COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable")
-set_source_files_properties(${CMAKE_SOURCE_DIR}/src/render/dx11/ao/assao/ASSAODX11.cpp PROPERTIES
-                            COMPILE_DEFINITIONS BANISHED_THIRD_PARTY_SOURCE)
+# The backend's per-source properties (dx11: the verbatim ASSAO copy's silenced warnings) are set
+# by src/render/${BANISHED_RENDER_BACKEND}/backend.cmake.
 # the flavour flags are on the link line too (as the old Makefile did: -flto reaches the linker)
 target_link_options(OpenBA PRIVATE ${FLAVOUR_FLAGS} -static -static-libgcc -static-libstdc++ -mwindows)
 # shell32: SHGetFolderPathW (Platform::DocumentsDir). No ole32 of ours since Phase D.4 SDL-5 D2;
@@ -277,14 +284,12 @@ else()
 # app, diag (+ src/diag/posix, the twins of src/diag/win), the dx11 renderer -- over
 # src/platform/posix + sdl + common. `cmake --build <dir> -t OpenBA` -> <dir>/OpenBA.
 # The renderer is the same dx11 code over dxvk-native 3.1.1 (tools/fetch_dxvk_native.sh;
-# third_party/dxvk-native/README.md). It links no graphics library:
-# src/platform/posix/gfx_posix.cpp dlopens libdxvk_dxgi / libdxvk_d3d11 at run time, so only
-# the headers are used, and only by src/render/dx11 (as -isystem: they are MinGW's and
-# dxvk's, not ours). DXVK_WSI_DRIVER=SDL3 is set by the run script (tools/linux_run.sh),
-# never read by our code (D4_RULES C11). Skipped, with a message, until the fetch has run.
+# third_party/dxvk-native/README.md); src/render/dx11/backend.cmake checks for its headers, gives
+# them to src/render/dx11 as -isystem and clears RENDER_BACKEND_READY (with the message) until
+# the fetch has run. DXVK_WSI_DRIVER=SDL3 is set by the run script (tools/linux_run.sh),
+# never read by our code (D4_RULES C11).
 # ---------------------------------------------------------------------------------------
-set(BANISHED_DXVK_NATIVE ${CMAKE_SOURCE_DIR}/third_party/dxvk-native/3.1.1/usr)
-if(EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
+if(RENDER_BACKEND_READY)
   file(GLOB DIAG_POSIX_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/diag/posix/*.cpp)
   add_executable(OpenBA
     ${GAME_SRCS} ${ENGINE_SRCS} ${PLATFORM_SRCS} ${RENDER_SRCS} ${APP_SRCS} ${DIAG_SRCS}
@@ -293,8 +298,6 @@ if(EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
   set_target_properties(OpenBA PROPERTIES OUTPUT_NAME OpenBA RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
                                               BUILD_RPATH "$ORIGIN")
   target_include_directories(OpenBA PRIVATE ${BANISHED_INCLUDES})
-  set_source_files_properties(${RENDER_SRCS} PROPERTIES
-                              COMPILE_OPTIONS "-isystem;${BANISHED_DXVK_NATIVE}/include/dxvk")
   target_compile_options(OpenBA PRIVATE ${BANISHED_CXX_FLAGS} ${FLAVOUR_FLAGS})
   # -rdynamic: the exe's own functions in the dynamic symbol table, so the crash and hang
   # dumps (backtrace + dladdr, src/diag/posix) name them.
@@ -306,8 +309,6 @@ if(EXISTS ${BANISHED_DXVK_NATIVE}/include/dxvk/d3d11.h)
   # built from the same pinned submodule; glibc's dlopen returns the copy the exe already
   # loaded (matched by SONAME).
   target_link_libraries(OpenBA PRIVATE SDL3::SDL3-shared wmadec freetype_min Threads::Threads ${CMAKE_DL_LIBS})
-else()
-  message(STATUS "OpenBA (Linux) not configured: run tools/fetch_dxvk_native.sh for the dxvk-native headers")
 endif()
 endif()
 

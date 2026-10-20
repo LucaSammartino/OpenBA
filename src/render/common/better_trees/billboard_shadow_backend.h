@@ -1,10 +1,10 @@
 #pragma once
 // ============================================================================
-// src/render/dx11/better_trees/billboard_shadow_backend.h -- ext.billboard_shadow's render side,
+// src/render/common/better_trees/billboard_shadow_backend.h -- ext.billboard_shadow's render side,
 // as the extension sees it (docs/extensions/TREE_SHADOW.md, handins/TS-CORE.md)
 // ============================================================================
 // NOT RETAIL. No D3D types: src/ext/better_trees/better_trees.cpp includes it (the
-// foliage_aa_backend.h precedent). Everything D3D is billboard_shadow_stage.{h,cpp}.
+// foliage_aa_backend.h precedent). Everything D3D is src/render/dx11/better_trees/billboard_shadow_stage.{h,cpp}.
 // ============================================================================
 
 #include "better_trees/receiver_rewrite.h"   // BbsRewrite::Params (pure, no D3D)

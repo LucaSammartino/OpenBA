@@ -27,8 +27,8 @@
 #include "ext/better_trees/better_trees.h"
 #include "ext/registry.h"
 #include "ext/tweak/ext_tweaks.h"
-#include "better_trees/foliage_aa_backend.h"   // src/render/dx11/better_trees: FaaBackend::Stats
-#include "better_trees/billboard_shadow_backend.h"   // src/render/dx11/better_trees: AppliedParams
+#include "better_trees/foliage_aa_backend.h"   // src/render/common/better_trees: FaaBackend::Stats
+#include "better_trees/billboard_shadow_backend.h"   // src/render/common/better_trees: AppliedParams
 #include "graphics/SunLight.h"               // ExtTweakSunMapSize
 
 #include "imgui.h"

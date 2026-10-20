@@ -9,7 +9,7 @@
 #include "ext/ambient_occlusion/params.h"
 #include "ext/registry.h"
 
-#include "ao/ao_backend.h"            // src/render/dx11/ao: the depth format, the feature level
+#include "ao/ao_backend.h"            // src/render/common/ao: the depth format, the feature level
 #include "Game/PlayerController.h"
 #include "graphics/Camera.h"          // Graphics::Renderer::_extAo
 #include "graphics/renderer_ext_ao.h"
