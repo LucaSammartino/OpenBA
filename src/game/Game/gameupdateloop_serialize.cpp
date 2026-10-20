@@ -97,6 +97,7 @@
 #include "system/Error.h"   // EXT SEAM: a bad B / C manifest is retail's fatal error box
 #include "ext/registry.h"   // EXT SEAM: the B / C lock from the save (NOT RETAIL)
 #include "ext/savetail.h"   // EXT SEAM: the block-1 tail manifest (NOT RETAIL)
+#include "ext/async_save_compress/async_save_compress.h"   // EXT SEAM: ext.async_save_compress, the save arm (NOT RETAIL)
 #include <string>
 #include <vector>
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
@@ -868,16 +869,17 @@ void GameUpdateLoop::SaveRestore(bool save, Save::SavedState* savedState) {
     } else {
         const double t0 = g_pfProfOn ? LoadTime::NowMs() : 0.0;   // NOT RETAIL: the HITCH_SAVE line
         cms->Create();
-        // EXT SEAM (NOT RETAIL): ext.async_save_compress, class A -- the windows are compressed
-        // on a worker, in retail's order, while the state is written (io/compressed_stream_async.cpp).
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVE.md): ext.async_save_compress,
+        // class A -- the windows are compressed on a worker, in retail's order, while the state
+        // is written (src/ext/async_save_compress/).
         const bool async = Ext::Ext().async_save_compress;
-        if (async) cms->ExtBeginAsyncCompress();
+        if (async) Ext::AsyncSaveCompress::Begin(*cms);
         SerializeAll(*cms);
         ExtSave_WriteTail(cms);         // EXT SEAM (NOT RETAIL): zero bytes when no B / C is active
         cms->IO::CompressedMemoryStream::Close();
         savedState->Store(cms->GetMemoryStream());
         if (g_pfProfOn) {   // NOT RETAIL (HITCH_SAVE): one line per save in a stress run
-            const IO::CompressedStream::ExtAsyncStats as = IO::CompressedStream::ExtAsyncLastStats();
+            const Ext::AsyncSaveCompress::Stats as = Ext::AsyncSaveCompress::LastStats();
             ErrLine("[Stress::save] SaveRestore %.2f ms stored=%u async=%d jobs=%d copies=%d "
                     "maxQueued=%d mainCopy=%.2f fullWait=%.2f endWait=%.2f worker=%.2f ms\n",
                     LoadTime::NowMs() - t0, savedState->_size, async ? 1 : 0,
