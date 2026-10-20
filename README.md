@@ -5,16 +5,16 @@
 
 ---
 
-OpenBA aims to rebuild Banished as a open source, readable, C++ codebase.  
-This project is designed along the lines of OpenRCT2, divilutionX etc where the aim is  
-to have baseline parity with the game's 1.0.7 release, but allowing for under the hood changes that still match retial.
-The project is designed to drop into the game's directory and run, and uses no game assets or code.
-Optional extensions are supported (see below).
+OpenBA aims to rebuild Banished as a open source, readable, C++ codebase.    
+This project is designed along the lines of OpenRCT2, divilutionX etc where the aim is    
+to have baseline parity with the game's 1.0.7 release, but allowing for under the hood changes that still match retial.  
+The project is designed to drop into the game's directory and run, and uses no game assets or code.  
+Optional extensions are supported (see below).  
 
-Project goals: readable C++ with classes, decent comments, and no "function is byte identical" slop.
-The engine also supports basic multithreading, higher performance, and various rendering fixes.
-OpenBA delivers a sharp experience even on 4k displays,
-and the ability to hit 140fps+ at 50x speed with over 2k citizens. (Tested on a 5080/9800x3d)  
+Project goals: readable C++ with classes, decent comments, and no "function is byte identical" slop.  
+The engine also supports basic multithreading, higher performance, and various rendering fixes.  
+OpenBA delivers a sharp experience even on 4k displays,  
+and the ability to hit 140fps+ at 50x speed with over 2k citizens. (Tested on a 5080/9800x3d)    
 <p align="left">  
 <img src="images/fpscomp.jpg">  
 </p>  
@@ -37,21 +37,16 @@ With AO and MSAA enabled on 10x, OpenBA  (left) performs 100fps better than reta
 ## Versioning
 
 The main menu's build line shows retail's version on the left and OpenBA's on the right, e.g.
-`1.0.7` / `17Se10  OpenBA v1.0.0 2424a9093 2026-10-19`:
+retail: `1.0.7 17Se10` OpenBa: `OpenBA v1.0.0 2424a9093 2026-10-19`:
 
-- **`1.0.7` and `17Se10`** are retail's and never change. `1.0.7` is the game version OpenBA targets
-  (`System::Configuration::CurrentVersion`); `17Se10` is retail's build stamp, generated the way the original
-  engine does it from the DLL's compile date "Sep 10 2017" (two digits of year, two letters of month, day).
-  They are kept so saves, mods and the mod dialogs see exactly what retail shows.
-- **`OpenBA v1.0.0`** is this project's release version: the `VERSION` in `CMakeLists.txt`
-  (`project(banished_reimpl VERSION 1.0.0 ...)`), compiled in as `OPENBA_VERSION`. Releases are tagged
-  `v<version>` in git (`v1.0.0`) and the zip on the releases page matches the tag.
-- **`2424a9093 2026-10-19`** is the git commit the exe was built from and the build date (UTC). They are
-  regenerated on every build by `cmake/build_info.cmake` into `gen/openba_build_info.h`, so any exe can
-  be traced to its commit. A trailing `+` on the hash (`2424a9093+`) means tracked files were modified
-  when it was built; `nogit` means the tree was built outside a git checkout.
+- **`1.0.7` and `17Se10`** are retail's. `1.0.7` is the game version OpenBA targets.    
+   `17Se10` is retail's build stamp.    
+- **`OpenBA vX.Y.Z`** is this project's release version: the `VERSION` in `CMakeLists.txt`  
+  (`project(banished_reimpl VERSION X.Y.Z ...)`), compiled in as `OPENBA_VERSION`.     
+  Releases are tagged `v<version>` in git (ie `v1.0.0`) and the zip on the releases page matches the tag.    
+- **`2424a9093 2026-10-19`** is the git commit the exe was built from and the build date (UTC).  
 
-To cut a release: bump the CMake `VERSION`, build, tag `v<version>`, and attach the deploy output to the release.
+Releases bump the CMake `VERSION`, build, tag `v<version>`, and you'll see a new tagged version with zip in the "Releases" link.  
 
 ## Extensions
 
