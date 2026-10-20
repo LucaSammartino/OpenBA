@@ -36,6 +36,7 @@
 #include <new>  // ENDGAME B.3.6 UI callers (K3)
 #include "ui/SpinnerElement.h"  // ENDGAME B.3.6 UI callers round 2 (K3)
 #include "Dialog/ResourceLimitUIConfig.h"   // X::TypeId() (B.3.9 CG2)
+#include "ext/high_limits/high_limits.h"   // EXT SEAM ext.high_limits (class B): the spinner range (NOT RETAIL)
 
 // ============================================================
 // Standalone entry points — resource index supplied explicitly
@@ -152,7 +153,11 @@ void ResourceLimitUI::OnCreated() {
     UI::SpinnerElement* spinner = this->editLimit;
     if (!spinner) return;
     spinner->SetElementId(0x3039);
-    spinner->SetMinMax(0, 999999);
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/HIGHLIMITS.md): 0..999,999,999 and nine typed digits when the row is on.
+    if (Ext::HighLimits::Active())
+        Ext::HighLimits::ApplyToSpinner(spinner);
+    else
+        spinner->SetMinMax(0, 999999);
     spinner->SetValue(GetResourceLimitByIdx(resourceIndex));
 }
 

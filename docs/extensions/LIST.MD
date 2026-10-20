@@ -7,6 +7,7 @@
 | Fix | Steady dialogs on UI rescale | Open dialogs no longer flash to a corner, instead stay centered. |
 | Ext A | Eye-level camera | Follow a citizen at eye level (replaces overhead follow). |
 | Ext B | Better camera | Zoom in much closer and out much farther (6 to 200 instead of 20 to 130) and keep the camera tilt when zoomed out instead of flattening to top-down. Off by default; locked for the game and recorded in saves. |
+| Ext B | Higher limit values | Lets the limit boxes in the Town Hall, the Limits window and the production buildings take values up to 999,999,999 (retail stops at 999,999), typed or with the arrows. Off by default; locked for the game and recorded in saves. |
 | Ext A | Sharp UI | Scale text with UI so it remains sharp. Note this requires the release TTF files be installed |
 | Ext A | Skip unseen work | Skip offscreen animations, particles to save cycles. |
 | Ext A | Faster scene gathering | Skips animations/pathing of gathering offscreen objects. |
