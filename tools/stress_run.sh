@@ -264,9 +264,14 @@ if [ -n "${STRESS_EXT:-}" ]; then
         v=$(grep "^ext\.$vk=" "$CFG_SAVED" | tail -1 | cut -d= -f2 | tr -d '\r')
         if [ -n "$v" ]; then sed -i "s/^ext\.$vk=.*/ext.$vk=$v/" "$CFG"; fi
     done
-    # STRESS_EXT_VALUES="k=v,k=v": per-leg overrides of the valued keys (e.g. max_shadow_size=4096).
+    # STRESS_EXT_VALUES="k=v,k=v": per-leg overrides of the valued keys (e.g. max_shadow_size=4096),
+    # written when the file has no line. Also the way to pin a DEFAULT-ON row off: a class A row
+    # with no line in settings.cfg defaults ON, and the zeroing above only reaches existing lines
+    # (an "off" leg of a new row ran with it on, 2026-10-20) -- pass `<id>=0`; an id listed in
+    # STRESS_EXT is set to 1 below, after this.
     for kv in $(echo "${STRESS_EXT_VALUES:-}" | tr ',' ' '); do
-        sed -i "s/^ext\.${kv%%=*}=.*/ext.${kv%%=*}=${kv#*=}/" "$CFG"
+        if grep -q "^ext\.${kv%%=*}=" "$CFG"; then sed -i "s/^ext\.${kv%%=*}=.*/ext.${kv%%=*}=${kv#*=}/" "$CFG"
+        else printf 'ext.%s\n' "$kv" >> "$CFG"; fi
     done
     if [ "${STRESS_FIXES:-off}" != "keep" ]; then
         sed -i 's/^\(fix\.[a-z0-9_]*\)=.*/\1=0/' "$CFG"
