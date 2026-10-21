@@ -62,6 +62,7 @@
 #include "Game/WorldGeometryElements.h"
 #include "Action/PathAvl.h"
 #include "math/Math.h"
+#include "ext/terrain_batch/terrain_batch.h"   // ext.terrain_batch: the run index buffer (BuildTerrainMesh)
 
 namespace {
 
@@ -395,6 +396,10 @@ void WorldGeometry::BuildTerrainMesh() {
         printf("[sub_c1e0] IB Set returned %d (idxBytes=%d quadsPerChunk=%d)\n",
                ibSetOk ? 1 : 0, idxBytes, quadsPerChunk);
         fflush(stdout);
+
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/TERRAINBATCH.md): ext.terrain_batch
+        // builds its run index buffer from this list, repeated once per chunk of a run.
+        if (_extTerrainBatch != nullptr) Ext::TerrainBatch::OnTerrainIndices(*this, idxBuf, idxCount);
     }
 
     // (8) Free the scratch buffers (the original's MemFree(idxBuf);
