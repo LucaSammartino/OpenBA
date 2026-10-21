@@ -9,6 +9,7 @@ include path, the unit tests' included.
 | File | What |
 |---|---|
 | `render_backend.h` | The entry points `src/app/video_interface.cpp` writes into `Video::Device::dllSlots` (`Render::DeviceName`, `Render::CreateDeviceData`, and the cutover-only placeholder pair for the second slot). |
+| `ao/shaders/` | Backend-neutral generated ASSAO shader byte arrays. |
 | `ao/ao_backend.h` | `AoBackend::`: what ext.ambient_occlusion asks of the backend (readable depth, feature support). |
 | `better_trees/foliage_aa_backend.h` | `FaaBackend::`: ext.foliage_aa's request and its tweak stats. |
 | `better_trees/billboard_shadow_backend.h` | `BbsBackend::`: ext.billboard_shadow's request. |

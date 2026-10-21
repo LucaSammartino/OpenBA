@@ -32,7 +32,7 @@ Nothing is pushed or merged. The coordinator runs the gate.
 | `src/render/dx11/ao/ao_depth_resolve.{h,cpp,hlsl}` | `Texture2DMS<float>` sample 0 (or the 1x texture) into a 1x **R32F raw depth** (§3.1). |
 | `src/render/dx11/ao/ao_pass.cpp` | `ExtAoAfterOpaque`: save all state, resolve, rebind colour + depth, ASSAO, restore. It also holds the readable-depth state (`ao_backend.h`, `ao_depth_views.h`) and rebuilds the pass objects when the device changes. |
 | `src/render/dx11/ao/assao/` | Intel's three files plus `LICENSE` (MIT header kept), the GCC compat file, and a `README.md` that records upstream c21d57a95 and every edit, including the `memset` size/value swap GCC found. |
-| `src/render/dx11/ao/shaders/*.h` | 20 DXBC headers from `tools/ao_shaders.py`: `VSMain`, 16 ps_5_0 ASSAO entries, and 3 resolve entries. The 5 Adaptive-only entries are gone because `INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY` is now off. |
+| `src/render/common/ao/shaders/*.h` | 20 DXBC headers from `tools/ao_shaders.py`: `VSMain`, 16 ps_5_0 ASSAO entries, and 3 resolve entries. The 5 Adaptive-only entries are gone because `INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY` is now off. |
 | `src/render/dx11/devicedata.cpp` `CreateDepthBuffer`, `imagebufferdata.cpp` `AttachDepthBuffer` | The readable-depth arms (§3.2). The faithful arm is the literal retail call. |
 | `src/ext/ambient_occlusion/ao.{h,cpp}` | `Sync()`, `Enabled()` (an inline bool load), `BuildFrame` / `Arm` / `Disarm`. |
 | `src/ext/ambient_occlusion/ao_math.{h,cpp}` | The pure parts: the tier table, the zoom curve, the row swap, the linearisation constants, and the frame record. |
