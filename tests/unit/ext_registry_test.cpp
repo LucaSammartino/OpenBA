@@ -242,6 +242,43 @@ UNIT_TEST(ext_registry_class_b_c_locked_for_the_game) {
     CHECK(!Ext::Ext().unit_c);
 }
 
+UNIT_TEST(ext_registry_in_game_change_keeps_the_request) {
+    Ext::Install(ResolveText("ext.unit_b=1\n"), Ext::Profile::PerEntry, false);
+    int game1 = 0;
+    Ext::LockForGame(&game1);
+    CHECK(!Ext::LockKeepsRequest());                    // a plain load: the save's set decides
+
+    // The player turns unit_b off and unit_c on in game and confirms the reload.
+    CHECK(!Ext::SetRequested(E("unit_b"), false));
+    CHECK(!Ext::SetRequested(E("unit_c"), true));
+    Ext::KeepRequestOnNextLock();
+    CHECK(!Ext::LockKeepsRequest());                    // not until the reload locks
+
+    // The old game is destroyed, then the reloaded one locks with the request.
+    Ext::UnlockForGame(&game1);
+    int game2 = 0;
+    Ext::LockForGame(&game2);
+    CHECK(Ext::LockKeepsRequest());
+    CHECK(!Ext::Ext().unit_b);
+    CHECK(Ext::Ext().unit_c);
+
+    // One shot: the next game's lock is a plain one again.
+    Ext::UnlockForGame(&game2);
+    CHECK(!Ext::LockKeepsRequest());
+    int game3 = 0;
+    Ext::LockForGame(&game3);
+    CHECK(!Ext::LockKeepsRequest());
+    Ext::UnlockForGame(&game3);
+
+    // A lock from a save's set never keeps the request.
+    Ext::KeepRequestOnNextLock();
+    int game4 = 0;
+    Ext::LockForGame(&game4);
+    CHECK(Ext::LockForGameWithSet(&game4, { "unit_b" }));
+    CHECK(!Ext::LockKeepsRequest());
+    Ext::UnlockForGame(&game4);
+}
+
 UNIT_TEST(ext_registry_pseudo_mods_for_save) {
     Ext::Install(ResolveText("ext.unit_a=1\next.unit_b=1\next.unit_c=1\n"),
                  Ext::Profile::PerEntry, false);

@@ -75,7 +75,10 @@ such a save through the standard modsMissing path -- a Yes/No modal per entry, Y
 0x1400b61e0, SAVETAIL §3) -- the same warning a missing `.pkm` gives, which is the paradigm the player
 already knows; the tail chunk is never read. Our own loader splits the `ext:` entries out before
 CheckMod and shows its own notice for a missing or disabled extension. No header field changes.
-Toggling a B/C extension mid-game reuses `Dialog/Reload.rsc:game`, as the Mods dialog does.
+Toggling a B/C extension mid-game reuses `Dialog/Reload.rsc:game`, as the Mods dialog does; the
+reloaded game keeps the new request although its save-restore wrote the old set into the manifest
+(`Ext::KeepRequestOnNextLock`, ruled 2026-10-21): a record of an extension turned off is dropped, one
+turned on starts with empty state.
 Both write seams (pseudo-mods in `Save::SaveLoad::SaveMetaData`, the tail chunk) write ZERO bytes
 when no B/C extension is enabled: the resave gate byte-compares the whole decompressed block 1.
 
@@ -127,9 +130,11 @@ Rules: the record exists whenever the extension is active, even with empty state
 not depend on content; the faithful profile still writes zero bytes); state refers to game objects by
 name (template path, string id), never by index, because mods change load order between sessions;
 the extension's `formatVersion` is bumped when the payload's layout changes; a shipped class C
-extension gets its own resave golden under its profile (Gates, below). With the extension disabled
-our loader shows the notice, plays the town without the feature and drops the payload at the next
-save, the missing-mod paradigm.
+extension gets its own resave golden under its profile (Gates, below). A save that carries an
+extension the player has turned off shows our `TurnedOff` notice (`src/ext/load_notice.h`); on Yes
+the manifest locks the extension ON for that town and its state is restored (ruled 2026-10-21: the
+save keeps the extensions it was made with). Turning it off for a town is the in-game toggle above,
+which drops the payload at the reload.
 
 **Surfaces: the UI axis is not the class axis (ruled 2026-10-20).** The class letter answers one
 question only, what a toggle costs the player's save. Where an extension shows up in the UI is a

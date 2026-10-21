@@ -261,6 +261,14 @@ void LockForGame(const void* owner);
 // values are untouched (the next game starts from them again). Returns false
 // and changes nothing when an id is not a registered class B / C extension.
 bool LockForGameWithSet(const void* owner, const std::vector<std::string>& ids);
+// An in-game B / C change the player confirmed (ExtensionsDialog::ReloadGame). The reload's
+// save-restore writes the running game's set into the manifest, but the reloaded game must
+// start with the new request. KeepRequestOnNextLock marks the next LockForGame as that reload;
+// LockKeepsRequest() is true while the lock it took is held, and the load arm
+// (ExtSave_ReadTail) then keeps the request instead of locking to the save's set. Any other
+// lock, Install or the owner's unlock clears it.
+void KeepRequestOnNextLock();
+bool LockKeepsRequest();
 void UnlockForGame(const void* owner);
 bool Locked();
 // Advances on every Install, LockForGame, LockForGameWithSet (success) and UnlockForGame (by its

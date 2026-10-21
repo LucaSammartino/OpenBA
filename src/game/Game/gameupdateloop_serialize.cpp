@@ -770,6 +770,10 @@ void GameUpdateLoop::SerializeAllBody(IO::Stream& stream, SerializeScope& scope)
 // B / C set to exactly the saved one (Ext::LockForGameWithSet), replacing the
 // requested set GameUpdateLoop::Load locked at entry. No tail: that lock
 // stands. Bytes that are not a manifest (no magic): logged and ignored.
+// The reload of an in-game B / C change (Ext::LockKeepsRequest, set by
+// ExtensionsDialog::ReloadGame) keeps the request lock too: its manifest is the
+// set the player just changed. The records of extensions turned off are dropped
+// (the missing-mod paradigm); one turned on starts with empty state.
 // A manifest this build cannot honour -- an unknown id, a formatVersion newer
 // than ours, a damaged chunk -- is FATAL through retail's own error box
 // (System::Error::SetText(.., true) + Display: the box, then exit), because the
@@ -821,14 +825,31 @@ static void ExtSave_ReadTail(GameUpdateLoop* owner, IO::CompressedMemoryStream* 
         ExtSave_Fatal(text);
         return;
     }
-    std::vector<std::string> ids;
-    for (const Ext::SaveTail::Record& r : records) ids.push_back(r.id);
-    if (!Ext::LockForGameWithSet(owner, ids)) {   // Validate checked every id: unreachable
-        ExtSave_Fatal("This save was made with game extensions this version cannot load.");
-        return;
+    if (Ext::LockKeepsRequest()) {
+        // An in-game B / C change: the request lock from Load stands. Only the records of
+        // extensions still active for this game are kept.
+        const size_t saved = records.size();
+        size_t kept = 0;
+        for (size_t i = 0; i < saved; ++i) {
+            const Ext::Entry* e = Ext::FindEntry(records[i].id.c_str());
+            if (e != nullptr && Ext::Active(*e)) {
+                records[kept] = records[i];
+                ++kept;
+            }
+        }
+        records.resize(kept);
+        fprintf(stderr, "[ExtSave] manifest: an in-game B / C change, the request stands; %u of %u saved "
+                "record(s) kept:", static_cast<unsigned>(kept), static_cast<unsigned>(saved));
+    } else {
+        std::vector<std::string> ids;
+        for (const Ext::SaveTail::Record& r : records) ids.push_back(r.id);
+        if (!Ext::LockForGameWithSet(owner, ids)) {   // Validate checked every id: unreachable
+            ExtSave_Fatal("This save was made with game extensions this version cannot load.");
+            return;
+        }
+        fprintf(stderr, "[ExtSave] manifest: %u B / C extension(s) locked for this game from the save:",
+                static_cast<unsigned>(records.size()));
     }
-    fprintf(stderr, "[ExtSave] manifest: %u B / C extension(s) locked for this game from the save:",
-            static_cast<unsigned>(records.size()));
     for (const Ext::SaveTail::Record& r : records)
         fprintf(stderr, " %s(v%d)", r.id.c_str(), r.formatVersion);
     fprintf(stderr, "\n");

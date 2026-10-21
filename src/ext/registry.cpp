@@ -245,6 +245,8 @@ Profile     g_profile = Profile::PerEntry;
 bool        g_profileFromCommandLine = false;
 const void* g_lockOwner = nullptr;
 uint32_t g_lockEpoch = 0;   // LockEpoch(): bumped by Install / LockForGame* / UnlockForGame
+bool g_keepRequestNext = false;   // KeepRequestOnNextLock(): the next LockForGame is an in-game B / C change
+bool g_lockKeepsRequest = false;  // LockKeepsRequest(): the lock held now is that reload's
 
 }  // namespace
 
@@ -412,6 +414,8 @@ void Install(const State& requested, Profile profile, bool profileFromCommandLin
     g_profileFromCommandLine = profileFromCommandLine;
     g_lockOwner = nullptr;
     ++g_lockEpoch;
+    g_keepRequestNext = false;
+    g_lockKeepsRequest = false;
 }
 
 Profile CurrentProfile() { return g_profile; }
@@ -434,6 +438,8 @@ void LockForGame(const void* owner) {
             e.slot(g_active) = e.slot(g_requested);
     g_lockOwner = owner;
     ++g_lockEpoch;
+    g_lockKeepsRequest = g_keepRequestNext;   // one shot: only the reload that asked for it
+    g_keepRequestNext = false;
 }
 
 bool LockForGameWithSet(const void* owner, const std::vector<std::string>& ids) {
@@ -451,13 +457,19 @@ bool LockForGameWithSet(const void* owner, const std::vector<std::string>& ids) 
     }
     g_lockOwner = owner;
     ++g_lockEpoch;
+    g_lockKeepsRequest = false;
     return true;
 }
+
+void KeepRequestOnNextLock() { g_keepRequestNext = true; }
+
+bool LockKeepsRequest() { return Locked() && g_lockKeepsRequest; }
 
 void UnlockForGame(const void* owner) {
     if (owner == nullptr || owner != g_lockOwner) return;
     g_lockOwner = nullptr;
     ++g_lockEpoch;
+    g_lockKeepsRequest = false;
     // Back at the menu nothing holds the lock: the active state is the request.
     for (const Entry& e : kEntries)
         e.slot(g_active) = e.slot(g_requested);
