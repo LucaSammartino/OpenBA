@@ -11,7 +11,7 @@ The stored limit (`CitizenBehavior::professionResources[i].maxCount`) is an `int
 ## 2. What it does
 Two UI limits, both on the one controller that serves every limit spinner (the Town Hall's Production tab, the Limits window, and the dialog of each production building that shows its limit):
 * the range: `SetMinMax(0, 999999)` becomes `SetMinMax(0, 999999999)`;
-* the typed-character limit of the spinner's edit field (`EditElement::_maxLength`, 6 from the description `spinnerEditSmall6`) becomes 9. That is why, in retail, the arrows could push a value past 999,999 but a typed value could not.
+* the typed-character limit of the spinner's edit field (`EditElement::_maxLength`, 6 from the description `spinnerEditSmall6`) becomes 9. Retail stops at 999,999 on both input paths: the up arrow is disabled at the field's maximum (`SpinnerElement::Update`) and `NumberEditElement::SetValue` clamps to it, and typed text is cut at six characters and clamped to the range. So both paths need the new range, and only typing needs the longer digit limit.
 
 ## 3. Where
 | file | change |
@@ -29,7 +29,7 @@ No other engine change and no new setting keys beyond `ext.high_limits`.
 No per-town state (the limits are retail's ints in retail's save), so not C. But a limit above 999,999 is a value the faithful spinner cannot show or edit, and a game saved with one would play the same in faithful mode while its dialog could no longer display it, which is the better_camera ruling's shape (the extension lets the player write an out-of-domain value into a faithful path). So the row is locked for the game and recorded in the save as a pseudo-mod.
 
 ## 5. Behaviour notes
-* **Display width.** The edit field's description gives it a 42-pixel minimum, which grows for a longer typed value (so only the row being typed in widened and the columns went uneven). With the row on, every limit box gets a 64-pixel minimum (`kHighMinWidth`, room for nine digits at FontSmall) in `ApplyToSpinner`, so all boxes are the same width and the window sizes to them. Set through the public `_minWidth` field, since `Element::SetMinSize` is declared but not defined in this port; `OnCreated` runs before the first layout.
+* **Display width.** The edit field's description gives it a 42-pixel minimum, which grows for a longer typed value (so only the row being typed in widened and the columns went uneven). With the row on, every limit box is raised to at least 64 pixels (`kHighMinWidth`, room for nine digits at FontSmall) in `ApplyToSpinner`, so all boxes are at least that wide and the window sizes to them. The width is raised with `max`, never lowered: a description that asked for a wider box keeps it. Set through the public `_minWidth` field, since `Element::SetMinSize` is declared but not defined in this port; `OnCreated` runs before the first layout.
 * **Other spinners** (trade quantities, workers, the Foods/Priority pages) are separate controllers and keep their own ranges.
 * **Separate from this PR:** `ResourceLimitUI::IdxFor` accepts a config's resource index only below 11 (`resourcelimitui.cpp`), where retail indexes the ledger by whatever the config holds, so the limit rows of `Custom0..9` (indices 11 to 20) are wrong in this port. That is its own fix and its own PR; this extension does not depend on it and does not change `IdxFor`.
 

@@ -1,9 +1,9 @@
 // ============================================================================
 // tests/unit/ext_high_limits_test.cpp -- ext.high_limits
 // ============================================================================
-// src/ext/high_limits/high_limits.{h,cpp} without the game: the registry row (class B, off by default), the retail
-// and high values, and that the values follow the row (the game's locked value). The spinner glue (spinner.cpp)
-// and the seam in ResourceLimitUI::OnCreated are the exe's, looked at in a run.
+// src/ext/high_limits/high_limits.{h,cpp} without the game: the registry row (class B, off by default),
+// the retail and high values, and that the values follow the row (the game's locked value). The spinner
+// glue (spinner.cpp) and the seam in ResourceLimitUI::OnCreated are the exe's, looked at in a run.
 // ============================================================================
 #include "unit.h"
 #include "ext/high_limits/high_limits.h"
@@ -71,7 +71,7 @@ UNIT_TEST(ext_high_limits_the_values_are_consistent) {
     CHECK_EQ(kRetailDigits, 6);         // the description's _maxLength: exactly the digits of kRetailMax
     CHECK_EQ(Digits(kRetailMax), kRetailDigits);
     CHECK_EQ(kHighMax, 999999999);
-    CHECK_EQ(Digits(kHighMax), kHighDigits);   // the typed-digit limit admits every digit of the largest value
+    CHECK_EQ(Digits(kHighMax), kHighDigits);   // typing admits every digit of the largest value
     CHECK(kHighMax > kRetailMax);
     CHECK(kHighMax < 2147483647);       // an int32: the ledger's maxCount and the spinner's value
 }

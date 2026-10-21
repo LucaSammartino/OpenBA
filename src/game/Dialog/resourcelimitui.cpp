@@ -153,7 +153,8 @@ void ResourceLimitUI::OnCreated() {
     UI::SpinnerElement* spinner = this->editLimit;
     if (!spinner) return;
     spinner->SetElementId(0x3039);
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/HIGHLIMITS.md): 0..999,999,999 and nine typed digits when the row is on.
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/HIGHLIMITS.md): 0..999,999,999 and nine typed digits
+    // when the row is on; retail's range in the else arm.
     if (Ext::HighLimits::Active())
         Ext::HighLimits::ApplyToSpinner(spinner);
     else

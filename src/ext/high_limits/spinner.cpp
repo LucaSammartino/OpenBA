@@ -4,6 +4,8 @@
 // spinner is set up) when the row is active.
 
 // The runtime type headers first (moddialog.cpp's note: Volume.h's Rectangle).
+#include <algorithm>
+
 #include "ui/Element.h"
 #include "ui/EditElement.h"
 #include "ui/NumberEditElement.h"
@@ -23,11 +25,12 @@ void ApplyToSpinner(UI::SpinnerElement* spinner)
     UI::Element* child = spinner->Child(0).Get();
     if (::Object::IsDerivedFromNullSafe(child, UI::NumberEditElement::TypeId())) {
         UI::NumberEditElement* edit = static_cast<UI::NumberEditElement*>(child);
-        // The edit field's typed-character limit (the description's 6), then the same minimum width on every
-        // limit box so a window's columns stay aligned. Element::SetMinSize is declared but not defined in
-        // this port; OnCreated runs before the first layout, so the field is enough.
+        // The edit field's typed-character limit (the description's 6), then a minimum width that fits nine
+        // digits. The width is raised, never lowered: a description that asked for a wider box keeps it.
+        // Element::SetMinSize is declared but not defined in this port; OnCreated runs before the first
+        // layout, so the field is enough.
         edit->_maxLength = MaxDigits();
-        edit->_minWidth = MinWidth();
+        edit->_minWidth = std::max(edit->_minWidth, MinWidth());
     }
     // SetMinMax re-clamps the field's current text through the new maximum.
     spinner->SetMinMax(0, MaxValue());
