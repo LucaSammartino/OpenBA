@@ -66,3 +66,12 @@ opaque shadow cards, cascades, smaller reflection target, AO changes (the user's
 - `BANISHED_SAMPLE=2000` run at zoom 130 to split the render thread between Present, buffer maps and
   constant updates (`ideas_cpu_submit.md` section 1).
 - RenderDoc overdraw on the main pass, and one capture with better_trees off at the same pin.
+
+## Rulings (the user, 2026-10-20)
+- 1 shadow by zoom: CLOSED, keep 8192. SHADOWZOOM.md shows 8192 is ~2x oversampled at every zoom, not
+  only zoomed out, so a zoom-adaptive map never drops below 8192 under the "keep 8192 sharpness" rule.
+  4096 everywhere would be a sharpness change at all zooms; not taken.
+- 2 reflection cull: DROPPED (water is almost always on screen).
+- 3 decal batching, 4 terrain row merge, 5 smoke batching, 6 fence before Present, 7 terrain shadow
+  chunk cull: ACCEPTED, built in worktrees from `gpuframe`.
+- 8 instance batches above 52: NOT BUILT until there is proof that more batching moves perf.
