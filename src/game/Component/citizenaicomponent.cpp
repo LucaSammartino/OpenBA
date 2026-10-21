@@ -22,7 +22,8 @@
 #include "Component/CitizenAIComponent.h"
 #include <cstdint>
 #include "Component/RawMaterialDescription.h"   // B.3.8 CB1a (TypeId)
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (class C), Ext::RestrictedFoods::Blocked
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods
+// (class C), Ext::RestrictedFoods::g_on, Ext::RestrictedFoods::IsBlocked
 #include "ext/restricted_foods/restricted_foods.h"
 #include "Component/CitizenComponent.h"   // ENDGAME B.3.8 CIT (TypeId)
 #include "Component/CitizenDescription.h" // B.4 W1 COMP-b: description fields by name
@@ -301,6 +302,9 @@ int ResidenceComponent::GetFoodCount() const {
     // 0x140006270 (was its WorkBase_FindComponent_6270 forwarder)
     StorageComponent* storage = _entity->FindComponent<StorageComponent>();
     int total = 0;   // no storage test: 0x14012aa0a CMP [RAX+0x30] straight off the finder
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (class C):
+    // tested once here, above the loop.
+    const bool restrictFoods = Ext::RestrictedFoods::g_on;
     int rowCount = storage->storageSlots._size;
     if (0 < rowCount) {
         int row = 0;
@@ -319,9 +323,9 @@ int ResidenceComponent::GetFoodCount() const {
                 }
             }
             if ((mat->_flags >> 5 & 1) != 0 &&   // 0x14012aa75 MOV ECX,[RAX+0x5c], no test
-                // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): a blocked food does not count
-                // as home food
-                !Ext::RestrictedFoods::Blocked(mat, mat->_flags, mat->_name._data)) {
+                // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): a blocked food does not
+                // count as home food
+                !(restrictFoods && Ext::RestrictedFoods::IsBlocked(mat))) {
                 total += (arr[row]._count - arr[row]._reserve);
             }
             row++;

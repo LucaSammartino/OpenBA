@@ -77,39 +77,6 @@ def options_enhanced():
     return img
 
 
-def foods_icon():
-    """The Foods menu button's icon: a white apple with a leaf, antialiased like icon() (drawn at 8x, box-filtered)."""
-    S = 8
-    big = Image.new("L", (W * S, H * S), 0)
-    px = big.load()
-    for y in range(H * S):
-        for x in range(W * S):
-            fx, fy = (x + 0.5) / S, (y + 0.5) / S            # in 16 x 16 pixel units
-            on = False
-            # two overlapping discs make the apple's shoulders; a notch at the top centre, a flat-ish bottom
-            for cx in (6.0, 10.0):
-                dx, dy = (fx - cx) / 4.6, (fy - 9.2) / 5.0
-                if dx * dx + dy * dy <= 1.0:
-                    on = True
-            if abs(fx - 8.0) < 0.9 and fy < 6.3:               # the notch between the shoulders
-                on = False
-            if abs(fx - 8.0) < 0.5 and 2.6 < fy < 6.0:         # the stem
-                on = True
-            ex, ey = (fx - 10.6) / 2.4, (fy - 3.4) / 1.2       # the leaf, tilted by shearing
-            ex += (fy - 3.4) * 0.5
-            if ex * ex + ey * ey <= 1.0:
-                on = True
-            px[x, y] = 255 if on else 0
-    alpha = big.resize((W, H), Image.BOX)
-    img = Image.new("RGBA", (W, H), CLEAR)
-    img.putalpha(alpha)
-    ipx, apx = img.load(), alpha.load()
-    for y in range(H):
-        for x in range(W):
-            ipx[x, y] = (255, 255, 255, apx[x, y])
-    return img
-
-
 # 5 x 7 letters, scaled x2 into a 10 x 14 box.
 LETTERS = {
     "F": ["11111", "10000", "10000", "11110", "10000", "10000", "10000"],

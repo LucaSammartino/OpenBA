@@ -21,15 +21,21 @@ int ActivePages(const Contribution** out, int capacity) {
     const Contribution* const* list = All(&n);
     for (int i = 0; i < n; ++i) {
         const Entry* e = FindEntry(list[i]->id);
-        if (e == nullptr || !Active(*e)) continue;
-        if (out != nullptr && count < capacity) out[count] = list[i];
+        if (e == nullptr || !Active(*e)) {
+            continue;
+        }
+        if (out != nullptr && count < capacity) {
+            out[count] = list[i];
+        }
         ++count;
     }
     return count;
 }
 
 bool Offered() {
-    if (GateProfileForced()) return false;
+    if (GateProfileForced()) {
+        return false;
+    }
     return ActivePages(nullptr, 0) > 0;
 }
 

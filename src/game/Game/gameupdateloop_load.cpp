@@ -85,8 +85,8 @@
 #include "utility/PerlinNoise.h"        // RtUtility_PerlinNoise_Ctor
 #include "Entity/ComponentEntity.h"   // B4 S4 RT2: InternalPtr<ComponentEntity>::Get() needs the class complete
 #include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): Ext::LockForGame
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): Ext::SaveTail::ResetAllState, a class C
-// extension's state
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): Ext::SaveTail::ResetAllState, a
+// class C extension's state
 #include "ext/savetail.h"
 #include "ext/fast_paths/fast_paths.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/FASTPATHS.md): Ext::FastPaths::SelectForGame
 #include "ext/path_workers/path_workers.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/PATHWORKERS.md): Ext::PathWorkers::SelectForGame

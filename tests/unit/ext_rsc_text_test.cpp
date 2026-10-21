@@ -117,8 +117,7 @@ UNIT_TEST(ext_rsc_text_parse_enhanced_and_strings) {
 
 namespace {
 // Every object is of a type Extensions.rsc already uses (so the exe's text reader has a schema for it; the
-// reader itself
-// needs the live engine and is checked in the exe, not here).
+// reader itself needs the live engine and is checked in the exe, not here).
 void CheckKnownTypes(const File& f, const char* file) {
     CHECK(!f.objects.empty());
     for (const Object& o : f.objects) {
@@ -140,8 +139,8 @@ UNIT_TEST(ext_rsc_text_parse_extensions_window) {
     CHECK(dlg != nullptr && dlg->type == "Dialog" && dlg->base.empty());
     // no flags: a utility-style window (FirstDraw would hide the toolbar)
     if (dlg) CHECK(dlg->body.Find("_flags") == nullptr);
-    // One tab control with no tabs of its own (the controller adds one per active page), and the shared tab
-    // button.
+    // One tab control with no tabs of its own (the controller adds one per active page), and
+    // the shared tab button.
     const Object* tabs = f.Find("tabPages");
     CHECK(tabs && tabs->base == "Mod.rsc:tabMod" && tabs->type == "TabDescription");
     if (tabs) {
@@ -158,8 +157,9 @@ UNIT_TEST(ext_rsc_text_parse_restricted_foods_page) {
     CHECK(f.Find("resource") == nullptr);   // a page, not a dialog: the root object is pageRestrictedFoods
     const Object* page = f.Find("pageRestrictedFoods");
     CHECK(page && page->type == "RibbonDescription");
-    CHECK(f.Find("tableRestrictedFoods") && f.Find("foodCell") && f.Find("labelRestrictedFoods") &&
-          f.Find("checkRestrictedFoods") && f.Find("buttonRestrictedFoodsRow") && f.Find("textRestrictedFoodsHint"));
+    CHECK(f.Find("tableRestrictedFoods") && f.Find("ribbonRestrictedFoodsCell") &&
+          f.Find("labelRestrictedFoodsRow") && f.Find("checkRestrictedFoodsRow") &&
+          f.Find("checkRestrictedFoodsShowAll") && f.Find("textRestrictedFoodsHint"));
     CheckKnownTypes(f, "RestrictedFoodsPage.rsc");
 }
 

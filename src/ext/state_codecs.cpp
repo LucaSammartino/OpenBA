@@ -2,8 +2,7 @@
 // src/ext/state_codecs.cpp -- the class C extensions' save-tail codecs, one line each (savetail.h)
 // ============================================================================
 // NOT RETAIL. DESIGN.md "Class C state: the contract". The serializer goes through FindCodec and never
-// includes an
-// extension's header. A class B row has no entry here, so its record's payload stays empty.
+// includes an extension's header. A class B row has no entry here, so its record's payload stays empty.
 // ============================================================================
 
 #include "ext/savetail.h"
@@ -25,18 +24,24 @@ const StateCodec* const* Codecs(int& n) {
 }  // namespace
 
 const StateCodec* FindCodec(const char* id) {
-    if (id == nullptr) return nullptr;
+    if (id == nullptr) {
+        return nullptr;
+    }
     int n = 0;
     const StateCodec* const* codecs = Codecs(n);
     for (int i = 0; i < n; ++i)
-        if (std::strcmp(codecs[i]->id, id) == 0) return codecs[i];
+        if (std::strcmp(codecs[i]->id, id) == 0) {
+            return codecs[i];
+        }
     return nullptr;
 }
 
 void ResetAllState() {
     int n = 0;
     const StateCodec* const* codecs = Codecs(n);
-    for (int i = 0; i < n; ++i) codecs[i]->reset();
+    for (int i = 0; i < n; ++i) {
+        codecs[i]->reset();
+    }
 }
 
 }  // namespace SaveTail

@@ -64,8 +64,8 @@
 #include "ext/render_culling/render_culling.h" // EXT SEAM (NOT RETAIL, docs/extensions/handins/PERFXEXT.md): ext.render_culling / ext.anim_batch (PerfX)
 #include "ext/walk_batch/walk_batch.h" // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md, WALKGRID.md): ext.walk_batch (A) / ext.walk_batch_grid (B)
 #include "ext/spread_warmth/spread_warmth.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_PFBURST.md): ext.spread_warmth (class B), Ext::SpreadWarmth::BeginFrame
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (class C),
-// Ext::RestrictedFoods::BeginFrame
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md):
+// ext.restricted_foods (class C), Ext::RestrictedFoods::BeginFrame
 #include "ext/restricted_foods/restricted_foods.h"
 #include "ext/drain_split/drain_split.h"       // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_DRAINSPLIT.md): ext.drain_split (class B), Ext::DrainSplit::BeginFrame
 #include "Game/terrain_sidecar.h" // the terrain-type mirror's teardown (faithful perf work)
@@ -124,9 +124,6 @@ extern "C" void BuildingGoal_Probe(const char* templateName);  // src/game/Goal/
                                 // (NAMESPACE HAZARD: spell ::Object::X everywhere
                                 // in this file, even at global scope)
 #include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): Ext::UnlockForGame
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): Ext::SaveTail::ResetAllState, a class C
-// extension's state
-#include "ext/savetail.h"
 #include "ext/background_save/background_save.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVESNAP.md): ext.background_save, the frozen Update / Draw alpha
 #include "ext/eye_camera/eye_camera.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EYECAM.md): ext.eye_camera, Update step 6 / Draw steps 4 and 7
 #include "ext/sharp_ui/sharp_ui.h"       // EXT SEAM (NOT RETAIL, docs/extensions/handins/SHARPUI.md): ext.sharp_ui, Draw step 12
@@ -2278,11 +2275,8 @@ GameUpdateLoop::~GameUpdateLoop() {
     _singleton = nullptr;
 
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): release this loop's class B / C lock (ignored
-    // when a reload's new loop already holds it).
+    // when a reload's new loop already holds it). Releasing it also empties the class C state.
     Ext::UnlockForGame(this);
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): the town's class C state goes with the
-    // town
-    Ext::SaveTail::ResetAllState();
 }
 
 // The exe cell 0x1401c3dd8 (B3R STORAGE; was the file-static

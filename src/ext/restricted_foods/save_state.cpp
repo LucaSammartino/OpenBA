@@ -1,28 +1,32 @@
 // ============================================================================
-// src/ext/restricted_foods/save_state.cpp -- ext.restricted_foods's per-town state for the save tail (class C)
+// src/ext/restricted_foods/save_state.cpp -- ext.restricted_foods's per-town state in the save tail (class C)
 // ============================================================================
 // NOT RETAIL. docs/extensions/handins/RESTRICTEDFOODS.md, DESIGN.md "Class C state: the contract".
 //
-// The state is the rules list (restricted_foods.h): block entries by internal material name, `group:` and `all`
-// entries,
-// `allow:` exemptions, and `blocking=off`. It is stored by NAME, never by index, because mods change the load
-// order
-// between sessions (and a name the game no longer has simply matches nothing).
+// The state is the list of blocked foods (restricted_foods.h), each by the template path of its
+// RawMaterialDescription, never by index: mods change the load order between sessions, and a path the game no
+// longer has simply matches nothing.
 //
-// Wire format v1 (little-endian): u32 count, count x { u32 length, u8 entry[length] }. Each entry is one rule
-// in the
-// text grammar (`wheat`, `group:Grain`, `all`, `allow:fish`, `blocking=off`). A decode that finds a rule it
-// cannot read
-// refuses the payload (the save is damaged), the way a truncated payload does.
+// Wire format v1 (little-endian):
+//   u32  count
+//   count x {
+//     u8   kind        1 = a blocked food (the only kind in v1)
+//     u32  length      1..kMaxPathBytes
+//     u8   path[length]  the template path, bytes 0x20..0xFF, no NUL
+//   }
+// Decode accepts exactly what Encode writes and refuses the payload (the save is damaged) on a cut-short
+// or over-long payload, an unknown kind, an empty, over-long or control-character path, or a path listed
+// twice (compared without case). A refused payload changes nothing: the old list stays.
 //
-// Standard C++ only: tests/unit/ext_restricted_foods_test.cpp links this file with restricted_foods.cpp and
-// savetail.cpp.
+// Standard C++ only: tests/unit/ext_restricted_foods_test.cpp links this file
+// with restricted_foods.cpp and savetail.cpp.
 // ============================================================================
 
 #include "ext/restricted_foods/restricted_foods.h"
 
 #include "ext/savetail.h"
 
+#include <cctype>
 #include <string>
 #include <vector>
 
@@ -30,57 +34,83 @@ namespace Ext {
 namespace RestrictedFoods {
 namespace {
 
-// "a; b;c" -> {"a", "b", "c"}: the rules text FormatRules writes, one entry at a time.
-std::vector<std::string> SplitEntries(const std::string& text) {
-    std::vector<std::string> out;
-    std::string cur;
-    auto flush = [&]() {
-        size_t a = 0, b = cur.size();
-        while (a < b && (cur[a] == ' ' || cur[a] == '\t')) ++a;
-        while (b > a && (cur[b - 1] == ' ' || cur[b - 1] == '\t')) --b;
-        if (b > a) out.push_back(cur.substr(a, b - a));
-        cur.clear();
-    };
-    for (char c : text) {
-        if (c == ';') {
-            flush();
-        } else {
-            cur.push_back(c);
+constexpr uint8_t  kKindBlockedFood = 1;
+constexpr uint32_t kMaxPathBytes    = 1024;
+constexpr size_t   kMinEntryBytes   = 1 + 4 + 1;   // kind + length + a one-byte path
+
+bool PathIsValid(const std::string& path) {
+    if (path.empty() || path.size() > kMaxPathBytes) {
+        return false;
+    }
+    for (char c : path) {
+        if (static_cast<unsigned char>(c) < 0x20) {
+            return false;
         }
     }
-    flush();
+    return true;
+}
+
+std::string Fold(const std::string& s) {
+    std::string out = s;
+    for (char& c : out) {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
     return out;
 }
 
 void Encode(std::vector<uint8_t>& payload) {
-    const std::vector<std::string> entries = SplitEntries(FormatRules(CurrentRules()));
+    const std::vector<std::string>& paths = BlockedPaths();
     SaveTail::Writer w(payload);
-    w.U32(static_cast<uint32_t>(entries.size()));
-    for (const std::string& e : entries) w.String(e);
+    w.U32(static_cast<uint32_t>(paths.size()));
+    for (const std::string& path : paths) {
+        w.Bytes(&kKindBlockedFood, 1);
+        w.String(path);
+    }
 }
 
 bool Decode(const uint8_t* bytes, size_t size, int32_t savedVersion) {
-    // Validate already refused a NEWER version; an older one would migrate here
-    if (savedVersion != 1) return false;
+    // Validate already refused a NEWER version; an older one would migrate here.
+    if (savedVersion != 1) {
+        return false;
+    }
     SaveTail::Reader r(bytes, size);
     uint32_t count = 0;
-    if (!r.U32(count)) return false;
-    std::string joined;
-    for (uint32_t i = 0; i < count; ++i) {
-        std::string entry;
-        if (!r.String(entry)) return false;
-        if (entry.find(';') != std::string::npos) return false;   // an entry is one rule
-        if (!joined.empty()) joined += "; ";
-        joined += entry;
+    if (!r.U32(count)) {
+        return false;
     }
-    if (!r.AtEnd()) return false;
-    const RuleSet rules = ParseRules(joined);
-    if (rules.malformed != 0) return false;
-    ApplyRules(rules);
+    if (count > r.left / kMinEntryBytes) {
+        return false;
+    }
+    std::vector<std::string> paths;
+    std::vector<std::string> folded;
+    for (uint32_t i = 0; i < count; ++i) {
+        const uint8_t* kind = nullptr;
+        if (!r.Bytes(1, kind) || *kind != kKindBlockedFood) {
+            return false;
+        }
+        std::string path;
+        if (!r.String(path) || !PathIsValid(path)) {
+            return false;
+        }
+        const std::string key = Fold(path);
+        for (const std::string& seen : folded) {
+            if (seen == key) {
+                return false;
+            }
+        }
+        folded.push_back(key);
+        paths.push_back(path);
+    }
+    if (!r.AtEnd()) {
+        return false;
+    }
+    ReplaceBlockedPaths(paths);
     return true;
 }
 
-void Reset() { ApplyRules(RuleSet()); }
+void Reset() {
+    ResetState();
+}
 
 }  // namespace
 

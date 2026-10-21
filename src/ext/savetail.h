@@ -36,15 +36,11 @@
 // damaged one as BadChecksum before a single record is trusted.
 //
 // CLASS C STATE (DESIGN.md "Class C state: the contract", ruled 2026-10-20). A class C extension's per-town
-// state
-// travels in its own record's payload. The extension registers a StateCodec beside its Entry
-// (src/ext/state_codecs.cpp,
-// one line per class C extension): `encode` appends the state at the save arm, `decode` reads it when the
-// loader locks the
-// game's set from the manifest, `reset` empties it for a new game and when a game ends. This file never
-// learns what a
-// payload means. A class B row has no codec and an empty payload; the faithful profile still writes zero
-// bytes.
+// state travels in its own record's payload. The extension registers a StateCodec beside its Entry
+// (src/ext/state_codecs.cpp, one line per class C extension): `encode` appends the state at the save arm,
+// `decode` reads it when the loader locks the game's set from the manifest, `reset` empties it for a new game
+// and when a game ends. This file never learns what a payload means. A class B row has no codec and an empty
+// payload; the faithful profile still writes zero bytes.
 //
 // Standard C++ only: tests/unit/ext_savetail_test.cpp links this file with
 // registry.cpp (and state_codecs.cpp for the codec table) alone.
@@ -82,7 +78,9 @@ struct Writer {
     std::vector<uint8_t>& out;
     explicit Writer(std::vector<uint8_t>& o) : out(o) {}
     void U32(uint32_t v) {
-        for (int i = 0; i < 4; ++i) out.push_back(static_cast<uint8_t>(v >> (8 * i)));
+        for (int i = 0; i < 4; ++i) {
+            out.push_back(static_cast<uint8_t>(v >> (8 * i)));
+        }
     }
     void I32(int32_t v) { U32(static_cast<uint32_t>(v)); }
     void Bytes(const uint8_t* data, size_t n) { out.insert(out.end(), data, data + n); }
@@ -96,7 +94,9 @@ struct Reader {
     size_t         left;
     Reader(const uint8_t* bytes, size_t size) : p(bytes), left(size) {}
     bool U32(uint32_t& v) {
-        if (left < 4) return false;
+        if (left < 4) {
+            return false;
+        }
         v = static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) |
             (static_cast<uint32_t>(p[2]) << 16) | (static_cast<uint32_t>(p[3]) << 24);
         p += 4;
@@ -105,13 +105,17 @@ struct Reader {
     }
     bool I32(int32_t& v) {
         uint32_t u = 0;
-        if (!U32(u)) return false;
+        if (!U32(u)) {
+            return false;
+        }
         v = static_cast<int32_t>(u);
         return true;
     }
     // the next n bytes in place; false when fewer are left
     bool Bytes(size_t n, const uint8_t*& at) {
-        if (left < n) return false;
+        if (left < n) {
+            return false;
+        }
         at = p;
         p += n;
         left -= n;
@@ -119,7 +123,9 @@ struct Reader {
     }
     bool String(std::string& s) {                         // false when the length overruns the payload
         uint32_t n = 0;
-        if (!U32(n) || left < n) return false;
+        if (!U32(n) || left < n) {
+            return false;
+        }
         s.assign(reinterpret_cast<const char*>(p), n);
         p += n;
         left -= n;
@@ -161,8 +167,7 @@ Status Decode(const uint8_t* data, size_t size, std::vector<Record>& out);
 Status Validate(const std::vector<Record>& records, std::string* offending);
 
 // The load arm: hand every record's payload to its codec (after the lock took the saved set). False when a
-// codec found its
-// payload malformed; `offending` names it.
+// codec found its payload malformed; `offending` names it.
 bool ApplyState(const std::vector<Record>& records, std::string* offending);
 
 // The registry's ACTIVE class B / C extensions as records, in table order

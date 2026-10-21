@@ -850,9 +850,9 @@ static void ExtSave_ReadTail(GameUpdateLoop* owner, IO::CompressedMemoryStream* 
         fprintf(stderr, "[ExtSave] manifest: %u B / C extension(s) locked for this game from the save:",
                 static_cast<unsigned>(records.size()));
     }
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): class C, each record's payload is that
-    // extension's per-town state (savetail.h, StateCodec). After the whole block above, so it runs on both
-    // routes.
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): class C, each record's payload
+    // is that extension's per-town state (savetail.h, StateCodec). After the whole block above, so it
+    // runs on both routes.
     if (!Ext::SaveTail::ApplyState(records, &offending)) {
         ExtSave_Fatal("This save's ext:" + offending + " state is damaged.");
         return;

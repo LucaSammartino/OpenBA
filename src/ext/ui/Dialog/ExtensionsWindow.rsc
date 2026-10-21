@@ -8,8 +8,8 @@
 // own .rsc (RestrictedFoodsPage.rsc:pageRestrictedFoods); every tab's button is tabButtonPage below, its caption set by the
 // controller from the page's string key.
 //
-// Controller: src/ext/toolbar/toolbar_window.cpp. It looks up, by name: labelTitle, buttonClose, borderTitle (the title
-// bar's) and tabPages.
+// Controller: src/ext/toolbar/toolbar_window.cpp. It looks up, by name: labelTitle, buttonClose, borderTitle
+// (the title bar's) and tabPages.
 //
 // Texts: Dialog/ExtensionsStringTable.rsc (ExtensionsWindow* keys); sprites: Dialog/ExtensionsSprites.rsc (ToolbarExtensions,
 // the toolbar button's icon).
