@@ -1,7 +1,7 @@
 // ============================================================================
-// tests/unit/ext_food_eating_test.cpp -- ext.food_eating
+// tests/unit/ext_restricted_foods_test.cpp -- ext.restricted_foods
 // ============================================================================
-// src/ext/food_eating/food_eating.{h,cpp}, save_state.cpp without the game: the registry row (class C, off by
+// src/ext/restricted_foods/restricted_foods.{h,cpp}, save_state.cpp without the game: the registry row (class C, off by
 // default),
 // the save-tail codec (round trip, empty state, damaged payload, the tail), the rules grammar (names,
 // resource paths, groups, all, allow:, =off,
@@ -10,7 +10,7 @@
 // allow: wins, group bits, case folding), and the run-time seam (inert with the row off or no rules).
 // ============================================================================
 #include "unit.h"
-#include "ext/food_eating/food_eating.h"
+#include "ext/restricted_foods/restricted_foods.h"
 #include "ext/registry.h"
 #include "ext/savetail.h"
 #include "io/settings_file.h"
@@ -21,7 +21,7 @@
 namespace {
 
 using IO::SettingsFile::Entries;
-using namespace Ext::FoodEating;
+using namespace Ext::RestrictedFoods;
 
 bool EntriesLookup(void* ctx, const char* key, std::string& value) {
     const Entries* entries = static_cast<const Entries*>(ctx);
@@ -43,8 +43,8 @@ constexpr uint32_t kWoodFlags  = 0x40;                    // Fuel only: not edib
 
 }  // namespace
 
-UNIT_TEST(ext_food_eating_registry_row) {
-    const Ext::Entry* e = Ext::FindEntry("food_eating");
+UNIT_TEST(ext_restricted_foods_registry_row) {
+    const Ext::Entry* e = Ext::FindEntry("restricted_foods");
     CHECK(e != nullptr);
     if (!e) return;
     CHECK(e->tier == Ext::Tier::Extension);
@@ -52,15 +52,15 @@ UNIT_TEST(ext_food_eating_registry_row) {
     CHECK(e->cls == Ext::Class::C);
     CHECK(!e->defaultOn);
     CHECK(e->formatVersion == 1);
-    CHECK(Ext::SettingsKey(*e) == "ext.food_eating");
-    CHECK(!ResolveText("").ext.food_eating);                          // absent key = the default (off)
-    CHECK(ResolveText("ext.food_eating=1\n").ext.food_eating);
-    CHECK(!ResolveText("profile=faithful\n").ext.food_eating);       // the faithful profile turns it off
-    CHECK(Ext::SaveTail::FindCodec("food_eating") != nullptr);        // class C: it has a state codec
+    CHECK(Ext::SettingsKey(*e) == "ext.restricted_foods");
+    CHECK(!ResolveText("").ext.restricted_foods);                          // absent key = the default (off)
+    CHECK(ResolveText("ext.restricted_foods=1\n").ext.restricted_foods);
+    CHECK(!ResolveText("profile=faithful\n").ext.restricted_foods);       // the faithful profile turns it off
+    CHECK(Ext::SaveTail::FindCodec("restricted_foods") != nullptr);        // class C: it has a state codec
 }
 
-UNIT_TEST(ext_food_eating_state_codec_round_trip) {
-    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("food_eating");
+UNIT_TEST(ext_restricted_foods_state_codec_round_trip) {
+    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("restricted_foods");
     CHECK(c != nullptr);
     if (!c) return;
     ApplyRules(ParseRules("Wheat; group:Protein; allow:Fish; blocking=off"));
@@ -80,8 +80,8 @@ UNIT_TEST(ext_food_eating_state_codec_round_trip) {
     c->reset();
 }
 
-UNIT_TEST(ext_food_eating_state_codec_empty_state_is_still_a_valid_record) {
-    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("food_eating");
+UNIT_TEST(ext_restricted_foods_state_codec_empty_state_is_still_a_valid_record) {
+    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("restricted_foods");
     if (!c) { CHECK(false); return; }
     c->reset();
     std::vector<uint8_t> payload;
@@ -91,8 +91,8 @@ UNIT_TEST(ext_food_eating_state_codec_empty_state_is_still_a_valid_record) {
     CHECK(CurrentRules().block.empty());
 }
 
-UNIT_TEST(ext_food_eating_state_codec_refuses_a_damaged_payload) {
-    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("food_eating");
+UNIT_TEST(ext_restricted_foods_state_codec_refuses_a_damaged_payload) {
+    const Ext::SaveTail::StateCodec* c = Ext::SaveTail::FindCodec("restricted_foods");
     if (!c) { CHECK(false); return; }
     ApplyRules(ParseRules("wheat; corn"));
     std::vector<uint8_t> payload;
@@ -112,17 +112,17 @@ UNIT_TEST(ext_food_eating_state_codec_refuses_a_damaged_payload) {
     c->reset();
 }
 
-UNIT_TEST(ext_food_eating_state_travels_in_the_tail) {
+UNIT_TEST(ext_restricted_foods_state_travels_in_the_tail) {
     // The registry's ACTIVE class C row carries the codec's payload in its own record; the lock gives it back
     // with the save.
     ApplyRules(ParseRules("wheat"));
-    Ext::State s = ResolveText("ext.food_eating=1\n");
+    Ext::State s = ResolveText("ext.restricted_foods=1\n");
     Ext::Install(s, Ext::Profile::PerEntry, false);
     Ext::LockForGame(&s);
     std::vector<Ext::SaveTail::Record> recs = Ext::SaveTail::ActiveRecords();
     bool found = false;
     for (const Ext::SaveTail::Record& r : recs)
-        if (r.id == "food_eating") { found = true; CHECK(!r.payload.empty() && r.formatVersion == 1); }
+        if (r.id == "restricted_foods") { found = true; CHECK(!r.payload.empty() && r.formatVersion == 1); }
     CHECK(found);
     const std::vector<uint8_t> tail = Ext::SaveTail::Encode(recs);
     ApplyRules(RuleSet());
@@ -139,7 +139,7 @@ UNIT_TEST(ext_food_eating_state_travels_in_the_tail) {
     Ext::Install(ResolveText(""), Ext::Profile::PerEntry, false);
 }
 
-UNIT_TEST(ext_food_eating_names_from_entries) {
+UNIT_TEST(ext_restricted_foods_names_from_entries) {
     CHECK(NameFromEntry("Wheat") == "wheat");
     CHECK(NameFromEntry("  RabbitMeat ") == "rabbitmeat");
     CHECK(NameFromEntry("Template\\RawMaterialWheat.rsc:rawmaterial") == "wheat");
@@ -151,7 +151,7 @@ UNIT_TEST(ext_food_eating_names_from_entries) {
     CHECK(NameFromEntry("").empty());
 }
 
-UNIT_TEST(ext_food_eating_parses_rules) {
+UNIT_TEST(ext_restricted_foods_parses_rules) {
     RuleSet r = ParseRules(
         "Wheat; Template\\RawMaterialCorn.rsc:rawmaterial, group:Fruit\nallow:Apple # keep apples\n");
     CHECK(!r.disabled && !r.all);
@@ -181,7 +181,7 @@ UNIT_TEST(ext_food_eating_parses_rules) {
     CHECK(ParseRules("").block.empty() && ParseRules(" ;; ,\n").block.empty());
 }
 
-UNIT_TEST(ext_food_eating_blocks) {
+UNIT_TEST(ext_restricted_foods_blocks) {
     RuleSet r = ParseRules("Wheat; group:Protein; allow:Fish");
     CHECK(Blocks(r, kWheatFlags, "wheat"));                           // by name
     // a fruit is not named or in a blocked group
@@ -204,7 +204,7 @@ UNIT_TEST(ext_food_eating_blocks) {
     CHECK(!Blocks(RuleSet(), kWheatFlags, "wheat"));                         // no rules: nothing blocked
 }
 
-UNIT_TEST(ext_food_eating_seam_is_inert_by_default) {
+UNIT_TEST(ext_restricted_foods_seam_is_inert_by_default) {
     CHECK(!g_on);
     const Stats before = GetStats();
     // g_on false: the slow path is never reached
@@ -213,7 +213,7 @@ UNIT_TEST(ext_food_eating_seam_is_inert_by_default) {
     CHECK(after.checks == before.checks && after.blocked == before.blocked);
 }
 
-UNIT_TEST(ext_food_eating_seam_caches_verdicts) {
+UNIT_TEST(ext_restricted_foods_seam_caches_verdicts) {
     SetRulesText("Wheat; group:Protein");
     // parses the rules; the row is off in the unit state, so g_on stays false
     BeginFrame();
@@ -234,7 +234,7 @@ UNIT_TEST(ext_food_eating_seam_caches_verdicts) {
     CHECK(!BlockedSlow(&wheat, kWheatFlags, "Wheat"));
 }
 
-UNIT_TEST(ext_food_eating_formats_rules) {
+UNIT_TEST(ext_restricted_foods_formats_rules) {
     CHECK(FormatRules(RuleSet()).empty());
     CHECK(FormatRules(ParseRules("Wheat")) == "wheat");
     CHECK(FormatRules(ParseRules("Wheat; Corn; group:Grain; allow:Rye")) ==
@@ -250,7 +250,7 @@ UNIT_TEST(ext_food_eating_formats_rules) {
           back.allow[0] == "fish");
 }
 
-UNIT_TEST(ext_food_eating_set_blocked_edits_the_rules) {
+UNIT_TEST(ext_restricted_foods_set_blocked_edits_the_rules) {
     RuleSet r;
     CHECK(SetBlocked(r, kWheatFlags, "wheat", true));                  // check a food: a name entry
     CHECK(r.block.size() == 1 && Blocks(r, kWheatFlags, "wheat"));
@@ -279,7 +279,7 @@ UNIT_TEST(ext_food_eating_set_blocked_edits_the_rules) {
     CHECK(!SetBlocked(none, kWheatFlags, "", true));                   // no name: nothing to key on
 }
 
-UNIT_TEST(ext_food_eating_live_rules_round_trip) {
+UNIT_TEST(ext_restricted_foods_live_rules_round_trip) {
     SetRulesText("wheat");
     // CurrentRules parses a pending text without a frame
     CHECK(IsBlockedNow(kWheatFlags, "wheat"));

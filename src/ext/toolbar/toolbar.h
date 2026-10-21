@@ -2,7 +2,7 @@
 // src/ext/toolbar/toolbar.h -- the in-game extension window: ONE toolbar button, one page per active
 // extension
 // ============================================================================
-// NOT RETAIL. docs/extensions/DESIGN.md "Surfaces" (ruled 2026-10-20), docs/extensions/handins/FOODEATING.md.
+// NOT RETAIL. docs/extensions/DESIGN.md "Surfaces" (ruled 2026-10-20), docs/extensions/handins/RESTRICTEDFOODS.md.
 // An extension
 // with an in-game control does not get a button of its own: the main toolbar gets ONE extension button, in
 // its Reports
@@ -42,7 +42,7 @@ namespace Toolbar {
 struct Contribution {
     const char* id;        // the Entry id; the page is offered only while that row is active for the game
     const char* caption;   // the tab's text: a key in Dialog/ExtensionsStringTable.rsc
-    // "Dialog/FoodEatingPage.rsc:pageFoodEating": our text .rsc, the page's root object
+    // "Dialog/RestrictedFoodsPage.rsc:pageRestrictedFoods": our text .rsc, the page's root object
     const char* page;
     void (*open)(UI::Element* page);                   // find the elements by name, fill them from the state
     // a control (element id `id`) was used: write the state now; false = not mine
@@ -51,7 +51,7 @@ struct Contribution {
 };
 
 // The contributions (defined beside their extensions, src/ext/<id>/toolbar_page.cpp).
-const Contribution& FoodEatingPage();
+const Contribution& RestrictedFoodsPage();
 
 // The list, and the ones whose row is active for this game (null-terminated into `out`; returns the count).
 const Contribution* const* All(int* n);

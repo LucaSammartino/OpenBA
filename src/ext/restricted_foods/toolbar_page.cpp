@@ -1,7 +1,7 @@
 // ============================================================================
-// src/ext/food_eating/toolbar_page.cpp -- ext.food_eating's page in the extension window (NOT RETAIL)
+// src/ext/restricted_foods/toolbar_page.cpp -- ext.restricted_foods's page in the extension window (NOT RETAIL)
 // ============================================================================
-// docs/extensions/handins/FOODEATING.md, src/ext/toolbar/toolbar.h. One cell per edible food of the running
+// docs/extensions/handins/RESTRICTEDFOODS.md, src/ext/toolbar/toolbar.h. One cell per edible food of the running
 // town with a
 // check box; a checked food is not eaten by citizens, from the moment it is checked (live: no Apply). The
 // list is laid out
@@ -11,13 +11,13 @@
 // short scroll.
 // The page sizes the table and clones foodCell into it, as TownHallUI::InitInventory does.
 //
-// The page's objects are ours (src/ext/ui/Dialog/FoodEatingPage.rsc); the texts are in
+// The page's objects are ours (src/ext/ui/Dialog/RestrictedFoodsPage.rsc); the texts are in
 // ExtensionsStringTable.rsc (the
-// FoodEating* keys). It looks up, by name: textHint, tableFoodEating, buttonFoodEatingRow's one child (the
+// RestrictedFoods* keys). It looks up, by name: textHint, tableRestrictedFoods, buttonRestrictedFoodsRow's one child (the
 // filter
-// button, whose label it swaps), and in each cell checkFoodEating and labelFoodEating.
+// button, whose label it swaps), and in each cell checkRestrictedFoods and labelRestrictedFoods.
 //
-// The checked list is the town's own state (class C): it lives in this extension's rules (food_eating.h),
+// The checked list is the town's own state (class C): it lives in this extension's rules (restricted_foods.h),
 // which the save
 // tail carries (save_state.cpp). The page reads and writes it through ApplyRules and IsBlockedNow.
 // ============================================================================
@@ -47,7 +47,7 @@
 #include "Component/ComponentDescription.h"
 #include "Component/Description.h"
 
-#include "ext/food_eating/food_eating.h"
+#include "ext/restricted_foods/restricted_foods.h"
 #include "ext/toolbar/toolbar.h"
 #include "ext/ui/find_element.h"
 
@@ -63,7 +63,7 @@
 #define FLOG(...) std::fprintf(stderr, __VA_ARGS__)
 
 namespace Ext {
-namespace FoodEating {
+namespace RestrictedFoods {
 
 namespace {
 
@@ -73,7 +73,7 @@ constexpr int32_t kFilterButtonId = 102;
 constexpr int32_t kRowIdBase = 1000;
 
 constexpr const char* kWindowRsc      = "Dialog/ExtensionsWindow.rsc";
-constexpr const char* kCellRsc        = "Dialog/FoodEatingPage.rsc:foodCell";
+constexpr const char* kCellRsc        = "Dialog/RestrictedFoodsPage.rsc:foodCell";
 constexpr const char* kStringTableRsc = "Dialog/ExtensionsStringTable.rsc";
 
 UI::StringTable* OurStringTable() {
@@ -238,7 +238,7 @@ struct Row {
 // every edible food of the game; a cell's id is kRowIdBase + its index
 std::vector<Row> g_rows;
 bool g_showAll = false;                          // false: only foods the town has had (kept for the session)
-Object::InternalPtr<UI::Element> g_table;        // "tableFoodEating"
+Object::InternalPtr<UI::Element> g_table;        // "tableRestrictedFoods"
 Object::InternalPtr<UI::Element> g_filterButton; // the filter button (the one child of the button row)
 
 bool Shown(const Row& r) {
@@ -250,7 +250,7 @@ void SetFilterText() {
     if (button == nullptr) return;
     const int count = button->ChildCount();
     for (int i = 0; i < count; ++i)
-        SetTableText(button->Child(i).Get(), g_showAll ? "FoodEatingFilterAll" : "FoodEatingFilterTown");
+        SetTableText(button->Child(i).Get(), g_showAll ? "RestrictedFoodsFilterAll" : "RestrictedFoodsFilterTown");
 }
 
 void RefreshRow(int index) {
@@ -269,7 +269,7 @@ void RefreshRow(int index) {
 void BuildRows() {
     if (g_table.Get() == nullptr) return;
     if (!::Object::IsDerivedFromNullSafe(g_table.Get(), UI::TableElement::TypeId())) {
-        FLOG("[FoodEating] tableFoodEating is not a TableElement\n");
+        FLOG("[RestrictedFoods] tableRestrictedFoods is not a TableElement\n");
         return;
     }
     UI::TableElement* table = static_cast<UI::TableElement*>(g_table.Get());
@@ -283,7 +283,7 @@ void BuildRows() {
     const ::Object::External* cellExt =
         ::Object::ExternalFactory::_singleton->FindOrLoad(System::Filename(kCellRsc));
     if (dialog == nullptr || !::Object::IsDerivedFromNullSafe(cellExt, UI::ElementDescription::TypeId())) {
-        FLOG("[FoodEating] %s / %s did not load: no cells\n", kWindowRsc, kCellRsc);
+        FLOG("[RestrictedFoods] %s / %s did not load: no cells\n", kWindowRsc, kCellRsc);
         return;
     }
     UI::ElementDescription* cellTemplate =
@@ -296,7 +296,7 @@ void BuildRows() {
         r.border = Object::InternalPtr<UI::Element>();
         if (Shown(r)) shownRows.push_back(i);
     }
-    constexpr int kColumns = 4;   // FoodEatingPage.rsc:tableFoodEating's _width
+    constexpr int kColumns = 4;   // RestrictedFoodsPage.rsc:tableRestrictedFoods's _width
     const int rowCount = (static_cast<int>(shownRows.size()) + kColumns - 1) / kColumns;
     table->SetSize(rowCount, kColumns);                      // clears the old cells
 
@@ -314,8 +314,8 @@ void BuildRows() {
         };
 
         // The label: the food's own icon (the small one the game's lists use) and its name.
-        UI::Element* labelElem = child("labelFoodEating");
-        SetTableText(labelElem, "FoodEatingParam");
+        UI::Element* labelElem = child("labelRestrictedFoods");
+        SetTableText(labelElem, "RestrictedFoodsParam");
         SetParameterText(labelElem, r.display.c_str());
         const RawMaterialDescription* mat = static_cast<const RawMaterialDescription*>(r.material);
         if (const char* spriteName = SpriteName(mat)) {
@@ -326,14 +326,14 @@ void BuildRows() {
             }
         }
 
-        r.check = Object::InternalPtr<UI::Element>(child("checkFoodEating"));
+        r.check = Object::InternalPtr<UI::Element>(child("checkRestrictedFoods"));
         Object::InternalPtr<UI::Element> border;
         r.border = *cell->GetBorder(&border);
         if (r.check.Get() != nullptr) r.check->SetElementId(kRowIdBase + static_cast<int32_t>(i));
         RefreshRow(static_cast<int>(i));
         ++made;
     }
-    FLOG("[FoodEating] %d of %d food(s) shown in %d row(s)\n", made, static_cast<int>(g_rows.size()),
+    FLOG("[RestrictedFoods] %d of %d food(s) shown in %d row(s)\n", made, static_cast<int>(g_rows.size()),
          rowCount);
 }
 
@@ -348,7 +348,7 @@ void ApplyRow(int index) {
     if (changed) ApplyRules(rules);
     r.pending = IsBlockedNow(r.flags, r.name);
     RefreshRow(index);
-    FLOG("[FoodEating] %s -> %s, rules changed=%d -> \"%s\"\n", r.name.c_str(),
+    FLOG("[RestrictedFoods] %s -> %s, rules changed=%d -> \"%s\"\n", r.name.c_str(),
          r.pending ? "not eaten" : "eaten", changed ? 1 : 0, FormatRules(CurrentRules()).c_str());
 }
 
@@ -357,15 +357,15 @@ void PageOpen(UI::Element* page) {
     // derived element
     // can carry its base's name.
     UI::Element* filter = nullptr;
-    if (UI::Element* row = page->FindElement(System::String("buttonFoodEatingRow")).Get()) {
+    if (UI::Element* row = page->FindElement(System::String("buttonRestrictedFoodsRow")).Get()) {
         if (row->_children.GetSize() > 0) filter = row->_children.GetData()[0];
     }
     if (filter != nullptr) filter->SetElementId(kFilterButtonId);
     g_filterButton = Object::InternalPtr<UI::Element>(filter);
 
-    g_table = Object::InternalPtr<UI::Element>(page->FindElement(System::String("tableFoodEating")).Get());
+    g_table = Object::InternalPtr<UI::Element>(page->FindElement(System::String("tableRestrictedFoods")).Get());
     if (g_table.Get() == nullptr) {
-        FLOG("[FoodEating] no tableFoodEating in the page: empty page\n");
+        FLOG("[RestrictedFoods] no tableRestrictedFoods in the page: empty page\n");
         return;
     }
 
@@ -390,7 +390,7 @@ void PageOpen(UI::Element* page) {
     }
     if (!anyInTown) g_showAll = true;
     BuildRows();
-    FLOG("[FoodEating] page opened: %d food(s), %s\n", static_cast<int>(g_rows.size()),
+    FLOG("[RestrictedFoods] page opened: %d food(s), %s\n", static_cast<int>(g_rows.size()),
          g_showAll ? "all foods" : "the town's foods");
 }
 
@@ -421,14 +421,14 @@ void PageClose() {
 }
 
 }  // namespace
-}  // namespace FoodEating
+}  // namespace RestrictedFoods
 
 namespace Toolbar {
 
-const Contribution& FoodEatingPage() {
-    static const Contribution c = { "food_eating", "FoodEatingTab",
-                                    "Dialog/FoodEatingPage.rsc:pageFoodEating",
-                                    FoodEating::PageOpen, FoodEating::PageChanged, FoodEating::PageClose };
+const Contribution& RestrictedFoodsPage() {
+    static const Contribution c = { "restricted_foods", "RestrictedFoodsTab",
+                                    "Dialog/RestrictedFoodsPage.rsc:pageRestrictedFoods",
+                                    RestrictedFoods::PageOpen, RestrictedFoods::PageChanged, RestrictedFoods::PageClose };
     return c;
 }
 

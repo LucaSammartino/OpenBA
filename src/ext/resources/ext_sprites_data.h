@@ -8086,8 +8086,8 @@ inline constexpr uint8_t kRgba_ExtensionsEntry_high_limits[9216] = {
     42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,
     42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,0,0,0,0,0,0,0,0,0,0,0,0,
 };
-// ExtensionsEntry_food_eating: Sprite/Extensions/Entry_food_eating.png, 48 x 48
-inline constexpr uint8_t kRgba_ExtensionsEntry_food_eating[9216] = {
+// ExtensionsEntry_restricted_foods: Sprite/Extensions/Entry_restricted_foods.png, 48 x 48
+inline constexpr uint8_t kRgba_ExtensionsEntry_restricted_foods[9216] = {
     0,0,0,0,0,0,0,0,0,0,0,0,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,
     42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,
     42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,42,42,42,255,
@@ -8546,7 +8546,7 @@ inline const SheetBitmap kBitmaps[kBitmapCount] = {
     { "ExtensionsEntry_background_save", "Sprite\\Extensions\\Entry_background_save.png", 48, 48, kRgba_ExtensionsEntry_background_save },
     { "ExtensionsEntry_better_camera", "Sprite\\Extensions\\Entry_better_camera.png", 48, 48, kRgba_ExtensionsEntry_better_camera },
     { "ExtensionsEntry_high_limits", "Sprite\\Extensions\\Entry_high_limits.png", 48, 48, kRgba_ExtensionsEntry_high_limits },
-    { "ExtensionsEntry_food_eating", "Sprite\\Extensions\\Entry_food_eating.png", 48, 48, kRgba_ExtensionsEntry_food_eating },
+    { "ExtensionsEntry_restricted_foods", "Sprite\\Extensions\\Entry_restricted_foods.png", 48, 48, kRgba_ExtensionsEntry_restricted_foods },
     { "ToolbarExtensions", "Sprite\\Extensions\\Toolbar_extensions.png", 32, 32, kRgba_ToolbarExtensions },
 };
 

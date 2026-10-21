@@ -5,7 +5,7 @@
 // bar (StandardDialog.rsc:titleBar, with its close button and drag handle). Its body is ONE tab control with no tabs of
 // its own: the controller (src/ext/toolbar/toolbar_window.cpp) adds one tab per active extension page at run time with
 // UI::TabElement::AddTab, the way the Options dialog's Enhanced tab is added. Each page is an object of the extension's
-// own .rsc (FoodEatingPage.rsc:pageFoodEating); every tab's button is tabButtonPage below, its caption set by the
+// own .rsc (RestrictedFoodsPage.rsc:pageRestrictedFoods); every tab's button is tabButtonPage below, its caption set by the
 // controller from the page's string key.
 //
 // Controller: src/ext/toolbar/toolbar_window.cpp. It looks up, by name: labelTitle, buttonClose, borderTitle (the title

@@ -1,7 +1,7 @@
-// src/ext/food_eating/food_eating.cpp -- NOT RETAIL. ext.food_eating (class B); see the header and
-// docs/extensions/handins/FOODEATING.md.
-#include "ext/food_eating/food_eating.h"
-#include "ext/registry.h"   // Ext::Ext().food_eating (class C: the game's locked value), Ext::LockEpoch
+// src/ext/restricted_foods/restricted_foods.cpp -- NOT RETAIL. ext.restricted_foods (class B); see the header and
+// docs/extensions/handins/RESTRICTEDFOODS.md.
+#include "ext/restricted_foods/restricted_foods.h"
+#include "ext/registry.h"   // Ext::Ext().restricted_foods (class C: the game's locked value), Ext::LockEpoch
 
 #include <algorithm>
 #include <cctype>
@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 namespace Ext {
-namespace FoodEating {
+namespace RestrictedFoods {
 
 bool g_on = false;
 
@@ -246,7 +246,7 @@ void BeginFrame() {
         s_epoch = epoch;
         s_cache.clear();
     }
-    g_on = Ext::Ext().food_eating && CanBlock(s_rules);   // class C: the game's locked value
+    g_on = Ext::Ext().restricted_foods && CanBlock(s_rules);   // class C: the game's locked value
 }
 
 bool BlockedSlow(const void* desc, uint32_t flags, const char* name) {
@@ -262,5 +262,5 @@ bool BlockedSlow(const void* desc, uint32_t flags, const char* name) {
 
 Stats GetStats() { return s_stats; }
 
-}  // namespace FoodEating
+}  // namespace RestrictedFoods
 }  // namespace Ext

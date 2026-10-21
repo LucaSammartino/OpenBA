@@ -36,10 +36,10 @@ void StubClose() {}
 
 }  // namespace
 
-// The page the exe defines in src/ext/food_eating/toolbar_page.cpp.
-const Ext::Toolbar::Contribution& Ext::Toolbar::FoodEatingPage() {
-    static const Contribution c = { "food_eating", "FoodEatingTab",
-                                    "Dialog/FoodEatingPage.rsc:pageFoodEating",
+// The page the exe defines in src/ext/restricted_foods/toolbar_page.cpp.
+const Ext::Toolbar::Contribution& Ext::Toolbar::RestrictedFoodsPage() {
+    static const Contribution c = { "restricted_foods", "RestrictedFoodsTab",
+                                    "Dialog/RestrictedFoodsPage.rsc:pageRestrictedFoods",
                                     StubOpen, StubChanged, StubClose };
     return c;
 }
@@ -53,10 +53,10 @@ UNIT_TEST(ext_toolbar_no_page_while_the_row_is_off) {
 }
 
 UNIT_TEST(ext_toolbar_a_page_is_offered_while_its_row_is_active) {
-    Ext::Install(ResolveText("ext.food_eating=1\n"), Ext::Profile::PerEntry, false);
+    Ext::Install(ResolveText("ext.restricted_foods=1\n"), Ext::Profile::PerEntry, false);
     const Ext::Toolbar::Contribution* pages[4] = {};
     CHECK_EQ(Ext::Toolbar::ActivePages(pages, 4), 1);
-    CHECK(pages[0] != nullptr && std::strcmp(pages[0]->id, "food_eating") == 0);
+    CHECK(pages[0] != nullptr && std::strcmp(pages[0]->id, "restricted_foods") == 0);
     CHECK(Ext::Toolbar::Offered());
     CHECK_EQ(Ext::Toolbar::ActivePages(nullptr, 0), 1);    // the count alone, no output buffer
     int n = 0;
@@ -65,7 +65,7 @@ UNIT_TEST(ext_toolbar_a_page_is_offered_while_its_row_is_active) {
 }
 
 UNIT_TEST(ext_toolbar_the_faithful_gate_never_offers_the_button) {
-    Ext::State s = ResolveText("ext.food_eating=1\n");
+    Ext::State s = ResolveText("ext.restricted_foods=1\n");
     Ext::Install(s, Ext::Profile::Faithful, true);         // /profile:faithful on the command line
     CHECK(Ext::GateProfileForced());
     CHECK(!Ext::Toolbar::Offered());

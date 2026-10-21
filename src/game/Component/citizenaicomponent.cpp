@@ -22,8 +22,8 @@
 #include "Component/CitizenAIComponent.h"
 #include <cstdint>
 #include "Component/RawMaterialDescription.h"   // B.3.8 CB1a (TypeId)
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): ext.food_eating (class C), Ext::FoodEating::Blocked
-#include "ext/food_eating/food_eating.h"
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (class C), Ext::RestrictedFoods::Blocked
+#include "ext/restricted_foods/restricted_foods.h"
 #include "Component/CitizenComponent.h"   // ENDGAME B.3.8 CIT (TypeId)
 #include "Component/CitizenDescription.h" // B.4 W1 COMP-b: description fields by name
 #include "Component/CharacterComponent.h"
@@ -319,9 +319,9 @@ int ResidenceComponent::GetFoodCount() const {
                 }
             }
             if ((mat->_flags >> 5 & 1) != 0 &&   // 0x14012aa75 MOV ECX,[RAX+0x5c], no test
-                // EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): a blocked food does not count
+                // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): a blocked food does not count
                 // as home food
-                !Ext::FoodEating::Blocked(mat, mat->_flags, mat->_name._data)) {
+                !Ext::RestrictedFoods::Blocked(mat, mat->_flags, mat->_name._data)) {
                 total += (arr[row]._count - arr[row]._reserve);
             }
             row++;

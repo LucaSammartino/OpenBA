@@ -64,9 +64,9 @@
 #include "ext/render_culling/render_culling.h" // EXT SEAM (NOT RETAIL, docs/extensions/handins/PERFXEXT.md): ext.render_culling / ext.anim_batch (PerfX)
 #include "ext/walk_batch/walk_batch.h" // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md, WALKGRID.md): ext.walk_batch (A) / ext.walk_batch_grid (B)
 #include "ext/spread_warmth/spread_warmth.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_PFBURST.md): ext.spread_warmth (class B), Ext::SpreadWarmth::BeginFrame
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): ext.food_eating (class C),
-// Ext::FoodEating::BeginFrame
-#include "ext/food_eating/food_eating.h"
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (class C),
+// Ext::RestrictedFoods::BeginFrame
+#include "ext/restricted_foods/restricted_foods.h"
 #include "ext/drain_split/drain_split.h"       // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_DRAINSPLIT.md): ext.drain_split (class B), Ext::DrainSplit::BeginFrame
 #include "Game/terrain_sidecar.h" // the terrain-type mirror's teardown (faithful perf work)
 #include <cstdio>
@@ -124,7 +124,7 @@ extern "C" void BuildingGoal_Probe(const char* templateName);  // src/game/Goal/
                                 // (NAMESPACE HAZARD: spell ::Object::X everywhere
                                 // in this file, even at global scope)
 #include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): Ext::UnlockForGame
-// EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): Ext::SaveTail::ResetAllState, a class C
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): Ext::SaveTail::ResetAllState, a class C
 // extension's state
 #include "ext/savetail.h"
 #include "ext/background_save/background_save.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVESNAP.md): ext.background_save, the frozen Update / Draw alpha
@@ -584,8 +584,8 @@ bool GameUpdateLoop::Update(const System::Time& timeRef) {
     Ext::RenderCulling::BeginFrame(m_renderer);      // EXT SEAM (NOT RETAIL, docs/extensions/handins/PERFXEXT.md): ext.render_culling / ext.anim_batch read once per frame (frustum, pause flush)
     Ext::WalkBatch::BeginFrame();            // EXT SEAM (NOT RETAIL, docs/extensions/handins/WALKBATCH.md, WALKGRID.md): ext.walk_batch (A) / ext.walk_batch_grid (B) read once per frame
     Ext::SpreadWarmth::BeginFrame();         // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_PFBURST.md): ext.spread_warmth (B) read once per frame, its budget reset
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): ext.food_eating (C) read once per frame
-    Ext::FoodEating::BeginFrame();
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): ext.restricted_foods (C) read once per frame
+    Ext::RestrictedFoods::BeginFrame();
     Ext::DrainSplit::BeginFrame();           // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_DRAINSPLIT.md): ext.drain_split (B) read once per frame, the owed half's frame count
 
     // [EVENTS] RETIRED: the BANISHED_LIVE_EVENTS resource-shortage scanner used to
@@ -2280,7 +2280,7 @@ GameUpdateLoop::~GameUpdateLoop() {
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSCAFFOLD.md): release this loop's class B / C lock (ignored
     // when a reload's new loop already holds it).
     Ext::UnlockForGame(this);
-    // EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): the town's class C state goes with the
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): the town's class C state goes with the
     // town
     Ext::SaveTail::ResetAllState();
 }

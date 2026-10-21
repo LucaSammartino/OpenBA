@@ -1,8 +1,8 @@
 #pragma once
 // ============================================================================
-// src/ext/food_eating/food_eating.h -- ext.food_eating (class C, default OFF; see CLASS C)
+// src/ext/restricted_foods/restricted_foods.h -- ext.restricted_foods (class C, default OFF; see CLASS C)
 // ============================================================================
-// NOT RETAIL. docs/extensions/handins/FOODEATING.md. Chosen edible materials stop being EATEN by citizens
+// NOT RETAIL. docs/extensions/handins/RESTRICTEDFOODS.md. Chosen edible materials stop being EATEN by citizens
 // while
 // staying Edible for everything else (storage by category, markets, recipes, trade). The motivating case: raw
 // Wheat is directly edible, so citizens eat it from the barn instead of the Bread a mod's bakery makes from
@@ -33,7 +33,7 @@
 // Names compare case-insensitively. A `hotkey=` entry is accepted and ignored: a hotkey is not part of this
 // extension. With no rules the row blocks nothing, so switching it on alone changes nothing.
 //
-// IN GAME. The Foods page of the extension window (src/ext/food_eating/toolbar_page.cpp, hosted by
+// IN GAME. The Foods page of the extension window (src/ext/restricted_foods/toolbar_page.cpp, hosted by
 // src/ext/toolbar/: one toolbar button, one tab per active extension) lists the edible materials of the
 // running
 // town with a check box each; a checked food is not eaten from the moment it is checked, with no Apply.
@@ -49,8 +49,8 @@
 // first, so with the row off each pays one load and a not-taken branch. The verdict per material is cached by
 // description pointer and dropped whenever the lock epoch changes (a new game, a load, a mod reload).
 //
-// The parser and the matching are standard C++ only: tests/unit/ext_food_eating_test.cpp links
-// food_eating.cpp
+// The parser and the matching are standard C++ only: tests/unit/ext_restricted_foods_test.cpp links
+// restricted_foods.cpp
 // on its own.
 // ============================================================================
 #include <cstdint>
@@ -60,7 +60,7 @@
 namespace Ext { namespace SaveTail { struct StateCodec; } }
 
 namespace Ext {
-namespace FoodEating {
+namespace RestrictedFoods {
 
 constexpr uint32_t kEdible = 0x20u;                       // RawMaterialDescription._flags bit 5
 // The four food-group bits (the ToolKit's RawMaterialFlags: Fruit 0, Vegetable 1, Protein 2, Grain 4).
@@ -101,7 +101,7 @@ bool SetBlocked(RuleSet& rules, uint32_t flags, const std::string& nameLower, bo
 
 // ---- run time (the two game seams)
 // ----------------------------------------------------------------------------
-// this frame: ext.food_eating (the game's locked value) and a rule set that can block something
+// this frame: ext.restricted_foods (the game's locked value) and a rule set that can block something
 extern bool g_on;
 
 // Set the rules from text (the grammar above). Parsed at the next BeginFrame; the unit tests use it, the game
@@ -138,5 +138,5 @@ Stats GetStats();
 // The save-tail codec for this extension's per-town rules (save_state.cpp; registered in state_codecs.cpp).
 const SaveTail::StateCodec& Codec();
 
-}  // namespace FoodEating
+}  // namespace RestrictedFoods
 }  // namespace Ext

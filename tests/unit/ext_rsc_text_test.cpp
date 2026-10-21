@@ -42,7 +42,7 @@ UNIT_TEST(ext_rsc_text_embedded_files) {
     CHECK(Embedded("Dialog/EnhancedOptions.rsc") != nullptr);
     CHECK(Embedded("Dialog/ExtensionsStringTable.rsc") != nullptr);
     CHECK(Embedded("Dialog/ExtensionsWindow.rsc") != nullptr);
-    CHECK(Embedded("Dialog/FoodEatingPage.rsc") != nullptr);
+    CHECK(Embedded("Dialog/RestrictedFoodsPage.rsc") != nullptr);
 }
 
 UNIT_TEST(ext_rsc_text_parse_extensions) {
@@ -152,15 +152,15 @@ UNIT_TEST(ext_rsc_text_parse_extensions_window) {
     CheckKnownTypes(f, "ExtensionsWindow.rsc");
 }
 
-UNIT_TEST(ext_rsc_text_parse_food_eating_page) {
+UNIT_TEST(ext_rsc_text_parse_restricted_foods_page) {
     File f;
-    CHECK(ParseEmbedded("Dialog/FoodEatingPage.rsc", f));
-    CHECK(f.Find("resource") == nullptr);   // a page, not a dialog: the root object is pageFoodEating
-    const Object* page = f.Find("pageFoodEating");
+    CHECK(ParseEmbedded("Dialog/RestrictedFoodsPage.rsc", f));
+    CHECK(f.Find("resource") == nullptr);   // a page, not a dialog: the root object is pageRestrictedFoods
+    const Object* page = f.Find("pageRestrictedFoods");
     CHECK(page && page->type == "RibbonDescription");
-    CHECK(f.Find("tableFoodEating") && f.Find("foodCell") && f.Find("labelFoodEating") &&
-          f.Find("checkFoodEating") && f.Find("buttonFoodEatingRow") && f.Find("textFoodEatingHint"));
-    CheckKnownTypes(f, "FoodEatingPage.rsc");
+    CHECK(f.Find("tableRestrictedFoods") && f.Find("foodCell") && f.Find("labelRestrictedFoods") &&
+          f.Find("checkRestrictedFoods") && f.Find("buttonRestrictedFoodsRow") && f.Find("textRestrictedFoodsHint"));
+    CheckKnownTypes(f, "RestrictedFoodsPage.rsc");
 }
 
 UNIT_TEST(ext_rsc_text_syntax_errors) {

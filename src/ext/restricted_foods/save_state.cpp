@@ -1,9 +1,9 @@
 // ============================================================================
-// src/ext/food_eating/save_state.cpp -- ext.food_eating's per-town state for the save tail (class C)
+// src/ext/restricted_foods/save_state.cpp -- ext.restricted_foods's per-town state for the save tail (class C)
 // ============================================================================
-// NOT RETAIL. docs/extensions/handins/FOODEATING.md, DESIGN.md "Class C state: the contract".
+// NOT RETAIL. docs/extensions/handins/RESTRICTEDFOODS.md, DESIGN.md "Class C state: the contract".
 //
-// The state is the rules list (food_eating.h): block entries by internal material name, `group:` and `all`
+// The state is the rules list (restricted_foods.h): block entries by internal material name, `group:` and `all`
 // entries,
 // `allow:` exemptions, and `blocking=off`. It is stored by NAME, never by index, because mods change the load
 // order
@@ -15,11 +15,11 @@
 // cannot read
 // refuses the payload (the save is damaged), the way a truncated payload does.
 //
-// Standard C++ only: tests/unit/ext_food_eating_test.cpp links this file with food_eating.cpp and
+// Standard C++ only: tests/unit/ext_restricted_foods_test.cpp links this file with restricted_foods.cpp and
 // savetail.cpp.
 // ============================================================================
 
-#include "ext/food_eating/food_eating.h"
+#include "ext/restricted_foods/restricted_foods.h"
 
 #include "ext/savetail.h"
 
@@ -27,7 +27,7 @@
 #include <vector>
 
 namespace Ext {
-namespace FoodEating {
+namespace RestrictedFoods {
 namespace {
 
 // "a; b;c" -> {"a", "b", "c"}: the rules text FormatRules writes, one entry at a time.
@@ -85,9 +85,9 @@ void Reset() { ApplyRules(RuleSet()); }
 }  // namespace
 
 const SaveTail::StateCodec& Codec() {
-    static const SaveTail::StateCodec c = { "food_eating", Encode, Decode, Reset };
+    static const SaveTail::StateCodec c = { "restricted_foods", Encode, Decode, Reset };
     return c;
 }
 
-}  // namespace FoodEating
+}  // namespace RestrictedFoods
 }  // namespace Ext

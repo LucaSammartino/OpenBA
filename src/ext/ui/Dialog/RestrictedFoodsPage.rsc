@@ -1,6 +1,6 @@
-// Dialog/FoodEatingPage.rsc -- ext.food_eating's page in the extension window (NOT RETAIL; authored for this port, src/ext).
+// Dialog/RestrictedFoodsPage.rsc -- ext.restricted_foods's page in the extension window (NOT RETAIL; authored for this port, src/ext).
 //
-// docs/extensions/handins/FOODEATING.md, src/ext/food_eating/toolbar_page.cpp. One cell per edible food of the running
+// docs/extensions/handins/RESTRICTEDFOODS.md, src/ext/restricted_foods/toolbar_page.cpp. One cell per edible food of the running
 // town, a check box each; a checked food is not eaten by citizens, from the moment it is checked. The window around it is
 // Dialog/ExtensionsWindow.rsc (one tab per active extension page); this file is only the page.
 //
@@ -8,39 +8,39 @@
 // columns of small cells, each a check box and a compact label (20 px icon, small font), so a modded game's hundreds of
 // foods are a short scroll. The controller sizes the table and clones foodCell into it, as TownHallUI::InitInventory does.
 //
-// Controller: src/ext/food_eating/toolbar_page.cpp. It looks up, by name: tableFoodEating, buttonFoodEatingRow (the filter
-// button is its one child), and in each cell checkFoodEating and labelFoodEating.
+// Controller: src/ext/restricted_foods/toolbar_page.cpp. It looks up, by name: tableRestrictedFoods, buttonRestrictedFoodsRow (the filter
+// button is its one child), and in each cell checkRestrictedFoods and labelRestrictedFoods.
 //
-// Texts: Dialog/ExtensionsStringTable.rsc (the FoodEating* keys).
+// Texts: Dialog/ExtensionsStringTable.rsc (the RestrictedFoods* keys).
 
 // The page: the hint, the list, the filter button; 4 px between them.
-RibbonDescription pageFoodEating
+RibbonDescription pageRestrictedFoods
 {
 	bool _vertical = true; int _cellPad = 4;
-	ElementDescription _elements [ "textFoodEatingHint" "foodList" "buttonFoodEatingRow" ]
+	ElementDescription _elements [ "textRestrictedFoodsHint" "foodList" "buttonRestrictedFoodsRow" ]
 }
 
 // The note under the tab: what the check boxes do.
-TextDescription textFoodEatingHint : "Extensions.rsc:textProfile"
+TextDescription textRestrictedFoodsHint : "Extensions.rsc:textProfile"
 {
-	String _text = "FoodEatingHint";
+	String _text = "RestrictedFoodsHint";
 }
 
 // The filter button (foods the town has had <-> all foods), under the list.
-RibbonDescription buttonFoodEatingRow
+RibbonDescription buttonRestrictedFoodsRow
 {
 	Alignment _alignment = MidLeft; int _cellPad = 4;
-	ElementDescription _elements [ "buttonFoodEatingFilter" ]
+	ElementDescription _elements [ "buttonRestrictedFoodsFilter" ]
 }
 
 // Derived from buttonOk / buttonOkText, not from borderButton / commonButtonText: the compiled game only holds the
 // blocks something refers to as an element, so a block used only as a base (borderButton, commonButtonText) does not
 // load by name ("the base ... did not load", live 2026-10-19).
-ButtonDescription buttonFoodEatingFilter : "SharedElements.rsc:buttonOk" { ElementDescription _content = "textFoodEatingFilter"; }
+ButtonDescription buttonRestrictedFoodsFilter : "SharedElements.rsc:buttonOk" { ElementDescription _content = "textRestrictedFoodsFilter"; }
 
-TextDescription textFoodEatingFilter : "SharedElements.rsc:buttonOkText"
+TextDescription textRestrictedFoodsFilter : "SharedElements.rsc:buttonOkText"
 {
-	StringTable _stringTable = "ExtensionsStringTable.rsc"; String _text = "FoodEatingFilterTown";
+	StringTable _stringTable = "ExtensionsStringTable.rsc"; String _text = "RestrictedFoodsFilterTown";
 }
 
 // The list frame: the Extensions dialog's (by reference) around the scrolling box of foods.
@@ -50,10 +50,10 @@ RibbonDescription foodList : "Extensions.rsc:entryList"
 }
 
 // The scrolling box: the Extensions list's container (scroll bar, size) with the table as its content.
-ContainerDescription foodBox : "Extensions.rsc:tableList" { ElementDescription _content = "tableFoodEating"; }
+ContainerDescription foodBox : "Extensions.rsc:tableList" { ElementDescription _content = "tableRestrictedFoods"; }
 
 // Four columns (the Town Hall's has three, wider, cells). The controller sizes it (rows = foods / 4) and fills it with foodCell.
-TableDescription tableFoodEating
+TableDescription tableRestrictedFoods
 {
 	int _width = 4;
 	int _height = 1;
@@ -67,16 +67,16 @@ RibbonDescription foodCell
 	ElementDescription _border = "Mod.rsc:borderLine";
 	int _leftPad = 1; int _topPad = 1; int _bottomPad = 1; int _cellPad = 2;
 	int _minWidth = 140;		// four of these fill the list's width
-	ElementDescription _elements [ "checkFoodEating" "labelFoodEating" ]
+	ElementDescription _elements [ "checkRestrictedFoods" "labelRestrictedFoods" ]
 }
 
-CheckDescription checkFoodEating : "Extensions.rsc:checkLoaded"
+CheckDescription checkRestrictedFoods : "Extensions.rsc:checkLoaded"
 {
-	StringTable _toolTipStringTable = "ExtensionsStringTable.rsc"; String _toolTipText = "FoodEatingCheckTip";
+	StringTable _toolTipStringTable = "ExtensionsStringTable.rsc"; String _toolTipText = "RestrictedFoodsCheckTip";
 }
 
 // The Town Hall's inventory item label (20 px icon, small font, 132 px wide), its text from our table's "@0".
-LabelDescription labelFoodEating : "TownHall.rsc:storageItem"
+LabelDescription labelRestrictedFoods : "TownHall.rsc:storageItem"
 {
-	StringTable _stringTable = "ExtensionsStringTable.rsc"; String _text = "FoodEatingParam";
+	StringTable _stringTable = "ExtensionsStringTable.rsc"; String _text = "RestrictedFoodsParam";
 }

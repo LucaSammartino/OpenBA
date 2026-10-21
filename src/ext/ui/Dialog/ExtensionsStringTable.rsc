@@ -36,16 +36,16 @@ StringTable resource
 		{ String _name = "ExtensionsStateLockedOn";			String _text = "Disabled for this game, enabled from the next"; }
 		{ String _name = "ExtensionsStateLockedOff";		String _text = "Enabled for this game, disabled from the next"; }
 
-		// the in-game extension window (ExtensionsWindow.rsc) and ext.food_eating's page in it (FoodEatingPage.rsc)
+		// the in-game extension window (ExtensionsWindow.rsc) and ext.restricted_foods's page in it (RestrictedFoodsPage.rsc)
 		{ String _name = "ExtensionsWindowTitle";	String _text = "Game extensions"; }
 		{ String _name = "ExtensionsWindowTip";		String _text = "Game extensions: choose foods your citizens will not eat."; }
-		{ String _name = "FoodEatingTab";			String _text = "Foods"; }
-		{ String _name = "FoodEatingHint";			String _text = "Check a food to stop citizens eating it. It can still be stored, sold and cooked."; }
-		{ String _name = "FoodEatingParam";			String _text = "@0"; }
-		{ String _name = "FoodEatingCheckTip";		String _text = "Check to stop citizens eating this food."; }
+		{ String _name = "RestrictedFoodsTab";			String _text = "Foods"; }
+		{ String _name = "RestrictedFoodsHint";			String _text = "Check a food to stop citizens eating it. It can still be stored, sold and cooked."; }
+		{ String _name = "RestrictedFoodsParam";			String _text = "@0"; }
+		{ String _name = "RestrictedFoodsCheckTip";		String _text = "Check to stop citizens eating this food."; }
 		// the filter button names what a click does, under the key of the mode being shown
-		{ String _name = "FoodEatingFilterTown";	String _text = "Show all foods"; }
-		{ String _name = "FoodEatingFilterAll";		String _text = "Only foods my town has had"; }
+		{ String _name = "RestrictedFoodsFilterTown";	String _text = "Show all foods"; }
+		{ String _name = "RestrictedFoodsFilterAll";		String _text = "Only foods my town has had"; }
 
 		// the load notices (Extensions.rsc:extension*, shown by SaveLoadDialog::DoLoad in place of
 		// retail's ModMissing): @0 name, @1 the save's `ext:<id>`, @2 the saved format version

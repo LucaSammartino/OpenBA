@@ -1,6 +1,6 @@
-# FOODEATING hand-in (2026-10-19 / 2026-10-20)
+# RESTRICTEDFOODS hand-in (2026-10-19 / 2026-10-20)
 
-Branch `ext-food-eating`, based on `main` `84b3ea0` (the DESIGN.md rulings of 2026-10-20). The task: an extension that lets the player choose foods that citizens do not eat, with an in-game window to choose them. **Result: `ext.food_eating`, one class C toggle (locked for the game, per-town state recorded in the save), off by default, with a Foods page in the shared in-game extension window.
+Branch `ext-food-eating`, based on `main` `84b3ea0` (the DESIGN.md rulings of 2026-10-20). The task: an extension that lets the player choose foods that citizens do not eat, with an in-game window to choose them. **Result: `ext.restricted_foods`, one class C toggle (locked for the game, per-town state recorded in the save), off by default, with a Foods page in the shared in-game extension window.
 Built and unit-tested; the page opened in a running game and a restricted food was not eaten (a Windows run by the author, 2026-10-19). the checked list survived a save, quit and reload (a Windows run by the author, 2026-10-20). NOT yet looked at: the second page's tab, the resave golden under the official fixture (section 7).**
 
 Built to the rulings of DESIGN.md of 2026-10-20: the lock is on activation, a live window editing class C state is fine, and per-town state travels in the tail record.
@@ -23,16 +23,16 @@ The state is the town's **rules list**: which foods are not eaten. It is per-tow
 
 | | |
 |---|---|
-| row | `food_eating`, `Tier::Extension`, `Class::C`, default OFF, `formatVersion` 1 (`registry.cpp`) |
+| row | `restricted_foods`, `Tier::Extension`, `Class::C`, default OFF, `formatVersion` 1 (`registry.cpp`) |
 | record | the row's own record in the tail chunk (`savetail.h`); written whenever the row is active for the game, **even with an empty list** (the lock set must not depend on content); zero bytes for a faithful game |
-| codec | `Ext::FoodEating::Codec()` (`src/ext/food_eating/save_state.cpp`), registered in `src/ext/state_codecs.cpp` (`kCodecs`, one line) |
+| codec | `Ext::RestrictedFoods::Codec()` (`src/ext/restricted_foods/save_state.cpp`), registered in `src/ext/state_codecs.cpp` (`kCodecs`, one line) |
 | wire format v1 | little-endian: `u32 count`, then `count` x { `u32 length`, `u8 entry[length]` }; each entry is one rule in the grammar below |
 | by name | entries name a material by internal name, a food group, `all`, an `allow:` exemption or `blocking=off`. Never an index: mods change the load order between sessions. A name the game no longer has matches nothing |
 | load | `ExtSave_ReadTail`: after the lock took the saved set, `SaveTail::ApplyState` hands every record's payload to its codec; a payload that does not parse (cut short, bytes left over, a layout this build does not know, a rule it cannot read) is fatal through the same box as a damaged manifest |
 | reset | `SaveTail::ResetAllState()` runs after `LockForGame` (a new game or a load starts empty) and after `UnlockForGame` (the town's state goes with the town) |
 | row off for the town | the codec is never called; the next save carries no record |
 
-Because the save names `ext:food_eating`, retail (and a build without the extension) shows the missing-mod notice instead of playing the town under different rules; with the extension disabled our loader plays the town without the feature and drops the payload at the next save.
+Because the save names `ext:restricted_foods`, retail (and a build without the extension) shows the missing-mod notice instead of playing the town under different rules; with the extension disabled our loader plays the town without the feature and drops the payload at the next save.
 
 ### The rules grammar
 One entry per rule:
@@ -57,7 +57,7 @@ Per DESIGN.md "Surfaces", the in-game controls are not a button per feature: the
 | button | one button in the Reports group (Status Bar, Limits, Town Hall, Help), sort priority 950, between Town Hall and Help; built from the toolbar's utility-button template (template 3). The toolbar keeps a **null** entry in `toolbarItems` for it and the retail readers of that array skip it. Not added when no page is offered (no active contributor), outside a running game, or under the gate's command-line faithful profile: then the toolbar is retail's. No hotkey (the group's ten are taken). Icon `Toolbar_extensions.png`, the Extensions menu's cog at 32 px |
 | window | `Dialog/ExtensionsWindow.rsc`: a utility-style window like Limits and Status Bar (not modal, does not pause the game, the game's own title bar, remembers its place, closes with its close button or the toolbar button). Its body is ONE tab control with no tabs of its own; `UI::TabElement::AddTab` adds one per active page when it opens, as the Options dialog's Enhanced tab is added |
 | page | `Contribution { id, caption, page, open, changed, close }`: the page is offered only while its row is active for the game. The controls are **live**: `changed` writes the state at once (no OK / Apply) |
-| this page | `Dialog/FoodEatingPage.rsc:pageFoodEating`, controller `src/ext/food_eating/toolbar_page.cpp` |
+| this page | `Dialog/RestrictedFoodsPage.rsc:pageRestrictedFoods`, controller `src/ext/restricted_foods/toolbar_page.cpp` |
 
 **The Foods page.** One cell per edible food of the running game (every loaded `RawMaterialDescription` with the Edible bit, once per internal name, sorted by the name the game shows), laid out like the Town Hall's Inventory tab: a four-column table of
 cells, each a check box plus the Town Hall's compact item label (20 px icon, small font), so a modded game's hundreds of foods are a short scroll. Checking a food applies it at once; the cell tints red while the food is not eaten.
@@ -70,9 +70,9 @@ Two small differences from the sketch in DESIGN.md, because the page needed them
 ## 4. Where
 | file | change |
 |---|---|
-| `src/ext/food_eating/food_eating.{h,cpp}` (new) | `ParseRules`, `FormatRules`, `Blocks`, `SetBlocked`; the live state: `g_on`, `SetRulesText`, `CurrentRules`, `ApplyRules`, `IsBlockedNow`, `BeginFrame` (reads the row once per frame), `Blocked` / `BlockedSlow` (a per-description-pointer verdict cache dropped on rule change and on a lock-epoch change) |
-| `src/ext/food_eating/save_state.cpp` (new), `src/ext/state_codecs.cpp` (new) | the codec and its registration (section 2) |
-| `src/ext/food_eating/toolbar_page.cpp` (new) | the Foods page (section 3) |
+| `src/ext/restricted_foods/restricted_foods.{h,cpp}` (new) | `ParseRules`, `FormatRules`, `Blocks`, `SetBlocked`; the live state: `g_on`, `SetRulesText`, `CurrentRules`, `ApplyRules`, `IsBlockedNow`, `BeginFrame` (reads the row once per frame), `Blocked` / `BlockedSlow` (a per-description-pointer verdict cache dropped on rule change and on a lock-epoch change) |
+| `src/ext/restricted_foods/save_state.cpp` (new), `src/ext/state_codecs.cpp` (new) | the codec and its registration (section 2) |
+| `src/ext/restricted_foods/toolbar_page.cpp` (new) | the Foods page (section 3) |
 | `src/ext/savetail.{h,cpp}` | `StateCodec`, `Writer` / `Reader` (promoted for the first codec), `FindCodec`, `ResetAllState`, `ApplyState`; `ActiveRecords` calls the codec's `encode` |
 | `src/ext/toolbar/toolbar.{h,cpp}`, `toolbar_window.cpp` (new) | the shared host: the page list, `Offered`, the window, `InsertAt` / `Style` / `Toggle` for the button |
 | `src/ext/ui/find_element.h` (new) | `Ext::FindElement<T>`, the generic form of `EnhancedTab::FindIn` |
@@ -80,21 +80,21 @@ Two small differences from the sketch in DESIGN.md, because the page needed them
 | `src/game/Component/citizencomponent.cpp`, `citizenaicomponent.cpp` | the two eating seams (3 lines), each after retail's own bit test |
 | `src/game/Game/gameupdateloop.cpp`, `gameupdateloop_load.cpp`, `gameupdateloop_serialize.cpp` | `BeginFrame()` beside `SpreadWarmth::BeginFrame()`; `ResetAllState()` after the lock and after the unlock; `ApplyState` after the manifest's lock in `ExtSave_ReadTail` |
 | `src/ext/registry.{h,cpp}` | the row (class C, version 1, OFF) |
-| `src/ext/ui/Dialog/ExtensionsWindow.rsc`, `FoodEatingPage.rsc` (new), `ExtensionsStringTable.rsc`, `ExtensionsSprites.rsc`, `CMakeLists.txt`, `src/ext/resources/resources.cpp` | the window and page resources, their texts (`ExtensionsWindow*`, `FoodEating*`), the embed list and the provider prefixes |
-| `tools/ext_icons/foodeating.py`, `tools/ext_sprites.py`, `Entry_food_eating.png`, `Toolbar_extensions.png`, `ext_sprites_data.h` | the row icon and the toolbar button's icon (programmer art), regenerated with `tools/ext_sprites.py` and `tools/ext_sprites_bake.py` |
-| `tests/unit/ext_food_eating_test.cpp`, `ext_toolbar_test.cpp` (new), `ext_rsc_text_test.cpp`, `tests/unit/sources.cmake` | the tests (section 7) |
+| `src/ext/ui/Dialog/ExtensionsWindow.rsc`, `RestrictedFoodsPage.rsc` (new), `ExtensionsStringTable.rsc`, `ExtensionsSprites.rsc`, `CMakeLists.txt`, `src/ext/resources/resources.cpp` | the window and page resources, their texts (`ExtensionsWindow*`, `RestrictedFoods*`), the embed list and the provider prefixes |
+| `tools/ext_icons/restrictedfoods.py`, `tools/ext_sprites.py`, `Entry_restricted_foods.png`, `Toolbar_extensions.png`, `ext_sprites_data.h` | the row icon and the toolbar button's icon (programmer art), regenerated with `tools/ext_sprites.py` and `tools/ext_sprites_bake.py` |
+| `tests/unit/ext_restricted_foods_test.cpp`, `ext_toolbar_test.cpp` (new), `ext_rsc_text_test.cpp`, `tests/unit/sources.cmake` | the tests (section 7) |
 
-No engine change and no new setting keys beyond `ext.food_eating` (the row's own toggle).
+No engine change and no new setting keys beyond `ext.restricted_foods` (the row's own toggle).
 
 ## 5. Behaviour notes
-* **Off is retail.** Each seam tests `Ext::FoodEating::g_on` first (a load and a not-taken branch); with the row off, or on with no rules, `g_on` is false and both functions are retail's own, in retail's order. Under the faithful profile the row is forced off.
+* **Off is retail.** Each seam tests `Ext::RestrictedFoods::g_on` first (a load and a not-taken branch); with the row off, or on with no rules, `g_on` is false and both functions are retail's own, in retail's order. Under the faithful profile the row is forced off.
 * **Identity is the internal name**, not the file path (OpenBA's `RawMaterialDescription` does not carry its resource path). Two materials from different mods with the same internal name are treated alike (the page lists one cell for both).
 * **The verdict cache** is keyed by the material's description pointer, a side table in the extension (no field in a retail class), dropped when the rules change and when the lock epoch changes (a new game, a load, a mod reload).
 * **Starvation.** `all` (or a list that blocks every food a town has) leaves citizens with nothing they may eat; they starve as in a town with no food. That is what the rule asks for.
 * **The row cannot be switched on in a running town** (DESIGN.md: the lock is on activation). Turn it on in the Extensions menu before starting the town; what the page edits is live from then on.
 
 ## 6. What changed from the first version
-The class (A to C), the storage (`settings.cfg` to the save tail), the control (a Foods window opened from a Foods button in the main / pause menu and a Foods button in the toolbar, to one page in the shared window under one extension button), and the names (`FoodEating` to `Ext::FoodEating`, the string keys and element names to the `<Id><What>` standard). The pause-menu button and its seams in `mainmenudialog.cpp` are gone, as is `Persistence::SetString`.
+The class (A to C), the storage (`settings.cfg` to the save tail), the control (a Foods window opened from a Foods button in the main / pause menu and a Foods button in the toolbar, to one page in the shared window under one extension button), and the names (`RestrictedFoods` to `Ext::RestrictedFoods`, the string keys and element names to the `<Id><What>` standard). The pause-menu button and its seams in `mainmenudialog.cpp` are gone, as is `Persistence::SetString`.
 
 ## 7. Verified / not verified
 * VERIFIED on the rebased branch (`main` `84b3ea0`, MinGW on Windows): unit 1210 / 0 failures / 6 skipped, `tools/acceptance/acceptance.sh` 0 lines off target; `OpenBA.exe` builds with every seam and the window code. Tests: the registry row (class C, off, version 1, the faithful profile turns it off); the codec's round trip (stable: encode(decode(x)) = x), an empty list is still a valid record, a cut-short / over-long / unknown-version / unreadable-rule payload is refused; the state travels in the tail through `ActiveRecords`, `Encode`, `Decode`, `Validate`, `ApplyState` and is gone after `ResetAllState`; the rules grammar and matching; the seam is inert by default;
@@ -104,7 +104,7 @@ The class (A to C), the storage (`settings.cfg` to the save tail), the control (
 * LOOKED AT (a Windows run by the author, 2026-10-20): a new town with the row off has no extension button (the toolbar is retail's); loading the save made with the row on shows the notice that the extension is being turned back on because the save needs it, and the three checked foods come back.
 * RESAVE (2026-10-20, measured on the branch before its rebase onto `main` `84b3ea0`; `tools/resave_gate/resave_gate.sh` in roundtrip mode, in a scratch game directory, `/profile:faithful` for the first leg; the repo's own `Gate.sav` fixture was not available, so the fixture is a copy of the author's 2026-10-18 `Auto.sav`, which carries a class B manifest):
   * **Faithful leg, this branch against a build of `main` `319a6f5`** (the baseline is its own reference, since no golden exists for this fixture): the resaved image has the SAME size (31,712,550 bytes) and every difference (4,284 bytes, three regions) is the same bytes in a different order: records keyed by raw memory address, which the gate's README says move between builds (the `CitizenBehavior` bucket trees). The same neighbourhoods vary by 22 to 26 bytes between two runs of ONE build. So the faithful path is not byte-identical to `main` across builds on this fixture, and the differences are order-only; a same-build golden under the official fixture is the check that settles it.
-  * **Class C leg** (the author's food save, `ext:food_eating` in its manifest; per-entry profile, the manifest locks the set): the resave is byte-identical across two runs (PASS against its own golden, 44,440,446 bytes), the tail record is 242 bytes, and the `food_eating` payload (31 bytes, wire v1) decodes to `bean`, `fish`, `pumpkin`, the three foods the user checked. A save made with the row off carries no `food_eating` record.
-* LOOKED AT in RETAIL (a Windows run by the author, 2026-10-20): a save made with the row on (and the other class B rows) loads in the retail game. Retail shows its missing-mod dialog once per extension ("The following mod can not be found or cannot be loaded", e.g. `Better camera [ext:better_camera]`, "Saved with version 1"), and after Yes on each the game loads fine: it reads the save and ignores the tail. A town saved from retail and loaded again here has no `food_eating` record (retail writes only its own state), so it plays as a town without the extension, as DESIGN.md describes for an extension that is not available.
+  * **Class C leg** (the author's food save, `ext:restricted_foods` in its manifest; per-entry profile, the manifest locks the set): the resave is byte-identical across two runs (PASS against its own golden, 44,440,446 bytes), the tail record is 242 bytes, and the `restricted_foods` payload (31 bytes, wire v1) decodes to `bean`, `fish`, `pumpkin`, the three foods the user checked. A save made with the row off carries no `restricted_foods` record.
+* LOOKED AT in RETAIL (a Windows run by the author, 2026-10-20): a save made with the row on (and the other class B rows) loads in the retail game. Retail shows its missing-mod dialog once per extension ("The following mod can not be found or cannot be loaded", e.g. `Better camera [ext:better_camera]`, "Saved with version 1"), and after Yes on each the game loads fine: it reads the save and ignores the tail. A town saved from retail and loaded again here has no `restricted_foods` record (retail writes only its own state), so it plays as a town without the extension, as DESIGN.md describes for an extension that is not available.
 * NOT VERIFIED: a second extension's tab (only one page exists, so `AddTab` has only ever added one); the faithful gate (resave x5) under the official `Gate.sav` fixture, and a class C golden checked into `docs/runtime_port/resave_gate/golden/` under it. `tools/acceptance` (0 off target) and the ABI audit (OK) pass on this branch.
-* To try it: build, turn **Restricted foods** on in the Extensions menu, start a town, press the new button in the Reports group of the toolbar, check a food. The log lines to read are `[ExtToolbar]`, `[FoodEating]` and `[ExtSave]` on stderr.
+* To try it: build, turn **Restricted foods** on in the Extensions menu, start a town, press the new button in the Reports group of the toolbar, check a food. The log lines to read are `[ExtToolbar]`, `[RestrictedFoods]` and `[ExtSave]` on stderr.

@@ -8,7 +8,7 @@
 
 #include "ext/savetail.h"
 
-#include "ext/food_eating/food_eating.h"   // FoodEating::Codec()
+#include "ext/restricted_foods/restricted_foods.h"   // RestrictedFoods::Codec()
 
 #include <cstring>
 
@@ -17,7 +17,7 @@ namespace SaveTail {
 namespace {
 
 const StateCodec* const* Codecs(int& n) {
-    static const StateCodec* const kCodecs[] = { &FoodEating::Codec() };
+    static const StateCodec* const kCodecs[] = { &RestrictedFoods::Codec() };
     n = static_cast<int>(sizeof(kCodecs) / sizeof(kCodecs[0]));
     return kCodecs;
 }

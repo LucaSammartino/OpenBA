@@ -225,7 +225,7 @@ void InitText() {
     Register("Dialog/Extensions", &ProvideText, nullptr);
     Register("Dialog/EnhancedOptions", &ProvideText, nullptr);
     Register("Dialog/ExtensionsWindow", &ProvideText, nullptr);
-    Register("Dialog/FoodEatingPage", &ProvideText, nullptr);
+    Register("Dialog/RestrictedFoodsPage", &ProvideText, nullptr);
 }
 
 int TextObjectCount() {

@@ -128,7 +128,7 @@ set(EXT_RSC_SOURCES
   ${CMAKE_SOURCE_DIR}/src/ext/ui/Dialog/EnhancedOptions.rsc
   ${CMAKE_SOURCE_DIR}/src/ext/ui/Dialog/ExtensionsStringTable.rsc
   ${CMAKE_SOURCE_DIR}/src/ext/ui/Dialog/ExtensionsWindow.rsc
-  ${CMAKE_SOURCE_DIR}/src/ext/ui/Dialog/FoodEatingPage.rsc)
+  ${CMAKE_SOURCE_DIR}/src/ext/ui/Dialog/RestrictedFoodsPage.rsc)
 set(EXT_RSC_GEN_DIR ${CMAKE_BINARY_DIR}/gen)
 set(EXT_RSC_GEN ${EXT_RSC_GEN_DIR}/ext_rsc_text.h)
 find_package(Python3 COMPONENTS Interpreter QUIET)
