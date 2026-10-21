@@ -47,5 +47,6 @@ SpriteSheet resource
 		{ String _name = "ExtensionsEntry_drain_split";	String _source = "Sprite/Extensions/Entry_drain_split.png"; }
 		{ String _name = "ExtensionsEntry_background_save";	String _source = "Sprite/Extensions/Entry_background_save.png"; }
 		{ String _name = "ExtensionsEntry_better_camera";	String _source = "Sprite/Extensions/Entry_better_camera.png"; }
+		{ String _name = "ExtensionsEntry_high_limits";	String _source = "Sprite/Extensions/Entry_high_limits.png"; }
 	]
 }

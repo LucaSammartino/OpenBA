@@ -63,6 +63,15 @@ const Entry kEntries[] = {
       "Zoom in much closer and out much farther, and keep the camera's tilt when zoomed out "
       "instead of flattening to top-down.",
       1, [](State& s) -> bool& { return s.ext.better_camera; } },
+    // HIGHLIMITS (docs/extensions/handins/HIGHLIMITS.md): the limit spinners of the Town Hall, the Limits
+    // window and the production buildings take values up to 999,999,999 and 9 typed digits instead of
+    // 999,999 and 6. Class B: no serialized state, but a limit above 999,999 is a value the faithful
+    // spinner cannot show, so it is locked for the game and recorded in the save.
+    { "high_limits", Tier::Extension, Class::B, false,
+      "Higher limit values",
+      "Lets the limit boxes in the Town Hall, the Limits window and the production buildings take values "
+      "up to 999,999,999 (retail stops at 999,999). Play diverges.",
+      1, [](State& s) -> bool& { return s.ext.high_limits; } },
 
     { "sharp_ui", Tier::Extension, Class::A, true,
       "Sharp UI",
