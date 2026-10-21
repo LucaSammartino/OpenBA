@@ -270,7 +270,7 @@ its baseline**, at every speed; measured at 10x, 20x and 50x, since a wall-clock
 and a sim-time-periodic cause show at different frame cadences (the 300 sim-second storage
 path-graph rebuild is every 1800 frames at 10x, every 360 at 50x; a frame-counted harness fires
 at the same frame at every speed). The first 12 periods of each class are blind (the median
-needs them). Baseline rows: `perf/results/20261018_01*_hitch_s{50,20,10}*`.
+needs them). Baseline rows: `perf/results/20261018_01*_hitch_s{50,20,10}*` (kept only on the machine that recorded them; results are not committed).
 
 ## Optimisation log (2026-09-04, 800x10, sim ms / iteration)
 
@@ -507,3 +507,8 @@ fast search runs on every request's inputs right after it, on the worker; the pa
 `pf_search_us` columns then include BOTH searches, so a level-3 run is for the shadow columns only;
 compare timing between separate faithful and `ext.fast_paths` runs. Set
 `BANISHED_STRESS_COMPPROF=3` in the environment of the run.
+
+## Native macOS Metal measurement
+
+There is no macOS stress adapter. See [measurement facts](../docs/reference/macos_perf.md) and the
+[historical method](../docs/history/macos/PERF_METHOD.md).
