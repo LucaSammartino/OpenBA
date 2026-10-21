@@ -94,7 +94,8 @@ if want dxmt; then
     git -C "$DXMT_SRC" submodule update -q --init --depth 1 include/native/directx
     echo "== DXMT: meson setup + generated shader headers"
     # native_llvm_path only has to exist for meson's configure step; airconv itself is built by our own CMake.
-    mkdir -p "$LLVM_BUILD"
+    # Meson also insists that <native_llvm_path>/include exists (include_directories), so create that too.
+    mkdir -p "$LLVM_BUILD/include"
     [[ -f "$DXMT_SRC/build/build.ninja" ]] || meson setup "$DXMT_SRC/build" "$DXMT_SRC" -Dbuildtype=release -Dnative_llvm_path="$LLVM_BUILD"
     ninja -C "$DXMT_SRC/build" src/airconv/darwin/libairconv.a.p/air_msad.h \
       src/airconv/darwin/libairconv.a.p/air_samplepos.h src/airconv/darwin/libairconv.a.p/air_tessellation.h
