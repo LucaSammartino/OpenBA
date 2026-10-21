@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 
 namespace Ext {
 namespace DrawBatch {
@@ -50,6 +51,86 @@ struct Span {
 // plus the number of vertices written before that span into `ib`. The caller has checked the
 // run with RunFits, so every rebased index fits 16 bits. Returns the indices written.
 int64_t FillRun(const Span* spans, int32_t count, int32_t stride, uint8_t* vb, uint16_t* ib);
+
+// ---------------------------------------------------------------------------
+// Idea B: the particle vertices of one emitter instance in a merged smoke run.
+// ---------------------------------------------------------------------------
+// ParticleInstance::Draw's 0x34-byte vertex (wave27_lane_gfxpart.cpp, part C), with the dword at
+// +0x0C, which retail writes as the int 0, holding the emitter's transform slot as a float (the
+// rewritten particle VS reads it as v0.w, smoke_vs_rewrite.h). Slot 0 writes retail's bytes.
+struct ParticleVertex {
+    float pos[3];     // +0x00
+    float slot;       // +0x0c  retail: int 0 (== 0.0f's bits)
+    float color[3];   // +0x10
+    float alpha;      // +0x1c
+    float u, v;       // +0x20
+    float cx, cy;     // +0x28
+    float rot;        // +0x30  radians
+};
+static_assert(sizeof(ParticleVertex) == 0x34, "the particle vertex stride is 0x34");
+
+constexpr uint32_t kParticleOneBits      = 0x3F800000u;   // 1.0f, ParticleInstance::Draw's One()
+constexpr uint32_t kParticleDegToRadBits = 0x3C8EFA35u;   // pi/180 as retail's .rdata holds it (DegToRad())
+
+inline float FloatBits(uint32_t bits) {
+    float f;
+    std::memcpy(&f, &bits, sizeof f);
+    return f;
+}
+
+// Writes `count` particles of `records` exactly as ParticleInstance::Draw's part C does -- walked
+// BACKWARD, four corners per particle, six 16-bit indices (b-2, b, b-1, b-2, b+1, b) -- with the
+// index base starting at `firstVertex + 2` instead of 2 (the merged draw's vertex offset) and
+// `slot` at +0x0C. `Record` is RtGraphics::ParticleRecord (or a test's struct with its field names).
+// The caller keeps firstVertex + 4 * count <= 65536, so the 16-bit base never wraps where retail's
+// would not. Returns the vertices written.
+template <class Record>
+int32_t WriteParticles(const Record* records, int32_t count, float alpha, float slot, uint32_t firstVertex,
+                       uint8_t* vb, uint16_t* ib) {
+    static const float kCornerUV[8]     = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+    static const float kCornerOffset[8] = {-1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f};
+    const float one      = FloatBits(kParticleOneBits);
+    const float oneMinus = one - alpha;
+    const float degToRad = FloatBits(kParticleDegToRadBits);
+    uint16_t base = static_cast<uint16_t>(firstVertex + 2);
+    for (int32_t i = 0; i < count; ++i) {
+        const int32_t slotIndex = count - i - 1;
+        const Record& rec = records[static_cast<int64_t>(slotIndex)];
+
+        const float size = (oneMinus * rec._sizePrev) + (alpha * rec._size);
+        const float fade = (oneMinus * rec._alphaPrev) + (alpha * rec._alpha);
+        const float rot  = ((oneMinus * rec._rotPrev) * degToRad) + ((alpha * rec._rot) * degToRad);
+
+        ParticleVertex vertex;
+        vertex.pos[0]   = (rec._pos.x - rec._posPrev.x) * alpha + rec._posPrev.x;
+        vertex.color[0] = (rec._color.x - rec._colorPrev.x) * alpha + rec._colorPrev.x;
+        vertex.pos[1]   = (rec._pos.y - rec._posPrev.y) * alpha + rec._posPrev.y;
+        vertex.color[1] = (rec._color.y - rec._colorPrev.y) * alpha + rec._colorPrev.y;
+        vertex.pos[2]   = (rec._pos.z - rec._posPrev.z) * alpha + rec._posPrev.z;
+        vertex.color[2] = (rec._color.z - rec._colorPrev.z) * alpha + rec._colorPrev.z;
+        vertex.slot     = slot;
+        vertex.alpha    = fade;
+        vertex.rot      = rot;
+        for (int c = 0; c < 4; ++c) {
+            vertex.u  = kCornerUV[c * 2 + 0];
+            vertex.v  = kCornerUV[c * 2 + 1];
+            vertex.cx = size * kCornerOffset[c * 2 + 0];
+            vertex.cy = size * kCornerOffset[c * 2 + 1];
+            std::memcpy(vb, &vertex, sizeof vertex);
+            vb += sizeof vertex;
+        }
+        const uint16_t b = base;
+        ib[0] = static_cast<uint16_t>(b - 2);
+        ib[1] = b;
+        ib[2] = static_cast<uint16_t>(b - 1);
+        ib[3] = static_cast<uint16_t>(b - 2);
+        ib[4] = static_cast<uint16_t>(b + 1);
+        ib[5] = b;
+        ib += 6;
+        base = static_cast<uint16_t>(base + 4);
+    }
+    return 4 * count;
+}
 
 }  // namespace DrawBatch
 }  // namespace Ext

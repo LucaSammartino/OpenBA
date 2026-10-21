@@ -107,7 +107,7 @@ const Entry kEntries[] = {
     // emitters of one material drawn as one dynamic draw; the same vertex bytes in the same order.
     { "draw_batch", Tier::Extension, Class::A, true,
       "Batched small draws",
-      "Draws runs of decals and roads in one go. Same picture.",
+      "Draws runs of decals, roads and smoke in one go. Same picture.",
       0, [](State& s) -> bool& { return s.ext.draw_batch; } },
     { "walk_batch", Tier::Extension, Class::A, true,
       "Batched walking",
