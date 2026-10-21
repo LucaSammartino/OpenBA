@@ -23,9 +23,16 @@ Footprint FootprintFromBounds(const Math::Vector3& boundsMin, const Math::Vector
     f.cy = (boundsMin.y + boundsMax.y) * 0.5f * scale;
     f.ax = (boundsMax.x - boundsMin.x) * 0.5f * scale;
     f.ay = (boundsMax.y - boundsMin.y) * 0.5f * scale;
+    f.height = (boundsMax.z - boundsMin.z) * scale;
     if (f.ax < 0.0f) f.ax = 0.0f;   // an empty box (min > max): a point
     if (f.ay < 0.0f) f.ay = 0.0f;
+    if (f.height < 0.0f) f.height = 0.0f;
     return f;
+}
+
+float TiltSink(const Footprint& f) {
+    const float cap = kTiltSinkFraction * f.height;
+    return cap < kTiltSink ? cap : kTiltSink;
 }
 
 Math::Vector3 RingPoint(const Footprint& f, int i) {
@@ -139,7 +146,7 @@ Math::Transform Seat(const Math::Transform& placed, const Footprint& f, int32_t 
     FitPlane(dx, dy, hz, kRingSamples + 1, &sx, &sy);
     const Math::Quaternion tilt = TiltTo(NormalFromSlopes(sx, sy), kMaxTiltDeg);
     seated.rotation = tilt * placed.rotation;   // yaw first, then the tilt
-    seated.translation.z = SeatHeight(seated.rotation, x, y, f, height, ctx) - kTiltSink;
+    seated.translation.z = SeatHeight(seated.rotation, x, y, f, height, ctx) - TiltSink(f);
     return seated;
 }
 

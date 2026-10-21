@@ -76,13 +76,15 @@ parked).
   conjugate (`transform.cpp`: `(q * v) * conj(q)` with the reversed product), so the tilt's vector
   part is negated; and `(a * b).Rotate(v) == a.Rotate(b.Rotate(v))`, so the result is `tilt * yaw`
   (yaw kept). Seat: z = min over the ring of (terrain under the turned point - the point's height
-  above the origin), and the centre height, minus 0.02 (`kTiltSink`) so the rim never shows a hairline.
+  above the origin), and the centre height, minus `TiltSink(f)` = min(0.06, 0.12 x the mesh height)
+  (`kTiltSink`, `kTiltSinkFraction`; section 7). A boulder goes 0.06 under its lowest ring point, a
+  0.26-tall ore piece 0.031.
 - Unit tests (`tests/unit/ext_rock_seat_test.cpp`, 9 cases): footprint from bounds (and the empty
   box), plane fit recovers slopes and refuses collinear input, the normal is perpendicular to the
   plane, `TiltTo(n).Rotate(up) == n` and the cap, the engine product order, flat ground keeps
   retail's transform (x / y / rotation exact), sink on an 8 degree slope (no ring point floats, the
   lowest one touches), tilt on a slope (up = normal, heading kept within 6 degrees, every ring point
-  exactly `kTiltSink` under the plane), the row and the mode key. `tools/build.sh unit perf`:
+  exactly `TiltSink(f)` under the plane), the sink's height cap, the row and the mode key. `tools/build.sh unit perf`:
   **1216 tests, 0 failures**, 1 skipped (the kit cross-check, needs ToolKit output).
 
 ## 4. Screenshots (session scratchpad, not in the tree)
@@ -140,3 +142,36 @@ test at each of the four sites. Not timed separately (well under the load's nois
   (retail buried that side). Seating puts the lowest ring point on the ground, so nothing floats.
 - Game dir left as found: `OpenBA.exe` md5 `6a1eac9d...` redeployed, `settings.cfg` restored byte for
   byte (`fc /b`: no differences, md5 `5266a21f...`), lock released.
+
+## 7. Follow-up (2026-10-21): "minor minor sink + tilt"
+
+The user picked tilt and reported a small lit gap left under the boulder row on tilt (the lower-left
+edge of a large boulder where its base meets a small rock, `row_tilt_8192_crop.png`). Ruling: keep
+tilt, add a minor sink. Tried `kTiltSink` 0.02 / 0.06 / 0.10 / 0.15 (perf exes, new game and Gate.sav
+load, the boulder row at 8192, the close-up and the hillside):
+
+- **The hairline along a boulder's lower edge does not depend on the sink.** At 4x zoom the same thin
+  lit line runs along the right boulder's lower-left edge at 0.02, 0.06, 0.10 and 0.15. A floating rim
+  would make a band whose width is the rim height times cot(sun elevation), shrinking by about 0.1 world
+  units (several pixels at this zoom) between 0.02 and 0.15; it does not move. It is the contact
+  itself: the sun pass draws only the away-facing faces (cull FRONT, no bias), so along the line where a
+  buried face meets the ground the stored depth equals the receiver's and the 3x3 PCF lets a texel's
+  worth of light through. Any object resting on the ground has it; no placement closes it.
+- **The pockets of lit grass between a boulder base and a neighbouring small rock** do shrink with the
+  sink (some at 0.06, more at 0.10 / 0.15): there the ground curves between ring samples and the rim
+  stood a little above it.
+- **Small ore pieces disappear quickly.** In the close-up the flat ore piece is visible at 0.02 and 0.06,
+  mostly buried at 0.10 and nearly gone at 0.15.
+
+**Chosen: 0.06, capped at 12 % of the rock's height** (`TiltSink(f) = min(kTiltSink, kTiltSinkFraction *
+f.height)`, the height from the mesh's local AABB). Boulders (about 1.1 tall) get the full 0.06; ore
+pieces (0.26 .. 0.4 tall) get 0.03 .. 0.05 and stay clearly visible on the hillside. More ring samples or
+the mesh's real bottom vertices were not needed: the remaining line is the shadow contact, not a missed
+edge (the vertices are not on the CPU either: the mesh keeps only its AABB there).
+
+Unit: 1216 tests, 0 failures, 1 skipped (`ext_rock_seat_footprint_from_bounds` now also checks the cap).
+
+Comparison image for the user (columns off / tilt 0.02 / tilt + 0.06 capped; rows boulder row 8192,
+close-up, hillside; new game seed 12345, so the sun differs per column):
+`R\rockseat_compare2.jpg`. Game dir left as found again (`OpenBA.exe` md5 `6a1eac9d...`,
+`settings.cfg` byte-identical, lock released).

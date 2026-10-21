@@ -59,6 +59,14 @@ UNIT_TEST(ext_rock_seat_footprint_from_bounds) {
     const Footprint e = FootprintFromBounds(Math::Vector3(1e8f, 1e8f, 1e8f), Math::Vector3(-1e8f, -1e8f, -1e8f), 1.0f);
     CHECK(Near(e.ax, 0.0f));
     CHECK(Near(e.ay, 0.0f));
+    CHECK(Near(e.height, 0.0f));
+    CHECK(Near(f.height, 4.0f));
+    // The tilt sink: kTiltSink for a boulder, a fraction of the height for a small ore piece.
+    CHECK(Near(TiltSink(Rock()), kTiltSink));
+    const Footprint ore = FootprintFromBounds(Math::Vector3(-0.46f, -0.61f, -0.02f),
+                                              Math::Vector3(0.35f, 0.53f, 0.24f), 1.0f);
+    CHECK(Near(TiltSink(ore), kTiltSinkFraction * 0.26f));
+    CHECK(TiltSink(ore) < kTiltSink);
     // The ring lies on the ellipse, in the z = 0 plane.
     for (int i = 0; i < kRingSamples; ++i) {
         const Math::Vector3 p = RingPoint(f, i);
@@ -141,7 +149,7 @@ UNIT_TEST(ext_rock_seat_flat_ground_keeps_retail) {
         CHECK(Near(s.rotation.y, placed.rotation.y));
         CHECK(Near(s.rotation.z, placed.rotation.z));
         CHECK(Near(s.rotation.w, placed.rotation.w));
-        const float expectZ = mode == kSink ? 1.25f : 1.25f - kTiltSink;
+        const float expectZ = mode == kSink ? 1.25f : 1.25f - TiltSink(Rock());
         CHECK(Near(s.translation.z, expectZ));
     }
 }
@@ -182,11 +190,11 @@ UNIT_TEST(ext_rock_seat_tilt_on_a_slope) {
         const float la = std::sqrt(ax.x * ax.x + ax.y * ax.y);
         const float lr = std::sqrt(rx.x * rx.x + rx.y * rx.y);
         CHECK((ax.x * rx.x + ax.y * rx.y) / (la * lr) > 0.995f);   // within ~6 degrees of retail's heading
-        // On a plane the whole ring is kTiltSink under the ground: none floats, none buried deeper.
+        // On a plane the whole ring is TiltSink under the ground: none floats, none buried deeper.
         for (int i = 0; i < kRingSamples; ++i) {
             const Math::Vector3 w = s * RingPoint(f, i);
             const float gap = w.z - PlaneHeight(&slope, w.x, w.y);
-            CHECK(Near(gap, -kTiltSink, 1e-3f));
+            CHECK(Near(gap, -TiltSink(f), 1e-3f));
         }
     }
 }
