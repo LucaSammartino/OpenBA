@@ -38,6 +38,7 @@
 #include <cstring>
 #include "system/String.h"
 #include "ui/UserInterface.h"   // the fix.ui_scale_layout seam (DESIGN.md hook rule 5)
+#include "Game/WorldGeometry.h"  // the ext.terrain_batch seam (DESIGN.md hook rule 5)
 
 namespace Ext {
 
@@ -146,6 +147,11 @@ void InitFromSettings() {
     // registry's discrete key never holds another value). Same rule as the bool above.
     ::Graphics::SunLight::_extMaxShadowSize =
         CurrentProfile() == Profile::Faithful ? nullptr : &Val().max_shadow_size;
+    // ext.terrain_batch (class A, live): the WorldGeometry seam follows the row's live bool. Installed
+    // once, like the sun map's: under the faithful profile it stays null, so no run index buffer is
+    // built and the terrain loop and draw pay one null test each.
+    ::WorldGeometry::_extTerrainBatch =
+        CurrentProfile() == Profile::Faithful ? nullptr : &Ext().terrain_batch;
     // ext.seamless_loops (class A, next start): the Audio::SoundBuffer::DecodeAtLoad seam, set ONCE
     // here from the boot value (it reads nothing live: a buffer already decoded keeps its PCM, so the
     // dialog's toggle is recorded for the next start). Null under the faithful profile (which turns the

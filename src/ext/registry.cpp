@@ -204,6 +204,15 @@ const Entry kEntries[] = {
       "Saves are written on a worker thread while the town holds still for a moment; the screen "
       "and the camera keep moving. Identical save files.",
       0, [](State& s) -> bool& { return s.ext.background_save; } },
+    // TERRAINBATCH (docs/extensions/handins/TERRAINBATCH.md; gpuframe/ideas_passes.md ranks 2 and 4):
+    // each grid row's run of visible terrain chunks is one draw (same vertices, indices, order and
+    // state as the chunk draws), and the shadow pass skips the chunks whose shadow cannot reach the
+    // view. The picture is unchanged.
+    { "terrain_batch", Tier::Extension, Class::A, true,
+      "Batched terrain drawing",
+      "Draws each row of visible terrain in one call and skips shadow work for terrain whose shadow "
+      "cannot reach the screen. Same picture.",
+      0, [](State& s) -> bool& { return s.ext.terrain_batch; } },
     // SEAMLESS (docs/extensions/handins/SEAMLESS.md, CHATTER-DIAG.md): every looping ambience's decoded
     // PCM loses its codec tail and has its end folded into its start, at load. The seam
     // Audio::SoundBuffer::_extLoopSeam is installed at boot, so a toggle takes effect at the next start.
