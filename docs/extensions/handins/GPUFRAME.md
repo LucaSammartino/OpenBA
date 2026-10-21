@@ -75,3 +75,28 @@ opaque shadow cards, cascades, smaller reflection target, AO changes (the user's
 - 3 decal batching, 4 terrain row merge, 5 smoke batching, 6 fence before Present, 7 terrain shadow
   chunk cull: ACCEPTED, built in worktrees from `gpuframe`.
 - 8 instance batches above 52: NOT BUILT until there is proof that more batching moves perf.
+
+## Results and the merge (2026-10-20 night)
+Built in worktrees from `gpuframe`, integrated on `gpuframe-int` (sprite atlas re-baked: the text merge
+kept both new sprites but one count). Unit 1207 / 0 / 1 skipped.
+
+A/B, stress town, zoom 130, the user's settings with the 4096 map (so CPU savings can show), three
+interleaved rounds; one leg dropped (another session switched the shared checkout and compiled during it):
+
+| arm | fps | frame ms | p95 ms | render-thread emit ms |
+|---|---|---|---|---|
+| base | 324 | 3.09 | 7.13 | 1.84 |
+| fence before Present (RENDERPIPE_FENCE.md) | 331 | 3.02 | 6.13 | 2.10 |
+| draw_batch off / on (DRAWBATCH.md) | 331 / 333 | 3.02 / 3.00 | 6.81 / 6.99 | 1.78 / 1.70 |
+| terrain_batch off / on (TERRAINBATCH.md) | ~330 / 333 | ~3.0 / 3.00 | 6.9 / 7.0 | 1.78 / 1.78 |
+
+Captures of the integrated exe (8192 map): 2156 draws with both batching rows off, 1145 on (reflection
+416 -> 297, shadow 591 -> 389, main 512 -> 386, late pass 620 -> 56); the live frame does not move: the
+GPU is the bound on this box (RTX 5080, SM 97%). trace_oracle: S6 0, S4 identical on both sides
+(pre-existing exceptions), S3 suppressed (no control pair). Device-lost forced on the render thread's
+Present with the fence: one round trip, clean quit.
+
+**RULED (the user, 2026-10-20):** the fence ships; ext.draw_batch and ext.terrain_batch ship default ON
+despite the neutral fps on this box, for weaker CPUs (an explicit exception to "no off-switched perf
+bodies"); idea 8 (>52 instances) stays unbuilt — the 2156 -> 1145 capture is the proof that more batching
+does not move this frame. The rock / iron shadow gap the user saw is a separate investigation (SHADOWGAP).
