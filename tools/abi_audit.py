@@ -20,9 +20,10 @@ the build when such a type moves a PINNED offset; this script covers what they c
      accident of the data model (a new member can be absorbed by padding the asserts never see).
      Allowed findings are listed in the baseline (`pinned` rows); any other one fails.
 (ii) PATTERN COUNTS. The plans/ABI.md section-A patterns, counted as LINES (comments and string
-     contents stripped first) per top-level directory, outside src/platform/win, src/render/dx11 and
-     src/diag/win (the Windows backends, where they belong; src/diag/win is the Windows-only
-     diagnostics directory, D4_RULES C10). A line inside a Windows-only preprocessor branch
+     contents stripped first) per top-level directory, outside src/platform/win, src/render/dx11,
+     src/diag/win, src/platform/darwin and src/diag/darwin (the platform backends, where they
+     belong; src/diag/win is the Windows-only diagnostics directory, D4_RULES C10, and the
+     darwin twins are its macOS counterpart). A line inside a Windows-only preprocessor branch
      (`#ifdef _WIN32`, `#if defined(_WIN32) && ...`, the `#else` of `#ifndef _WIN32`; likewise
      `_WIN64`, `__MINGW32__`, `__MINGW64__`, `_MSC_VER`) is Windows backend code kept beside its
      POSIX twin: it is not counted, and the number of such lines is printed. An `||` condition and
@@ -50,7 +51,7 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASELINE = os.path.join(ROOT, 'tools', 'abi_audit.baseline')
 SCAN_ROOTS = ['src', 'tests']
-EXCLUDED = ('src/platform/win/', 'src/render/dx11/', 'src/diag/win/')
+EXCLUDED = ('src/platform/win/', 'src/render/dx11/', 'src/diag/win/', 'src/platform/darwin/', 'src/diag/darwin/')
 EXTS = ('.h', '.hpp', '.cpp', '.inl')
 
 # ---------------------------------------------------------------------------------------------
