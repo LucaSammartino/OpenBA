@@ -18,12 +18,13 @@ RIM = (42, 42, 42, 255)
 FILL = (232, 232, 232, 255)
 
 
-def icon():
-    """A cog with a plus cut into its hub, white with antialiased alpha and NO outline, like the
+def icon(size=W):
+    """A cog (size x size; 16 by default, 32 for the toolbar button) with a plus cut into its hub, white with antialiased alpha and NO outline, like the
     kit's 16 x 16 ButtonIcons (Scenario / Achievement / Options are pure white silhouettes with
     27-79 alpha levels; the dark-rimmed version this replaces was the only outlined icon on the
     main menu, the user 2026-10-17). Drawn at 8x and box-filtered down for the soft edges."""
     S = 8
+    W = H = size
     big = Image.new("L", (W * S, H * S), 0)
     px = big.load()
     cx, cy, s = (W * S - 1) * 0.5, (H * S - 1) * 0.5, W * S * 0.5
@@ -73,6 +74,39 @@ def options_enhanced():
                 a = max(a, 1.0 - 0.45 * max(0.0, (bx + by) * 0.5 + 0.2))
             if a > 0.0:
                 px[x, y] = (255, 255, 255, int(round(255 * min(1.0, a))))
+    return img
+
+
+def foods_icon():
+    """The Foods menu button's icon: a white apple with a leaf, antialiased like icon() (drawn at 8x, box-filtered)."""
+    S = 8
+    big = Image.new("L", (W * S, H * S), 0)
+    px = big.load()
+    for y in range(H * S):
+        for x in range(W * S):
+            fx, fy = (x + 0.5) / S, (y + 0.5) / S            # in 16 x 16 pixel units
+            on = False
+            # two overlapping discs make the apple's shoulders; a notch at the top centre, a flat-ish bottom
+            for cx in (6.0, 10.0):
+                dx, dy = (fx - cx) / 4.6, (fy - 9.2) / 5.0
+                if dx * dx + dy * dy <= 1.0:
+                    on = True
+            if abs(fx - 8.0) < 0.9 and fy < 6.3:               # the notch between the shoulders
+                on = False
+            if abs(fx - 8.0) < 0.5 and 2.6 < fy < 6.0:         # the stem
+                on = True
+            ex, ey = (fx - 10.6) / 2.4, (fy - 3.4) / 1.2       # the leaf, tilted by shearing
+            ex += (fy - 3.4) * 0.5
+            if ex * ex + ey * ey <= 1.0:
+                on = True
+            px[x, y] = 255 if on else 0
+    alpha = big.resize((W, H), Image.BOX)
+    img = Image.new("RGBA", (W, H), CLEAR)
+    img.putalpha(alpha)
+    ipx, apx = img.load(), alpha.load()
+    for y in range(H):
+        for x in range(W):
+            ipx[x, y] = (255, 255, 255, apx[x, y])
     return img
 
 
@@ -152,6 +186,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     icon().save(os.path.join(OUT, "ExtensionsIcon.png"))
     options_enhanced().save(os.path.join(OUT, "OptionsEnhanced.png"))
+    icon(32).save(os.path.join(OUT, "Toolbar_extensions.png"))   # the toolbar's one extension button: the cog at the toolbar icons' 32 px
     glyph("F", TIER_COLOUR["fix"]).save(os.path.join(OUT, "TierFix.png"))
     glyph("A", TIER_COLOUR["A"]).save(os.path.join(OUT, "TierA.png"))
     glyph("B", TIER_COLOUR["B"]).save(os.path.join(OUT, "TierB.png"))
@@ -162,7 +197,7 @@ def main():
         draw(img.load())
         img = img.resize((W * ICON_SCALE, H * ICON_SCALE), Image.NEAREST)
         img.save(os.path.join(OUT, "Entry_%s.png" % entry_id))
-    print("wrote %d sprites to %s" % (6 + len(icons), OUT))
+    print("wrote %d sprites to %s" % (7 + len(icons), OUT))
 
 
 if __name__ == "__main__":

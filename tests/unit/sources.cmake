@@ -59,6 +59,10 @@ set(UNIT_TREE_SRCS
   ${CMAKE_SOURCE_DIR}/src/ext/ambient_occlusion/ao_math.cpp   # ext_ambient_occlusion_test.cpp (block AOCORE)
   ${CMAKE_SOURCE_DIR}/src/ext/seamless_loops/seamless_loops.cpp   # ext_seamless_loops_test.cpp (block SEAMLESS)
   ${CMAKE_SOURCE_DIR}/src/ext/high_limits/high_limits.cpp             # ext_high_limits_test.cpp (HIGHLIMITS)
+  ${CMAKE_SOURCE_DIR}/src/ext/food_eating/food_eating.cpp            # ext_food_eating_test.cpp (FOODEATING)
+  ${CMAKE_SOURCE_DIR}/src/ext/food_eating/save_state.cpp             #   its class C codec
+  ${CMAKE_SOURCE_DIR}/src/ext/toolbar/toolbar.cpp                    # ext_toolbar_test.cpp (the page list; the page is stubbed there)
+  ${CMAKE_SOURCE_DIR}/src/ext/state_codecs.cpp                       # savetail.cpp's FindCodec (the class C codec table)
   ${CMAKE_SOURCE_DIR}/src/ext/spread_warmth/spread_warmth.cpp     # ext_spread_warmth_test.cpp (HITCH_PFBURST)
   ${CMAKE_SOURCE_DIR}/src/ext/drain_split/drain_split.cpp         # ext_drain_split_test.cpp (HITCH_DRAINSPLIT)
   ${CMAKE_SOURCE_DIR}/src/render/common/better_trees/dxbc.cpp            # ext_better_trees_test.cpp (block FAA-CORE)

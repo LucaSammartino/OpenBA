@@ -86,6 +86,9 @@ struct Extensions {
     bool max_shadow_res = false; // class A: src/ext/max_shadow_res/ (the Enhanced tab row) + the Graphics::SunLight seam (docs/extensions/handins/FAA-SHADOW.md)
     bool seamless_loops = false; // class A, next start: src/ext/seamless_loops/ (docs/extensions/handins/SEAMLESS.md)
     bool better_trees = false; // class A: src/ext/better_trees/ (docs/extensions/handins/BETTER-TREES.md): smooth leaf edges + stable tree shading + edge dapple
+    // class C: src/ext/food_eating/ (docs/extensions/handins/FOODEATING.md); the foods checked on the Foods
+    // page are not eaten
+    bool food_eating = false;
     bool spread_warmth = false; // class B: src/ext/spread_warmth/ (docs/extensions/handins/HITCH_PFBURST.md)
     bool async_save_compress = false; // class A: src/ext/async_save_compress/, seam IO::CompressedStream::_extAsyncCompress (docs/extensions/handins/HITCH_SAVE.md)
     bool drain_split = false; // class B: src/ext/drain_split/ (docs/extensions/handins/HITCH_DRAINSPLIT.md)

@@ -17,6 +17,8 @@
 // been seen through resolve.h.  ENDGAME B.3.5 caller batch I2.
 #include "graphics/Scene.h"
 #include "Component/StorageComponent.h"   // B.3.8 CB1a (TypeId)
+// EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): ext.food_eating (class C), Ext::FoodEating::Blocked
+#include "ext/food_eating/food_eating.h"
 #include "graphics/Mesh.h"
 #include "err_line.h"   // HITCH_POSTDRAIN: one write per diagnostic line
 #include "Component/InteractComponent.h"       // ENDGAME B.3.9 C1: 0x1401c7900 cell class
@@ -1802,6 +1804,10 @@ ComponentDescription** CitizenComp_Entity_impl_ef40(const void* param_1, Compone
         // 0x14008f019 MOV ECX,[RAX+0x5c]).
         bool bitSet = shift >= 0 &&
             ((mat->_flags >> shift) & 1);
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): a blocked food is not eligible for
+        // the eating category.
+        if (bitSet && param_4 == 0 && Ext::FoodEating::Blocked(mat, mat->_flags, mat->_name._data))
+            bitSet = false;
         int demand = listBase[row]._count -
                      listBase[row]._reserve;
         if (bitSet && demand > 0) {
@@ -1822,6 +1828,10 @@ ComponentDescription** CitizenComp_Entity_impl_ef40(const void* param_1, Compone
         RawMaterialDescription* mat = findMat(entryP->_resource);
         bool bitSet = shift >= 0 &&
             ((mat->_flags >> shift) & 1);   // 0x14008f144..0x14008f1a8, no test
+        // EXT SEAM (NOT RETAIL, docs/extensions/handins/FOODEATING.md): the same test as pass 1, so both
+        // passes agree.
+        if (bitSet && param_4 == 0 && Ext::FoodEating::Blocked(mat, mat->_flags, mat->_name._data))
+            bitSet = false;
         int demand = entryP->_count - entryP->_reserve;
         if (bitSet && demand > 0) {
             if (chosen == cur) { *param_2 = entryP->_resource; return param_2; }
