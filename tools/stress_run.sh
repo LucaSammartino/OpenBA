@@ -258,9 +258,15 @@ if [ -n "${STRESS_EXT:-}" ]; then
     # The registry's VALUED keys (src/ext/registry.cpp kValueKeys: ext.ao_quality 1..3,
     # ext.ao_opacity 0..30) are settings, not toggles: put back what the file held, so a leg
     # can carry e.g. ext.ao_quality=3 (zeroed, it clamped to 1; found by AOCORE 2026-10-14).
-    for vk in ao_quality ao_opacity; do
+    # (foliage_aa_mode and max_shadow_size added 2026-10-20: zeroed, a leg ran the 4096 map and
+    # mode 0 while its label claimed the user's 8192 / mode 2 -- found by the GPU-frame legs.)
+    for vk in ao_quality ao_opacity foliage_aa_mode max_shadow_size; do
         v=$(grep "^ext\.$vk=" "$CFG_SAVED" | tail -1 | cut -d= -f2 | tr -d '\r')
         if [ -n "$v" ]; then sed -i "s/^ext\.$vk=.*/ext.$vk=$v/" "$CFG"; fi
+    done
+    # STRESS_EXT_VALUES="k=v,k=v": per-leg overrides of the valued keys (e.g. max_shadow_size=4096).
+    for kv in $(echo "${STRESS_EXT_VALUES:-}" | tr ',' ' '); do
+        sed -i "s/^ext\.${kv%%=*}=.*/ext.${kv%%=*}=${kv#*=}/" "$CFG"
     done
     if [ "${STRESS_FIXES:-off}" != "keep" ]; then
         sed -i 's/^\(fix\.[a-z0-9_]*\)=.*/\1=0/' "$CFG"
