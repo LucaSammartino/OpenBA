@@ -33,6 +33,7 @@ SpriteSheet resource
 		{ String _name = "ExtensionsEntry_render_culling";	String _source = "Sprite/Extensions/Entry_render_culling.png"; }
 		{ String _name = "ExtensionsEntry_anim_batch";	String _source = "Sprite/Extensions/Entry_anim_batch.png"; }
 		{ String _name = "ExtensionsEntry_draw_gather";	String _source = "Sprite/Extensions/Entry_draw_gather.png"; }
+		{ String _name = "ExtensionsEntry_draw_batch";	String _source = "Sprite/Extensions/Entry_draw_batch.png"; }
 		{ String _name = "ExtensionsEntry_walk_batch";	String _source = "Sprite/Extensions/Entry_walk_batch.png"; }
 		{ String _name = "ExtensionsEntry_walk_batch_grid";	String _source = "Sprite/Extensions/Entry_walk_batch_grid.png"; }
 		{ String _name = "ExtensionsEntry_render_pipe";	String _source = "Sprite/Extensions/Entry_render_pipe.png"; }
