@@ -13,6 +13,7 @@
 
 #include "ext/registry.h"
 #include "ext/draw_gather/draw_gather.h"   // ext.draw_gather: its engine seams follow the toggle
+#include "ext/draw_batch/draw_batch.h"     // ext.draw_batch: the Renderer::_extDrawItemList seam follows the toggle
 #include "ext/background_save/background_save.h"   // ext.background_save: the Save::SaveLoad seam follows the toggle
 #include "ext/render_pipe/render_pipe.h"   // ext.render_pipe: the MainLoop::_extFrame seam follows the toggle
 #include "ext/ambient_occlusion/ambient_occlusion.h"      // ext.ambient_occlusion: the readable depth + the arm follow the toggle
@@ -124,6 +125,8 @@ void InitFromSettings() {
     ::Save::SaveLoad::_extExtraMods = SaveModsProvider() != nullptr ? &EngineExtraMods : nullptr;
     // ext.draw_gather (class A, live): the three Graphics::Scene seams (scene_ext.h).
     Ext::DrawGather::Sync();
+    // ext.draw_batch (class A, live): the Graphics::Renderer::_extDrawItemList seam.
+    Ext::DrawBatch::Sync();
     // ext.render_pipe (class A, live): the Engine::MainLoop::_extFrame seam.
     Ext::RenderPipe::Sync();
     // ext.ambient_occlusion (class A, live): the main depth's format + the per-frame arm.
@@ -192,6 +195,7 @@ void InitFromSettings() {
 bool SetAndRecord(const Entry& e, bool on) {
     const bool changedNow = SetRequested(e, on);
     Ext::DrawGather::Sync();   // a class A toggle takes effect now (no-op for every other entry)
+    Ext::DrawBatch::Sync();    // on / off: the DrawItemList seam is set or cleared now
     Ext::RenderPipe::Sync();   // on: installed now; off: drained and removed at the next Frame tail
     Ext::AmbientOcclusion::Sync();   // on / off: the depth rebuild is requested, the arm follows at once
     BetterTrees::Sync();        // on: the seams are set now; off: cleared at the next pixel / vertex bind

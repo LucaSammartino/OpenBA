@@ -77,6 +77,7 @@ struct Extensions {
     bool render_culling = false; // class A: src/ext/render_culling/ (docs/extensions/handins/PERFXEXT.md)
     bool anim_batch     = false; // class B: src/ext/anim_batch/ (docs/extensions/handins/PERFXEXT.md)
     bool draw_gather    = false; // class A: src/ext/draw_gather/ (docs/extensions/handins/DRAWGATHER.md)
+    bool draw_batch     = false; // class A: src/ext/draw_batch/ (docs/extensions/handins/DRAWBATCH.md)
     bool walk_batch     = false; // class A: src/ext/walk_batch/ (docs/extensions/handins/WALKBATCH.md)
     bool walk_batch_grid = false; // class B: src/ext/walk_batch_grid/ (docs/extensions/handins/WALKGRID.md)
     bool render_pipe    = false; // class A: src/ext/render_pipe/ (docs/extensions/handins/RENDERPIPE0.md)

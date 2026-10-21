@@ -103,6 +103,12 @@ const Entry kEntries[] = {
       "Faster scene gathering",
       "Skips out-of-view objects without touching them. Same picture.",
       0, [](State& s) -> bool& { return s.ext.draw_gather; } },
+    // DRAWBATCH (docs/extensions/handins/DRAWBATCH.md): consecutive decals, roads and smoke
+    // emitters of one material drawn as one dynamic draw; the same vertex bytes in the same order.
+    { "draw_batch", Tier::Extension, Class::A, true,
+      "Batched small draws",
+      "Draws runs of decals and roads in one go. Same picture.",
+      0, [](State& s) -> bool& { return s.ext.draw_batch; } },
     { "walk_batch", Tier::Extension, Class::A, true,
       "Batched walking",
       "Above 1x speed, walking steps take a shortcut. Same positions.",
