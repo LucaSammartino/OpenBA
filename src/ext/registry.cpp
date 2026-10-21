@@ -46,6 +46,15 @@ const Entry kEntries[] = {
       "Dialogs no longer flash to a corner when the UI scale changes.",
       0, [](State& s) -> bool& { return s.fix.ui_scale_layout; } },
 
+    // ROCKSEAT (docs/extensions/handins/ROCKSEAT.md, docs/retail_bugs.md section 7): rocks and ore
+    // are drawn seated on the slope (the valued key rock_seat_mode below picks how). Render only:
+    // the serialized transform, the sim and the save are retail's.
+    { "rock_seat", Tier::Fix, Class::None, true,
+      "Rocks sit on the ground",
+      "Rocks and iron deposits on a slope no longer float on their downhill side, so their shadows "
+      "meet them.",
+      0, [](State& s) -> bool& { return s.fix.rock_seat; } },
+
     // Extensions. Each one adds a field to Ext::Extensions and a row here:
     // Tier::Extension, its Class, default true for class A / false for B or C, and for class B or C its
     // formatVersion (>= 1). The id is [a-z0-9_]+ (the unit tests check every row).
@@ -256,6 +265,12 @@ const ValueKey kValueKeys[] = {
     // retail's 1024 / 512 whatever this says (src/engine/graphics/sunlight.cpp SunMapRawSize).
     { "max_shadow_size", "max_shadow_res", 4096, 8192, 4096,
       [](State& s) -> int32_t& { return s.val.max_shadow_size; }, kMaxShadowSizes, 2 },
+    // ROCKSEAT: how fix.rock_seat seats a rock (src/ext/rock_seat/rock_seat_math.h): 1 sinks it to the
+    // lowest ground under its bottom ring, 2 tilts it to the slope and seats it (the default: sink
+    // buries small rocks on a slope, ROCKSEAT.md section 4). The only valued key owned by a fix; the
+    // fix's bool is the off switch.
+    { "rock_seat_mode", "rock_seat", 1, 2, 2,
+      [](State& s) -> int32_t& { return s.val.rock_seat_mode; }, nullptr, 0 },
 };
 
 constexpr int kValueKeyCount = static_cast<int>(sizeof(kValueKeys) / sizeof(kValueKeys[0]));

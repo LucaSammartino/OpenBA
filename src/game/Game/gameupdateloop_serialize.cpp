@@ -98,6 +98,7 @@
 #include "ext/registry.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): the B / C lock from the save
 #include "ext/savetail.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTSAVE.md): the block-1 tail manifest
 #include "ext/async_save_compress/async_save_compress.h"   // EXT SEAM (NOT RETAIL, docs/extensions/handins/HITCH_SAVE.md): ext.async_save_compress, the save arm
+#include "ext/rock_seat/rock_seat.h"   // FIX rock_seat (NOT RETAIL, docs/extensions/handins/ROCKSEAT.md): the post-load seat
 #include <string>
 #include <vector>
 #include "load_time.h"   // [LoadTime] stamps (NOT RETAIL, print-only; block LOADSTAMP)
@@ -732,6 +733,11 @@ void GameUpdateLoop::SerializeAllBody(IO::Stream& stream, SerializeScope& scope)
     LoadTime::Stamp("ser.postload", serDir);   // NOT RETAIL: print-only
     EntityList_PostLoad_c4730(m_entityList, &stream);
     m_citizenList->PostLoad();   // 0x14008f580 (0x140095d44: [RDI+0xf0], no test)
+    // FIX rock_seat (NOT RETAIL, docs/extensions/handins/ROCKSEAT.md): the entities were read before
+    // the terrain, so the rocks' meshes are seated now. Render only: nothing serialized changes.
+    if (!IsSaving(&stream) && Ext::Fix().rock_seat) {
+        Ext::RockSeat::SeatAll(m_entityList);
+    }
 
     intFactory->ClearPersistState();   // 0x140095d50-0x140095d5a: no test (row 1247)
     if (refIdMemo) {   // NOT RETAIL (HITCH_SAVE): close the memo window
