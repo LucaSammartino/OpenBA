@@ -18,6 +18,8 @@
 // Kept free of every graphics header: the Video types are forward-declared.
 // ============================================================================
 
+#include <cstdint>
+
 namespace Video {
 class Device;
 class DeviceData;
@@ -30,6 +32,12 @@ namespace Render {
 const char* DeviceName();
 // A new backend DeviceData for `device`, returned as its base.
 ::Video::DeviceData* CreateDeviceData(::Video::Device* device);
+
+// The graphics-API SDL window flag the backend needs when the game window is created
+// (SDL_WINDOW_METAL for Metal), as an SDL_WindowFlags value; 0 when the backend needs none.
+// Only the Darwin window twin asks (src/platform/darwin/window_darwin.cpp); the posix and
+// Windows twins set their own flags (Vulkan on Linux) and do not call this.
+uint64_t GraphicsWindowFlags();
 
 // ---- the second slot (dllSlots[kInterfaceDX9]) ------------------------------------
 // The cutover-only placeholder that keeps one GraphicsInterface entry per slot

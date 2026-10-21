@@ -154,6 +154,50 @@ UNIT_TEST(ext_sharp_ui_variant_pick) {
     CHECK(PickVariantHeight(24, 2.0f) == 24);
     CHECK(PickVariantHeight(24, 0.5f) == 24);
     CHECK(PickVariantHeight(24, 0.0f) == 24);
+    // ...and the swap-for-itself is only for a ratio near 1.
+    CHECK(Ext::SharpUI::NativePickFitsRatio(24, 1.0f));
+    CHECK(Ext::SharpUI::NativePickFitsRatio(24, 1.015f));
+    CHECK(!Ext::SharpUI::NativePickFitsRatio(24, 2.0f));
+    CHECK(!Ext::SharpUI::NativePickFitsRatio(14, 0.5f));
+    CHECK(!Ext::SharpUI::NativePickFitsRatio(24, 0.0f));
+
+    // Retina (density 2): the 2x ratio gets a 2x-height variant; 1x is untouched.
+    using Ext::SharpUI::PickRetinaVariantHeight;
+    CHECK(Ext::SharpUI::RetinaHigh(24) == 64 && Ext::SharpUI::RetinaHigh(14) == 37 && Ext::SharpUI::RetinaHigh(48) == 128);
+    CHECK(PickRetinaVariantHeight(24, 2.0f) == 48);
+    CHECK(PickRetinaVariantHeight(14, 2.0f) == 28);
+    CHECK(PickRetinaVariantHeight(18, 2.0f) == 36);
+    CHECK(PickRetinaVariantHeight(48, 2.0f) == 96);
+    CHECK(PickRetinaVariantHeight(24, 2.0f / 0.75f) == 64);      // slider 75% on Retina
+    CHECK(PickRetinaVariantHeight(24, 2.0f / 1.5f) == 32);       // slider 150%: the 1x range
+    CHECK(PickRetinaVariantHeight(24, 4.0f) == 24);              // beyond RetinaHigh: retail
+    CHECK(Ext::SharpUI::IsRetinaVariantHeight(24, 48) && !Ext::SharpUI::IsRetinaVariantHeight(24, 32));
+    CHECK(!Ext::SharpUI::IsRetinaVariantHeight(48, 97) && Ext::SharpUI::IsRetinaVariantHeight(48, 96));
+    // 1x is identical to PickVariantHeight over the whole slider range.
+    for (int base : {14, 18, 24, 48})
+        for (float ppu = 0.5f; ppu <= 1.5f; ppu += 0.0125f)
+            CHECK(PickRetinaVariantHeight(base, ppu) == PickVariantHeight(base, ppu) ||
+                  ppu > 4.0f / 3.0f);
+    for (int base : {14, 18, 24, 48})
+        for (float ppu = 0.5f; ppu <= 4.0f / 3.0f; ppu += 0.0125f)
+            CHECK(PickRetinaVariantHeight(base, ppu) == PickVariantHeight(base, ppu));
+
+    // Density 1 follows upstream's selection exactly: reference copy of upstream's flow.
+    for (int base = 12; base <= 64; ++base) {
+        for (int i = 0; i <= 700; ++i) {
+            const float ppu = 0.6667f + static_cast<float>(i) * (1.3333f - 0.6667f) / 700.0f;
+            const int upstream = PickVariantHeight(base, ppu);   // upstream: pick = PickVariantHeight
+            bool keep = true;
+            const int now = Ext::SharpUI::PickFontHeight(base, ppu, 1.0f, &keep);
+            CHECK(now == upstream);
+            CHECK(!keep);
+        }
+    }
+    {
+        bool keep = false;
+        CHECK(Ext::SharpUI::PickFontHeight(24, 2.0f, 2.0f, &keep) == 48 && !keep);
+        CHECK(Ext::SharpUI::PickFontHeight(24, 4.0f, 2.0f, &keep) == 24 && keep);
+    }
 
     char path[64];
     CHECK(Ext::SharpUI::VariantFontPath("FontSmall", 19, path, sizeof path));

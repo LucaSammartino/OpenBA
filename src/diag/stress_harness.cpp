@@ -83,7 +83,7 @@
 #if defined(_WIN32)
 #include <windows.h>
 #include <intrin.h>
-#else
+#elif defined(__x86_64__)
 #include <x86intrin.h>   // __rdtsc (Phase D.4 LINUX-1)
 #endif
 #include "platform_time.h"   // Platform::PerfCounter / PerfFrequency / LocalTimeNow
@@ -204,9 +204,9 @@ double QpcMs(long long ticks) {
 // 800x10. Convert with a TSC/QPC ratio measured over the process lifetime (first call = t0).
 double TscMs(long long tsc) {
     static long long tsc0 = 0, qpc0 = 0;
-    if (!tsc0) { int64_t q; Platform::PerfCounter(&q); qpc0 = q; tsc0 = (long long)__rdtsc(); return 0.0; }
+    if (!tsc0) { int64_t q; Platform::PerfCounter(&q); qpc0 = q; tsc0 = CompProf_Now(); return 0.0; }
     int64_t q; Platform::PerfCounter(&q);
-    const long long dt = (long long)__rdtsc() - tsc0, dq = q - qpc0;
+    const long long dt = CompProf_Now() - tsc0, dq = q - qpc0;
     if (dt <= 0 || dq <= 0) return 0.0;
     return QpcMs((long long)((double)tsc * ((double)dq / (double)dt)));
 }
