@@ -17,7 +17,9 @@
 #include "io/settings_file.h"     // Phase D.4 SETTINGS E.4: the harness guard
 #include "io/settings_store.h"    //   and DumpVideoSettings read settings.cfg
 #include "runtime_init.h"
+#if defined(_WIN32)
 #include "VideoDX11Plugin.h"   // B5 DEV-A: VideoDX11::Dx11SwapChain (the two swap-chain probes)
+#endif
 #include "video_interface.h"
 #include "renderdoc_integration.h"
 #include "stall_debug.h"

@@ -1,6 +1,6 @@
 # src/platform/darwin — macOS twins
 
-Empty until the macOS port lands. The rule this directory follows:
+macOS implementations of the platform seams live here. The replacement rule:
 
 - On Apple, CMake globs `src/platform/posix/*.cpp`, `common/`, `sdl/` (as on Linux)
   **and** `src/platform/darwin/*.cpp` (`CMakeLists.txt`, the `PLATFORM_SRCS` block).
@@ -16,5 +16,15 @@ Empty until the macOS port lands. The rule this directory follows:
   whose win / posix bodies are empty), never behind `#if defined(__APPLE__)` in
   `src/app`, `src/game` or `src/engine`.
 
-`src/diag/posix` has no Darwin directory: it is globbed only inside the Linux `OpenBA`
-target (`DIAG_POSIX_SRCS`), not through `PLATFORM_SRCS`.
+Diagnostics use the same rule independently of `PLATFORM_SRCS`: on Apple,
+`src/diag/darwin/boot_state_watchdog_darwin.cpp` and `crash_handler_darwin.cpp`
+replace their `src/diag/posix/*_posix.cpp` twins in `DIAG_POSIX_SRCS` for `OpenBA`.
+Their CMake selection lives in the Metal/CMake part (2/3); parts 1/3 and 2/3 land together.
+The unit source substitution also handles diagnostic twins when a diagnostic source
+is listed. Currently the unit target links neither watchdog nor crash handler; it
+supplies its own `_purecall` in `tests/unit/posix_crt_stubs.cpp`.
+
+Application startup and shutdown use `Platform::App` hooks in `platform_app.h`.
+Window setup and mode queries use `Platform::Window` hooks in
+`platform_window_hooks.h`; pixel density is queried live through
+`display_density.h`. The Darwin platform implementation owns those behaviors.

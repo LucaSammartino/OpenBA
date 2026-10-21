@@ -9,6 +9,7 @@
 // Original source: C:\Projects\Buildy\code\Game\Dialog/OptionsDialog.h
 //                  Dialog\OptionsDialog.cpp
 
+#include "platform/common/display_density.h"
 #include "ui/TextElement.h"   // ENDGAME B.3.6 UI callers (K2)
 #include "ui/ComboElement.h"   // ENDGAME B.3.6 UI callers (K2)
 #include "ui/TabElement.h"   // ENDGAME B.3.6 UI callers (K2)
@@ -664,7 +665,10 @@ void OptionsDialog::OnOpened() {
     // --- UI scale slider ---
     if (s_enableUIScaleSlider) {
         this->sliderUIScale = FindElementAs<UI::SliderElement>(this, "sliderUIScale");
-        SetSliderRange(this->sliderUIScale, 75.0f, 150.0f);
+        float uiScaleMin = 75.0f;
+        float uiScaleMax = 150.0f;
+        Platform::Display::UiScaleSliderRange(&uiScaleMin, &uiScaleMax);   // unchanged at density 1
+        SetSliderRange(this->sliderUIScale, uiScaleMin, uiScaleMax);
         if (g_gameSettings != nullptr)
             SetSliderValue(this->sliderUIScale, (float)g_gameSettings->uiScale);
     }

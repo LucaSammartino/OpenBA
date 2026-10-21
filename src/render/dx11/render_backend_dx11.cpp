@@ -21,6 +21,10 @@ const char* DeviceName() {
     return VideoDX11::Dx11_CreateDeviceData(device);
 }
 
+uint64_t GraphicsWindowFlags() {
+    return 0;
+}
+
 const char* PlaceholderDeviceName() {
     return VideoDX11::Dx9Placeholder_GetDeviceName();
 }

@@ -56,6 +56,12 @@
 #   4 run did not finish within --timeout    5 no CSV produced (harness never armed)
 #   6 run completed but the process crashed during teardown (numbers are valid)
 
+# The macOS stress harness is not part of this repository.
+if [ "$(uname -s)" = Darwin ]; then
+    echo "macOS stress harness is not part of this repository; run the stress town directly with BANISHED_STRESS=1 (see perf/README.md)" >&2
+    exit 2
+fi
+
 set -u
 cd "$(dirname "$0")/.." || exit 1
 REPO="$(pwd)"

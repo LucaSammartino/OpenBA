@@ -36,6 +36,11 @@
 #include <cstdint>
 
 struct Options {
+    // ── harness: Apple window and input logger (inert off Apple) ──
+    bool inputTrace = false;            // BANISHED_INPUT_TRACE: input_trace.log (tools/macos/handtest/run_handtest.sh sets it)
+    bool background = false;            // BANISHED_BACKGROUND: small unobtrusive window (tools/macos/handtest/run_handtest.sh
+                                        //   --background sets it; the launcher scripts of the packaging PR also set it)
+
     // ── harness drivers: menu → game (src/diag/autostart.cpp) ──────────────
     bool        autostart            = false;  // Makefile sa-run, tools/cutover_run.sh, perf/mintsel, CLAUDE.md
     int         autostartFrames      = 0;      //   numeric value > 1 overrides the 60-frame menu settle; 0 = default
