@@ -11,6 +11,7 @@
 | Ext A | Sharp UI | Scale text with UI so it remains sharp. Note this requires the release TTF files be installed |
 | Ext A | Skip unseen work | Skip offscreen animations, particles to save cycles. |
 | Ext A | Faster scene gathering | Skips animations/pathing of gathering offscreen objects. |
+| Ext A | Batched small draws | Draws runs of decals, roads and smoke as one draw each. Same picture. |
 | Ext A | Batched walking | Batches walking operations above 1x speed. |
 | Ext A | Render thread | Renders on a 2nd thread. |
 | Ext A | Parallel culling | Take the ofscreeen work culling algo and spread across multiple threads. |

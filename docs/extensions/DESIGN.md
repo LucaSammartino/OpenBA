@@ -358,7 +358,7 @@ underscores dropped (`MYLIST`).
 | element lookup | `Ext::FindElement<T>(page, name)` in `src/ext/ui/find_element.h` (the Enhanced tab's contributions use it) |
 | our `.rsc` text | `src/ext/ui/Dialog/<Id>Page.rsc`, root object `page<Id>`; elements `<kind><Id><What>` (`tableMyList`, `checkMyListRow`, `comboAmbientOcclusion`); strings in `Dialog/ExtensionsStringTable.rsc`, `_name = "<Id><What>"` |
 | sprites | `src/ext/ui/Dialog/Sprite/Extensions/Entry_<id>.png` (the dialog row's icon), `Toolbar_extensions.png` (the one shared button); baked by `tools/ext_sprites_bake.py` |
-| per-object flag | never a new field in a retail class (every `sizeof` is asserted): a side table in the extension keyed by the object's id, or a documented spare bit; engine-side seams are `_ext<What>` static data pointers (`Graphics::SunLight::_extShadowFitView`) |
+| per-object flag | never a new field in a retail class (every `sizeof` is asserted): a side table in the extension keyed by the object's id, or a documented spare bit; engine-side seams are `_ext<What>` static data pointers (`Graphics::SunLight::_extShadowFitView`, `Graphics::Renderer::_extDrawItemList`); a backend-side seam is a `g_ext<What>` atomic in the backend (`VideoDX11::g_extDrawBatchVs`) |
 | seam comment | `// EXT SEAM (NOT RETAIL, docs/extensions/handins/<ID>.md): <one line of what and when>` at every faithful site, including dialog arms |
 | log prefix | `[<Id>]` on stderr (`[ExtSave]`, `[AmbientOcclusion]`); never stdout |
 | hand-in / block | `docs/extensions/handins/<ID>.md`; a follow-up block `<ID>2`, `<ID>-<PART>` (`FAA-SHADOW2`) |
