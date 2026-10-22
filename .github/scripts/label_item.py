@@ -46,7 +46,7 @@ PATH_AREAS = [
 ]
 PATH_PLATFORMS = [
     (r"^src/platform/win/", "platform: windows"),
-    (r"^(src/platform/darwin/|src/render/metal/)", "platform: macos"),
+    (r"^(src/platform/darwin/|src/render/metal/|tools/macos/)", "platform: macos"),
     (r"^tools/linux_", "platform: linux"),
 ]
 DOCS_ONLY = re.compile(r"^docs/|\.md$")
