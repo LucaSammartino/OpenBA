@@ -27,22 +27,6 @@ uint32_t GetU32(const uint8_t* p) {
            (static_cast<uint32_t>(p[2]) << 16) | (static_cast<uint32_t>(p[3]) << 24);
 }
 
-// A bounds-checked cursor over the body.
-struct Reader {
-    const uint8_t* p;
-    size_t         left;
-    bool U32(uint32_t& v) {
-        if (left < 4) return false;
-        v = GetU32(p); p += 4; left -= 4;
-        return true;
-    }
-    bool Bytes(size_t n, const uint8_t*& at) {
-        if (left < n) return false;
-        at = p; p += n; left -= n;
-        return true;
-    }
-};
-
 }  // namespace
 
 const char* StatusName(Status s) {
@@ -110,7 +94,7 @@ Status Decode(const uint8_t* data, size_t size, std::vector<Record>& out) {
     if (static_cast<size_t>(bodyLength) != size - kTrailerBytes) return Status::Truncated;
     if (Crc32(data, bodyLength) != crc) return Status::BadChecksum;
 
-    Reader r{data, bodyLength};
+    Reader r(data, bodyLength);
     uint32_t m = 0, version = 0, count = 0;
     r.U32(m);
     r.U32(version);
@@ -170,12 +154,25 @@ std::vector<Record> ActiveRecords() {
         Record r;
         r.id = e.id;
         r.formatVersion = e.formatVersion;
+        if (const StateCodec* c = FindCodec(e.id)) c->encode(r.payload);   // class B: no codec, empty payload
         out.push_back(std::move(r));
     }
     return out;
 }
 
 std::vector<uint8_t> EncodeActive() { return Encode(ActiveRecords()); }
+
+bool ApplyState(const std::vector<Record>& records, std::string* offending) {
+    for (const Record& r : records) {
+        const StateCodec* c = FindCodec(r.id.c_str());
+        if (c == nullptr) continue;   // a class B row: the payload is empty
+        if (!c->decode(r.payload.data(), r.payload.size(), r.formatVersion)) {
+            if (offending != nullptr) *offending = r.id;
+            return false;
+        }
+    }
+    return true;
+}
 
 }  // namespace SaveTail
 }  // namespace Ext

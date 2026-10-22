@@ -6,6 +6,7 @@
 // ============================================================================
 
 #include "ext/registry.h"
+#include "ext/savetail.h"   // ResetAllState: UnlockForGame (class C state goes with the game)
 
 #include <cstring>
 
@@ -158,6 +159,14 @@ const Entry kEntries[] = {
       "Max shadow resolution",
       "Shadow Resolution High builds a 4096 shadow map instead of 2048.",
       0, [](State& s) -> bool& { return s.ext.max_shadow_res; } },
+    // RESTRICTEDFOODS (docs/extensions/handins/RESTRICTEDFOODS.md): the foods checked on the Foods page stay
+    // Edible for storage, markets and recipes but are not eaten by citizens. Class C: the checked list is the
+    // town's own state, recorded in the save's tail (src/ext/restricted_foods/save_state.cpp).
+    { "restricted_foods", Tier::Extension, Class::C, false,
+      "Restricted foods",
+      "Lets you stop citizens eating foods you choose, from the Foods page in a game. Play diverges; the "
+      "choice is recorded in the save.",
+      1, [](State& s) -> bool& { return s.ext.restricted_foods; } },
     // HITCH_PFBURST (docs/extensions/handins/HITCH_PFBURST.md): a per-frame budget of the cold
     // citizens' warm-house scans (one region path search per residence), so a cold spell at high
     // speed spreads its scans over a few frames instead of one 10-20 ms frame.
@@ -470,6 +479,9 @@ void UnlockForGame(const void* owner) {
     g_lockOwner = nullptr;
     ++g_lockEpoch;
     g_lockKeepsRequest = false;
+    // A class C extension's per-town state goes with the town that held the lock: only the owner's unlock
+    // gets here, so a reload whose new loop already took the lock keeps the state it decoded.
+    SaveTail::ResetAllState();
     // Back at the menu nothing holds the lock: the active state is the request.
     for (const Entry& e : kEntries)
         e.slot(g_active) = e.slot(g_requested);

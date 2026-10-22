@@ -27,3 +27,4 @@
 | Ext B | Batched walking, faster | Precache walking to save animation cycles. |
 | Ext B | Spread warmth searches | At high speed, cold citizens pick a warm house a few frames later instead of all in one frame. |
 | Ext B | Split the job reassignment | At high speed, the five-minute job assignment runs one frame after the housing pass. |
+| Ext C | Restricted foods | Stop citizens eating foods you choose, from the Foods page of the extension window (the toolbar's cog button, in a game). They can still be stored, sold and cooked. Off by default; locked for the game, and the choice is recorded in the town's save. |
