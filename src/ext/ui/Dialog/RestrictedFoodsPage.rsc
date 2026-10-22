@@ -30,6 +30,8 @@ RibbonDescription pageRestrictedFoods
 TextDescription textRestrictedFoodsHint : "Extensions.rsc:textProfile"
 {
 	Alignment _alignment = MidLeft;
+	int _leftPad = 4;		// the first letter in line with the check boxes of the list
+	int _topPad = 10;		// as much room above the line as below it
 	String _text = "RestrictedFoodsHint";
 }
 
@@ -72,6 +74,7 @@ TableDescription tableRestrictedFoods
 {
 	int _width = 4;
 	int _height = 1;
+	int _spacing = 4;		// a gap between cells, so a cell never runs into the next column
 	TableItem _items [ { int _x = -1; int _y = -1; ElementDescription _element = "ribbonRestrictedFoodsCell"; } ]
 }
 
@@ -97,6 +100,7 @@ CheckDescription checkRestrictedFoodsRow : "Extensions.rsc:checkLoaded"
 // The Town Hall's inventory item label (20 px icon, small font, 132 px wide), its text from our table's "@0".
 LabelDescription labelRestrictedFoodsRow : "TownHall.rsc:storageItem"
 {
+	int _minWidth = 119;		// fills the cell (_minWidth 140 = 1 + the check box + 2 + this): no empty tail
 	StringTable _stringTable = "ExtensionsStringTable.rsc";
 	String _text = "RestrictedFoodsParam";
 }
