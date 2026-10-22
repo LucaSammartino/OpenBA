@@ -134,7 +134,25 @@ extension gets its own resave golden under its profile (Gates, below). A save th
 extension the player has turned off shows our `TurnedOff` notice (`src/ext/load_notice.h`); on Yes
 the manifest locks the extension ON for that town and its state is restored (ruled 2026-10-21: the
 save keeps the extensions it was made with). Turning it off for a town is the in-game toggle above,
-which drops the payload at the reload.
+which drops the payload at the reload. Per-entity state (a value per citizen or per building) is a
+payload too, keyed by a stable name or id; `decode` runs after the whole world is deserialized, so the
+objects exist. A codec's `encode` runs on the save worker (ext.background_save): it reads only plain
+state its extension owns, never a UI object, and that state is not written during a frozen update.
+
+**Host records (ruled 2026-10-21, handins/EXTHOSTS.md).** The tail (version 2) carries two kinds of
+record, told apart by a kind byte, with a must-understand flag beside it. *Extension records* are the
+above: one per active B / C extension, always must-understand, and they ARE the lock set (an unknown id
+or a newer `formatVersion` is fatal). *Host records* are the per-town state of a shared surface (the
+toolbar window: open, where, which page), PRESENTATION ONLY: anything a reload must restore for the
+town to play on as saved is an extension record. A host record is never in the lock set; an unknown
+host, a newer host version or a payload its codec refuses is dropped with a log line and the host keeps
+its defaults. Host records are written only beside at least one extension record, so a town with only
+class A (or no) extensions still writes zero bytes and its window does not reopen. Retail's equivalent
+is PlayerToolManager's pinned-window set, which cannot hold a non-retail window: its key is a retail
+template path in retail's part of the save. A later record kind needs no new chunk version: an
+unknown kind without the must-understand flag is dropped, one with it is fatal. Not built (no
+extension needs it yet): state that survives an extension being turned off and on again, which would
+be a third kind carried through untouched.
 
 **Surfaces: the UI axis is not the class axis (ruled 2026-10-20).** The class letter answers one
 question only, what a toggle costs the player's save. Where an extension shows up in the UI is a
@@ -332,6 +350,7 @@ underscores dropped (`MYLIST`).
 | Enhanced tab rows | `src/ext/<id>/enhanced_entry.cpp`, accessor `Ext::EnhancedTab::<Id>Entry()` declared in `enhanced_tab.h` |
 | toolbar page | `src/ext/<id>/toolbar_page.cpp`, accessor `Ext::Toolbar::<Id>Page()` declared in `src/ext/toolbar/toolbar.h` |
 | class C codec | `src/ext/<id>/save_state.cpp`, accessor `Ext::<Id>::Codec()` declared in `<id>.h`; the struct `Ext::SaveTail::StateCodec` in `savetail.h`; the table `kCodecs` + `Ext::SaveTail::FindCodec(id)` in `src/ext/state_codecs.cpp` (linked into the unit build too, so a codec stays standard C++ with no engine headers) |
+| host codec | a shared host's `Ext::SaveTail::HostCodec` (`id`, its own `formatVersion`, `encode` / `decode` / `reset`) in the host's own directory (`src/ext/toolbar/window_state.cpp`: `Toolbar::WindowCodec()`, host id `toolbar`); the table `Ext::SaveTail::FindHostCodec(id)` in `src/ext/host_codecs.cpp` (linked into the unit build too), only for hosts of the Surfaces table |
 | byte helpers | `Ext::SaveTail::Writer` (`U32`, `I32`, `String`, `Bytes`) and `Ext::SaveTail::Reader` (`U32`, `I32`, `String`, `Bytes`, `AtEnd`), promoted from `savetail.cpp` to `savetail.h` by the first codec; no per-extension copies |
 | codec callbacks | `encode` / `decode` / `reset`; the wire format is documented at the top of `save_state.cpp` ("Wire format v<n>") |
 | load and reset arms | `Ext::SaveTail::ApplyState(records, &offending)` hands each record's payload to its codec, once, after the manifest's lock on both load routes; `Ext::SaveTail::ResetAllState()` runs every codec's `reset` (new game, and inside `Ext::UnlockForGame` for the lock's owner only) |

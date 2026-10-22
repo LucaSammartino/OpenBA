@@ -20,6 +20,8 @@
 // The host's arms (the one EXT SEAM line per site):
 //   src/game/Dialog/toolbardialog.cpp   InsertAt / Style while the Reports group is built, Toggle on the
 //                                       button's click
+//   src/game/Dialog/entityui.cpp        RestoreWindow in PlayerToolManager::Startup (the window reopens
+//                                       with the save, window_state.h)
 //
 // Standard C++ for the list and Offered (tests/unit/ext_toolbar_test.cpp links toolbar.cpp alone); the
 // window, the button and the helpers every page shares are toolbar_window.cpp (exe only).
@@ -92,6 +94,9 @@ int InsertAt(const ::Toolbar* group, const ::Toolbar* const* items, int n);
 void Style(UI::Element* button, int32_t index);
 // The button's click: opens the window, or closes it when it is open.
 void Toggle(UI::UserInterface* ui);
+// PlayerToolManager::Startup's EXT SEAM, after retail reopened its pinned utility windows: reopens the
+// window when the town's save had it open (window_state.h) and some page is offered.
+void RestoreWindow(UI::UserInterface* ui);
 
 }  // namespace Toolbar
 }  // namespace Ext

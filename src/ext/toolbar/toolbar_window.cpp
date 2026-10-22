@@ -39,6 +39,7 @@
 #include "ext/toolbar/toolbar.h"
 #include "ext/registry.h"
 #include "ext/ui/find_element.h"
+#include "ext/toolbar/window_state.h"   // SavedWindow(): open / where / which page, the host record
 
 #include <cctype>
 #include <cstdint>
@@ -59,9 +60,7 @@ constexpr const char* kSpritesRsc     = "Dialog/ExtensionsSprites.rsc";
 constexpr int32_t kToolbarSortPriority = 950;   // between Town Hall (900) and Help (1000)
 
 class Window;
-Window* g_open = nullptr;   // the one open window (null when closed)
-int g_windowX = 24;         // where it sits: a utility window remembers its place while the game runs
-int g_windowY = 120;
+Window* g_open = nullptr;   // the one open window (null when closed); where it sits is SavedWindow()
 
 const UI::Dialog* LoadDialog(const char* path) {
     if (!::Object::ExternalFactory::_singleton) {
@@ -130,6 +129,7 @@ struct OpenPage {
     const Contribution* contribution = nullptr;
     Object::InternalPtr<UI::Element> root;
     int32_t idBase = 0;   // the page's element ids are [idBase, idBase + kPageIdSpan)
+    int32_t tab = 0;      // its index in the TabElement
 };
 
 class Window final : public UI::DialogInstance {
@@ -148,6 +148,7 @@ public:
 
     void OnOpened() override {
         g_open = this;
+        SavedWindow().open = true;
 
         // The title bar is the game's own (StandardDialog.rsc:titleBar), wired the way ToolUI::OnCreated
         // wires a utility window's: the title text, the close button (id 1) and the drag handle (borderTitle:
@@ -169,6 +170,7 @@ public:
             return;
         }
         UI::TabElement* tabs = static_cast<UI::TabElement*>(tabsElement);
+        _tabs = tabs;
         UI::ElementDescription* buttonDesc = LoadDescription(kTabButtonRsc);
         if (buttonDesc == nullptr) {
             return;
@@ -209,16 +211,29 @@ public:
             p.contribution = c;
             p.root = root;
             p.idBase = IdBaseFor(static_cast<int>(_pages.size()));
+            p.tab = tabIndex;
             _pages.push_back(p);
             c->open(root.Get(), p.idBase);
             std::fprintf(stderr, "[ExtToolbar] page %s opened (tab %d)\n", c->id, tabIndex);
         }
         if (_pages.empty()) {
             std::fprintf(stderr, "[ExtToolbar] no page opened: empty window\n");
+            return;
         }
+        // The page that was showing (by its id; the first page when it is gone or none was saved).
+        for (const OpenPage& p : _pages) {
+            if (SavedWindow().page == p.contribution->id) {
+                tabs->SetActiveTab(p.tab);
+                break;
+            }
+        }
+        _shownTab = -1;   // OnUpdate records the showing page
     }
 
     void OnClosed() override {
+        // The player closed it. A quit or a load deletes the window without OnClosed: the save already
+        // holds `open`, and the next town starts from the reset.
+        SavedWindow().open = false;
         ClosePages();
         if (g_open == this) {
             g_open = nullptr;
@@ -264,6 +279,7 @@ public:
     // until it is released.
     void OnUpdate(const System::Time& time) override {
         UI::DialogInstance::OnUpdate(time);
+        RecordShownPage();
         if (!_dragging || Input::Configuration::_singleton == nullptr) {
             return;
         }
@@ -280,14 +296,32 @@ public:
             y = 0;
         }
         SetUpperLeft(x, y, false);
-        g_windowX = x;
-        g_windowY = y;
+        SavedWindow().x = x;
+        SavedWindow().y = y;
         if (keyMap->GetValue(0, 5) == 0) {
             _dragging = false;
         }
     }
 
 private:
+    // The showing page into SavedWindow().page, when the player switched tabs.
+    void RecordShownPage() {
+        if (_tabs == nullptr) {
+            return;
+        }
+        const int32_t active = _tabs->GetActiveTab();
+        if (active == _shownTab) {
+            return;
+        }
+        _shownTab = active;
+        for (const OpenPage& p : _pages) {
+            if (p.tab == active) {
+                SavedWindow().page = p.contribution->id;
+                return;
+            }
+        }
+    }
+
     void ClosePages() {
         for (OpenPage& p : _pages) {
             p.contribution->close();
@@ -296,6 +330,8 @@ private:
     }
 
     std::vector<OpenPage> _pages;
+    UI::TabElement* _tabs = nullptr;   // owned by the dialog's element tree
+    int32_t _shownTab = -1;
     bool _dragging = false;
     int  _dragOffsetX = 0;
     int  _dragOffsetY = 0;
@@ -314,7 +350,8 @@ void OpenWindow(UI::UserInterface* ui) {
         return;
     }
     Window* dlg = ::new (mem) Window(ui, rsc);
-    dlg->SetUpperLeft(g_windowX, g_windowY, false);   // where it was last, as a utility window remembers
+    // Where it was last, as ToggleUtilityDialog places a pinned utility window (no clamp, as retail's).
+    dlg->SetUpperLeft(SavedWindow().x, SavedWindow().y, false);
     Object::InternalPtr<UI::DialogInstance> ref(dlg);
     ui->AddDialog(&ref);   // dispatches OnOpened
 }
@@ -345,6 +382,18 @@ std::string Lower(const char* s) {
         c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
     return out;
+}
+
+void RestoreWindow(UI::UserInterface* ui) {
+    // A save made with the window open reopens it, as PlayerToolManager::Startup reopens retail's pinned
+    // utility windows; only while some page is offered (a reload that turned the last contributor off
+    // opens nothing).
+    if (ui == nullptr || !SavedWindow().open || !Offered()) {
+        return;
+    }
+    std::fprintf(stderr, "[ExtToolbar] reopening the extension window at %d,%d (page '%s')\n",
+                 SavedWindow().x, SavedWindow().y, SavedWindow().page.c_str());
+    OpenWindow(ui);
 }
 
 void Toggle(UI::UserInterface* ui) {

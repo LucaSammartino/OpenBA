@@ -42,6 +42,7 @@ void ResetAllState() {
     for (int i = 0; i < n; ++i) {
         codecs[i]->reset();
     }
+    ResetAllHostState();   // the shared hosts' per-town state goes with the town too
 }
 
 }  // namespace SaveTail

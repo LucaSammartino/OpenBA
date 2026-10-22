@@ -815,6 +815,17 @@ static void ExtSave_ReadTail(GameUpdateLoop* owner, IO::CompressedMemoryStream* 
         return;
     }
     std::string offending;
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTHOSTS.md): extension records are the lock set; host
+    // records (a shared surface's per-town state, presentation only) never reach Validate or the lock.
+    std::vector<Ext::SaveTail::Record> hosts;
+    std::vector<std::string> droppedKinds;
+    if (st == Ext::SaveTail::Status::Ok) {
+        const std::vector<Ext::SaveTail::Record> all = records;
+        st = Ext::SaveTail::SplitKinds(all, records, hosts, &droppedKinds, &offending);
+    }
+    for (const std::string& id : droppedKinds) {
+        fprintf(stderr, "[ExtSave] record %s of a kind this build does not have -- dropped\n", id.c_str());
+    }
     if (st == Ext::SaveTail::Status::Ok)
         st = Ext::SaveTail::Validate(records, &offending);
     if (st != Ext::SaveTail::Status::Ok) {
@@ -850,6 +861,10 @@ static void ExtSave_ReadTail(GameUpdateLoop* owner, IO::CompressedMemoryStream* 
         fprintf(stderr, "[ExtSave] manifest: %u B / C extension(s) locked for this game from the save:",
                 static_cast<unsigned>(records.size()));
     }
+    for (const Ext::SaveTail::Record& r : records)
+        fprintf(stderr, " %s(v%d)", r.id.c_str(), r.formatVersion);
+    fprintf(stderr, "\n");
+    fflush(stderr);
     // EXT SEAM (NOT RETAIL, docs/extensions/handins/RESTRICTEDFOODS.md): class C, each record's payload
     // is that extension's per-town state (savetail.h, StateCodec). After the whole block above, so it
     // runs on both routes.
@@ -857,9 +872,16 @@ static void ExtSave_ReadTail(GameUpdateLoop* owner, IO::CompressedMemoryStream* 
         ExtSave_Fatal("This save's ext:" + offending + " state is damaged.");
         return;
     }
-    for (const Ext::SaveTail::Record& r : records)
-        fprintf(stderr, " %s(v%d)", r.id.c_str(), r.formatVersion);
-    fprintf(stderr, "\n");
+    // EXT SEAM (NOT RETAIL, docs/extensions/handins/EXTHOSTS.md): the host records; never fatal (a refused
+    // one leaves that host at its defaults). PlayerToolManager::Startup reopens the window from it.
+    std::vector<std::string> notes;
+    Ext::SaveTail::ApplyHostState(hosts, &notes);
+    for (const std::string& n : notes) {
+        fprintf(stderr, "[ExtSave] %s\n", n.c_str());
+    }
+    if (!hosts.empty()) {
+        fprintf(stderr, "[ExtSave] %u host record(s) read\n", static_cast<unsigned>(hosts.size()));
+    }
     fflush(stderr);
 }
 
