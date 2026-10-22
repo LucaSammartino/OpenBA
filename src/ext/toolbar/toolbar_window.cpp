@@ -297,7 +297,8 @@ private:
 
     std::vector<OpenPage> _pages;
     bool _dragging = false;
-    int  _dragOffsetX = 0, _dragOffsetY = 0;
+    int  _dragOffsetX = 0;
+    int  _dragOffsetY = 0;
 };
 
 void OpenWindow(UI::UserInterface* ui) {
@@ -378,7 +379,10 @@ int InsertAt(const ::Toolbar* group, const ::Toolbar* const* items, int n) {
     }
     int at = n;
     for (int i = 0; i < n; ++i) {
-        if (items[i] != nullptr && items[i]->_field50 > kToolbarSortPriority) { at = i; break; }
+        if (items[i] != nullptr && items[i]->_field50 > kToolbarSortPriority) {
+            at = i;
+            break;
+        }
     }
     std::fprintf(stderr, "[ExtToolbar] the extension button goes at slot %d of %d in the Reports group\n",
                  at, n);
