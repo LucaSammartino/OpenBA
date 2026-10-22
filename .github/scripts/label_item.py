@@ -49,6 +49,9 @@ PATH_PLATFORMS = [
     (r"^(src/platform/darwin/|src/render/metal/|tools/macos/)", "platform: macos"),
     (r"^tools/linux_", "platform: linux"),
 ]
+# posix/<name>_posix.cpp builds on Linux, and on macOS too unless darwin/<name>_darwin.cpp
+# replaces it (CMakeLists.txt, src/platform/darwin/README.md).
+POSIX_SRC = re.compile(r"^src/platform/posix/(\w+)_posix\.cpp$")
 DOCS_ONLY = re.compile(r"^docs/|\.md$")
 CRASH_LOG = re.compile(r"standalone_(crash|hang)\.log|exception code|stack trace|backtrace", re.I)
 
@@ -74,6 +77,20 @@ def from_paths(files, table):
             if re.search(pattern, path):
                 hits.append(label)
                 break
+    return list(dict.fromkeys(hits))
+
+
+def posix_platforms(files, repo):
+    posix = [f for f in files if f.startswith("src/platform/posix/")]
+    if not posix:
+        return []
+    darwin = set(gh("api", f"repos/{repo}/contents/src/platform/darwin", "--jq", ".[].name").split())
+    hits = []
+    for path in posix:
+        hits.append("platform: linux")
+        twin = POSIX_SRC.match(path)
+        if not twin or f"{twin.group(1)}_darwin.cpp" not in darwin:
+            hits.append("platform: macos")
     return list(dict.fromkeys(hits))
 
 
@@ -139,6 +156,7 @@ def main():
         add += from_paths(files, PATH_AREAS)
         add += [a for a in model_areas if a not in mapped][:1]
         add += from_paths(files, PATH_PLATFORMS)
+        add += posix_platforms(files, repo)
     else:
         add += model_areas[:MAX_AREAS]
         if platform in platforms:
